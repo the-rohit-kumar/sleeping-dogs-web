@@ -28,3 +28,4 @@ with open(big_path, "rb") as big_file:
             print(f"Flash SWF found at entry {i:04d}: UID=0x{uid:08x}, off={boff}, size={u6}")
         elif head.startswith(b"RIFF") or head.startswith(b"BKHD"):
             print(f"Audio found at entry {i:04d}: UID=0x{uid:08x}, off={boff}, size={u6}")
+

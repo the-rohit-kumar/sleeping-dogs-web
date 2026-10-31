@@ -8,3 +8,4 @@ public class TestScript extends GhidraScript {
         println("Image base = " + currentProgram.getImageBase());
     }
 }
+

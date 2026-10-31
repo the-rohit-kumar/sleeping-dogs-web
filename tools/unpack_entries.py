@@ -24,3 +24,4 @@ if __name__ == "__main__":
     dump_entries(r"C:\Program Files (x86)\Steam\steamapps\common\SleepingDogsDefinitiveEdition\PrefabData.bix")
     dump_entries(r"C:\Program Files (x86)\Steam\steamapps\common\SleepingDogsDefinitiveEdition\GameHD2.bix")
     dump_entries(r"C:\Program Files (x86)\Steam\steamapps\common\SleepingDogsDefinitiveEdition\Global.bix")
+

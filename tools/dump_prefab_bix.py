@@ -11,3 +11,4 @@ for off in range(0, len(data), 16):
     hex_str = chunk.hex(" ")
     u32_str = " ".join(f"{u:10d}" for (u,) in struct.iter_unpack("<I", chunk[:len(chunk)//4*4]))
     print(f"0x{off:04X} | {hex_str:47s} | {u32_str}")
+

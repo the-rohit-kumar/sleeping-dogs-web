@@ -62,3 +62,4 @@ All archive parsing, decompilation, decompression, and geometry unpacking run in
 - **Graphics Backend:** WebGPU (`navigator.gpu`) with clean WebGL2 fallback
 - **Math & Scene Graph:** Modular lightweight linear algebra (`gl-matrix` or custom SIMD-ready primitives)
 - **Archive IO:** Web Streams API / `Blob.slice()` for chunked, random-access streaming without loading multi-gigabyte `.big` files into RAM.
+

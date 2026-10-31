@@ -1,5 +1,7 @@
 import { Viewport3D } from './renderer';
-import { parseBixBuffer, BixArchive, BixEntry } from './bix-parser';
+import { parseBixBuffer, BixArchive } from './bix-parser';
+import { createVehicleMesh, DecodedMesh } from './mesh-decoder';
+import { decompressBC1, decompressBC3, createProceduralTexture, TextureFormat, DecodedTexture } from './texture-decoder';
 
 window.addEventListener('DOMContentLoaded', () => {
     const canvas = document.getElementById('viewport') as HTMLCanvasElement;
@@ -10,6 +12,8 @@ window.addEventListener('DOMContentLoaded', () => {
     const hudFrameTime = document.getElementById('hud-frametime')!;
     const hudDrawCalls = document.getElementById('hud-drawcalls')!;
     const hudTriangles = document.getElementById('hud-triangles')!;
+    const hudMesh = document.getElementById('hud-mesh')!;
+    const hudTexture = document.getElementById('hud-texture')!;
 
     // Sidebar Elements
     const dropzone = document.getElementById('dropzone')!;
@@ -21,6 +25,135 @@ window.addEventListener('DOMContentLoaded', () => {
     const entryList = document.getElementById('entry-list')!;
     const badgeCount = document.getElementById('badge-count')!;
 
+    // Showcase buttons
+    const btnMeshVehicle = document.getElementById('btn-mesh-vehicle')!;
+    const btnMeshCrate = document.getElementById('btn-mesh-crate')!;
+    const btnTexBc1 = document.getElementById('btn-tex-bc1')!;
+    const btnTexBc3 = document.getElementById('btn-tex-bc3')!;
+    const btnTexUv = document.getElementById('btn-tex-uv')!;
+
+    // Simple procedural box mesh for crate
+    function createCrateMesh(): DecodedMesh {
+        const p = [
+            -1, -1,  1,   1, -1,  1,   1,  1,  1,  -1,  1,  1,
+            -1, -1, -1,  -1,  1, -1,   1,  1, -1,   1, -1, -1,
+            -1,  1, -1,  -1,  1,  1,   1,  1,  1,   1,  1, -1,
+            -1, -1, -1,   1, -1, -1,   1, -1,  1,  -1, -1,  1,
+             1, -1, -1,   1,  1, -1,   1,  1,  1,   1, -1,  1,
+            -1, -1, -1,  -1, -1,  1,  -1,  1,  1,  -1,  1, -1
+        ];
+        const n = [
+             0, 0, 1,   0, 0, 1,   0, 0, 1,   0, 0, 1,
+             0, 0,-1,   0, 0,-1,   0, 0,-1,   0, 0,-1,
+             0, 1, 0,   0, 1, 0,   0, 1, 0,   0, 1, 0,
+             0,-1, 0,   0,-1, 0,   0,-1, 0,   0,-1, 0,
+             1, 0, 0,   1, 0, 0,   1, 0, 0,   1, 0, 0,
+            -1, 0, 0,  -1, 0, 0,  -1, 0, 0,  -1, 0, 0
+        ];
+        const u = [
+            0,0, 1,0, 1,1, 0,1,
+            1,0, 1,1, 0,1, 0,0,
+            0,1, 0,0, 1,0, 1,1,
+            0,0, 1,0, 1,1, 0,1,
+            1,0, 1,1, 0,1, 0,0,
+            0,0, 1,0, 1,1, 0,1
+        ];
+        const idx = [
+             0, 1, 2,  0, 2, 3,
+             4, 5, 6,  4, 6, 7,
+             8, 9,10,  8,10,11,
+            12,13,14, 12,14,15,
+            16,17,18, 16,18,19,
+            20,21,22, 20,22,23
+        ];
+        return {
+            name: "Prop_Shipping_Crate",
+            positions: new Float32Array(p),
+            normals: new Float32Array(n),
+            uvs: new Float32Array(u),
+            indices: new Uint16Array(idx),
+            vertexCount: 24,
+            triangleCount: 12
+        };
+    }
+
+    // Showcase button events
+    btnMeshVehicle.addEventListener('click', () => {
+        btnMeshVehicle.classList.add('active');
+        btnMeshCrate.classList.remove('active');
+        renderer.setMesh(createVehicleMesh("SleepingDogs_Sedan_LOD0"));
+    });
+
+    btnMeshCrate.addEventListener('click', () => {
+        btnMeshCrate.classList.add('active');
+        btnMeshVehicle.classList.remove('active');
+        renderer.setMesh(createCrateMesh());
+    });
+
+    btnTexBc1.addEventListener('click', () => {
+        btnTexBc1.classList.add('active');
+        btnTexBc3.classList.remove('active');
+        btnTexUv.classList.remove('active');
+
+        // Create synthetic BC1 block compressed texture (simulating Sleeping Dogs vehicle paint/decal)
+        const bc1Blocks = new Uint8Array(64 * 64 * 8 / 16);
+        for (let i = 0; i < bc1Blocks.length; i += 8) {
+            bc1Blocks[i + 0] = 0xf8; bc1Blocks[i + 1] = 0x00; // Red color 0
+            bc1Blocks[i + 2] = 0x00; bc1Blocks[i + 3] = 0x1f; // Blue color 1
+            bc1Blocks[i + 4] = 0x1b; bc1Blocks[i + 5] = 0xe4; // Mixed interpolation
+            bc1Blocks[i + 6] = 0xe4; bc1Blocks[i + 7] = 0x1b;
+        }
+        const tex: DecodedTexture = {
+            width: 64,
+            height: 64,
+            mipLevels: 1,
+            format: TextureFormat.BC1,
+            formatName: "Decoded BC1 / DXT1",
+            rgbaPixels: decompressBC1(bc1Blocks, 64, 64)
+        };
+        renderer.setTexture(tex);
+    });
+
+    btnTexBc3.addEventListener('click', () => {
+        btnTexBc3.classList.add('active');
+        btnTexBc1.classList.remove('active');
+        btnTexUv.classList.remove('active');
+
+        // Synthetic BC3 block compressed texture (with alpha gradient)
+        const bc3Blocks = new Uint8Array(64 * 64);
+        for (let i = 0; i < bc3Blocks.length; i += 16) {
+            bc3Blocks[i + 0] = 0xff; bc3Blocks[i + 1] = 0x20; // Alpha endpoints
+            bc3Blocks[i + 8] = 0x07; bc3Blocks[i + 9] = 0xe0; // Green color 0
+            bc3Blocks[i + 10] = 0xff; bc3Blocks[i + 11] = 0xff; // White color 1
+            bc3Blocks[i + 12] = 0x55; bc3Blocks[i + 13] = 0x55;
+            bc3Blocks[i + 14] = 0xaa; bc3Blocks[i + 15] = 0xaa;
+        }
+        const tex: DecodedTexture = {
+            width: 64,
+            height: 64,
+            mipLevels: 1,
+            format: TextureFormat.BC3,
+            formatName: "Decoded BC3 / DXT5",
+            rgbaPixels: decompressBC3(bc3Blocks, 64, 64)
+        };
+        renderer.setTexture(tex);
+    });
+
+    btnTexUv.addEventListener('click', () => {
+        btnTexUv.classList.add('active');
+        btnTexBc1.classList.remove('active');
+        btnTexBc3.classList.remove('active');
+        const tex: DecodedTexture = {
+            width: 256,
+            height: 256,
+            mipLevels: 1,
+            format: TextureFormat.RGBA8,
+            formatName: "Procedural UV Grid",
+            rgbaPixels: createProceduralTexture(256, 256)
+        };
+        renderer.setTexture(tex);
+    });
+
     // Animation loop
     function animate() {
         renderer.render();
@@ -28,7 +161,9 @@ window.addEventListener('DOMContentLoaded', () => {
         hudFps.textContent = renderer.fps.toString();
         hudFrameTime.textContent = renderer.frameTimeMs.toFixed(2) + ' ms';
         hudDrawCalls.textContent = renderer.drawCalls.toString();
-        hudTriangles.textContent = renderer.triangleCount.toString();
+        hudTriangles.textContent = renderer.triangleCount.toLocaleString();
+        hudMesh.textContent = renderer.currentMeshName;
+        hudTexture.textContent = renderer.currentTextureFormat;
 
         requestAnimationFrame(animate);
     }

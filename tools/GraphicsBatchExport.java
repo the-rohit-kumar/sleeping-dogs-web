@@ -246,3 +246,4 @@ public class GraphicsBatchExport extends GhidraScript {
         println("SUCCESS: Exported " + decompList.size() + " functions to " + outFile.getAbsolutePath());
     }
 }
+

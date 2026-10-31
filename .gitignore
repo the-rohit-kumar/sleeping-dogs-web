@@ -38,3 +38,8 @@ Thumbs.db
 extracted_assets/
 temp/
 tmp/
+
+
+# Ghidra raw decompilation dumps
+docs/*-raw.txt
+docs/*-decomp.txt

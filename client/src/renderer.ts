@@ -1,8 +1,11 @@
 /**
  * Sleeping Dogs Browser Reconstruction — 3D Viewport Renderer.
  * Modern WebGL2 pipeline with perspective camera, orbital navigation,
- * real-time procedural lighting, and technical metrics.
+ * real-time procedural lighting, dynamic texture mapping, and technical metrics.
  */
+
+import { DecodedTexture, createProceduralTexture } from './texture-decoder';
+import { DecodedMesh, createVehicleMesh } from './mesh-decoder';
 
 export class Viewport3D {
     private canvas: HTMLCanvasElement;
@@ -11,12 +14,17 @@ export class Viewport3D {
     private gridProgram!: WebGLProgram;
     private vao!: WebGLVertexArrayObject;
     private gridVao!: WebGLVertexArrayObject;
+    private texture: WebGLTexture | null = null;
+    private hasTexture = false;
+
+    private vbo!: WebGLBuffer;
+    private ebo!: WebGLBuffer;
 
     // Camera state
-    public distance = 5.0;
-    public yaw = 0.6;
-    public pitch = 0.4;
-    public target = [0, 0, 0];
+    public distance = 5.5;
+    public yaw = 0.75;
+    public pitch = 0.35;
+    public target = [0, 0.4, 0];
     private isDragging = false;
     private lastMouseX = 0;
     private lastMouseY = 0;
@@ -26,6 +34,8 @@ export class Viewport3D {
     public frameTimeMs = 0;
     public drawCalls = 0;
     public triangleCount = 0;
+    public currentMeshName = "Vehicle_Coupe_LOD0";
+    public currentTextureFormat = "Procedural UV";
 
     private lastTime = performance.now();
     private frameCounter = 0;
@@ -40,9 +50,21 @@ export class Viewport3D {
         this.gl = gl;
 
         this.initShaders();
-        this.initGeometry();
+        this.initBuffers();
         this.initEvents();
         this.resize();
+
+        // Default: load reverse-engineered vehicle geometry & test texture
+        this.setMesh(createVehicleMesh("SleepingDogs_Vehicle_Slice"));
+        const defaultTex = {
+            width: 256,
+            height: 256,
+            mipLevels: 1,
+            format: 0,
+            formatName: "Procedural UV Grid",
+            rgbaPixels: createProceduralTexture(256, 256)
+        };
+        this.setTexture(defaultTex);
     }
 
     private initShaders() {
@@ -81,12 +103,14 @@ export class Viewport3D {
             uniform vec3 uLightColor;
             uniform vec3 uObjectColor;
             uniform vec3 uViewPos;
+            uniform sampler2D uTexture;
+            uniform bool uHasTexture;
 
             out vec4 fragColor;
 
             void main() {
                 // Ambient
-                float ambientStrength = 0.25;
+                float ambientStrength = 0.35;
                 vec3 ambient = ambientStrength * uLightColor;
 
                 // Diffuse
@@ -99,13 +123,13 @@ export class Viewport3D {
                 vec3 viewDir = normalize(uViewPos - vFragPos);
                 vec3 halfwayDir = normalize(lightDir + viewDir);
                 float spec = pow(max(dot(norm, halfwayDir), 0.0), 32.0);
-                vec3 specular = 0.4 * spec * uLightColor;
+                vec3 specular = 0.35 * spec * uLightColor;
 
-                // Subtle grid accent
-                vec2 grid = abs(fract(vUV * 8.0 - 0.5) - 0.5) / fwidth(vUV * 8.0);
-                float line = min(grid.x, grid.y);
-                float gridFactor = 1.0 - min(line, 1.0);
-                vec3 baseColor = mix(uObjectColor, vec3(0.0, 0.9, 1.0), gridFactor * 0.4);
+                vec3 baseColor = uObjectColor;
+                if (uHasTexture) {
+                    vec4 texColor = texture(uTexture, vUV);
+                    baseColor = mix(uObjectColor, texColor.rgb, 0.75);
+                }
 
                 vec3 result = (ambient + diffuse + specular) * baseColor;
                 fragColor = vec4(result, 1.0);
@@ -132,11 +156,11 @@ export class Viewport3D {
             out vec4 fragColor;
             void main() {
                 float dist = length(vWorldPos.xz);
-                float alpha = exp(-dist * 0.15);
+                float alpha = exp(-dist * 0.12);
                 vec2 g = abs(fract(vWorldPos.xz) - 0.5) / fwidth(vWorldPos.xz);
                 float line = min(g.x, g.y);
                 float gridMask = 1.0 - min(line, 1.0);
-                vec3 color = mix(vec3(0.12, 0.14, 0.18), vec3(0.15, 0.6, 0.9), gridMask);
+                vec3 color = mix(vec3(0.08, 0.10, 0.14), vec3(0.12, 0.55, 0.95), gridMask);
                 fragColor = vec4(color, alpha * 0.7);
             }
         `;
@@ -165,78 +189,14 @@ export class Viewport3D {
         return prog;
     }
 
-    private initGeometry() {
+    private initBuffers() {
         const gl = this.gl;
-
-        // Create an inspectable faceted test model (a stylized container / crate asset)
-        // Vertices: [posX, posY, posZ, normX, normY, normZ, u, v]
-        const vertices = new Float32Array([
-            // Front face
-            -1, -1,  1,  0,  0,  1,  0, 0,
-             1, -1,  1,  0,  0,  1,  1, 0,
-             1,  1,  1,  0,  0,  1,  1, 1,
-            -1,  1,  1,  0,  0,  1,  0, 1,
-            // Back face
-            -1, -1, -1,  0,  0, -1,  1, 0,
-            -1,  1, -1,  0,  0, -1,  1, 1,
-             1,  1, -1,  0,  0, -1,  0, 1,
-             1, -1, -1,  0,  0, -1,  0, 0,
-            // Top face
-            -1,  1, -1,  0,  1,  0,  0, 1,
-            -1,  1,  1,  0,  1,  0,  0, 0,
-             1,  1,  1,  0,  1,  0,  1, 0,
-             1,  1, -1,  0,  1,  0,  1, 1,
-            // Bottom face
-            -1, -1, -1,  0, -1,  0,  0, 0,
-             1, -1, -1,  0, -1,  0,  1, 0,
-             1, -1,  1,  0, -1,  0,  1, 1,
-            -1, -1,  1,  0, -1,  0,  0, 1,
-            // Right face
-             1, -1, -1,  1,  0,  0,  1, 0,
-             1,  1, -1,  1,  0,  0,  1, 1,
-             1,  1,  1,  1,  0,  0,  0, 1,
-             1, -1,  1,  1,  0,  0,  0, 0,
-            // Left face
-            -1, -1, -1, -1,  0,  0,  0, 0,
-            -1, -1,  1, -1,  0,  0,  1, 0,
-            -1,  1,  1, -1,  0,  0,  1, 1,
-            -1,  1, -1, -1,  0,  0,  0, 1,
-        ]);
-
-        const indices = new Uint16Array([
-            0, 1, 2,  0, 2, 3,
-            4, 5, 6,  4, 6, 7,
-            8, 9, 10, 8, 10, 11,
-            12, 13, 14, 12, 14, 15,
-            16, 17, 18, 16, 18, 19,
-            20, 21, 22, 20, 22, 23
-        ]);
-
-        this.triangleCount = indices.length / 3;
-
         this.vao = gl.createVertexArray()!;
-        gl.bindVertexArray(this.vao);
-
-        const vbo = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-        gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-
-        const ebo = gl.createBuffer();
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ebo);
-        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
-
-        const stride = 8 * 4;
-        gl.vertexAttribPointer(0, 3, gl.FLOAT, false, stride, 0);
-        gl.enableVertexAttribArray(0);
-
-        gl.vertexAttribPointer(1, 3, gl.FLOAT, false, stride, 3 * 4);
-        gl.enableVertexAttribArray(1);
-
-        gl.vertexAttribPointer(2, 2, gl.FLOAT, false, stride, 6 * 4);
-        gl.enableVertexAttribArray(2);
+        this.vbo = gl.createBuffer()!;
+        this.ebo = gl.createBuffer()!;
 
         // Ground Grid Geometry
-        const gridSize = 20;
+        const gridSize = 25;
         const gridVerts: number[] = [];
         for (let i = -gridSize; i <= gridSize; i++) {
             gridVerts.push(-gridSize, 0, i, gridSize, 0, i);
@@ -250,8 +210,86 @@ export class Viewport3D {
         gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(gridVerts), gl.STATIC_DRAW);
         gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 3 * 4, 0);
         gl.enableVertexAttribArray(0);
+        gl.bindVertexArray(null);
+    }
+
+    /**
+     * Binds and displays a decoded 3D mesh
+     */
+    public setMesh(mesh: DecodedMesh) {
+        const gl = this.gl;
+        this.currentMeshName = mesh.name;
+        this.triangleCount = mesh.triangleCount;
+
+        // Pack interleaved attributes [Px, Py, Pz, Nx, Ny, Nz, U, V]
+        const vertexCount = mesh.vertexCount;
+        const interleaved = new Float32Array(vertexCount * 8);
+        for (let i = 0; i < vertexCount; i++) {
+            interleaved[i * 8 + 0] = mesh.positions[i * 3 + 0];
+            interleaved[i * 8 + 1] = mesh.positions[i * 3 + 1];
+            interleaved[i * 8 + 2] = mesh.positions[i * 3 + 2];
+
+            interleaved[i * 8 + 3] = mesh.normals[i * 3 + 0];
+            interleaved[i * 8 + 4] = mesh.normals[i * 3 + 1];
+            interleaved[i * 8 + 5] = mesh.normals[i * 3 + 2];
+
+            interleaved[i * 8 + 6] = mesh.uvs[i * 2 + 0];
+            interleaved[i * 8 + 7] = mesh.uvs[i * 2 + 1];
+        }
+
+        gl.bindVertexArray(this.vao);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.vbo);
+        gl.bufferData(gl.ARRAY_BUFFER, interleaved, gl.STATIC_DRAW);
+
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.ebo);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, mesh.indices, gl.STATIC_DRAW);
+
+        const stride = 8 * 4;
+        gl.vertexAttribPointer(0, 3, gl.FLOAT, false, stride, 0);
+        gl.enableVertexAttribArray(0);
+
+        gl.vertexAttribPointer(1, 3, gl.FLOAT, false, stride, 3 * 4);
+        gl.enableVertexAttribArray(1);
+
+        gl.vertexAttribPointer(2, 2, gl.FLOAT, false, stride, 6 * 4);
+        gl.enableVertexAttribArray(2);
 
         gl.bindVertexArray(null);
+    }
+
+    /**
+     * Binds and uploads a decoded texture
+     */
+    public setTexture(tex: DecodedTexture) {
+        const gl = this.gl;
+        this.currentTextureFormat = `${tex.formatName} (${tex.width}x${tex.height})`;
+
+        if (!this.texture) {
+            this.texture = gl.createTexture();
+        }
+
+        gl.bindTexture(gl.TEXTURE_2D, this.texture);
+        gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+        gl.texImage2D(
+            gl.TEXTURE_2D,
+            0,
+            gl.RGBA,
+            tex.width,
+            tex.height,
+            0,
+            gl.RGBA,
+            gl.UNSIGNED_BYTE,
+            tex.rgbaPixels
+        );
+
+        gl.generateMipmap(gl.TEXTURE_2D);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+
+        this.hasTexture = true;
     }
 
     private initEvents() {
@@ -323,7 +361,7 @@ export class Viewport3D {
         gl.cullFace(gl.BACK);
 
         // Dark modern background (Sleeping Dogs dark aesthetic)
-        gl.clearColor(0.07, 0.08, 0.10, 1.0);
+        gl.clearColor(0.06, 0.07, 0.09, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
         // Matrices
@@ -344,14 +382,13 @@ export class Viewport3D {
         gl.uniformMatrix4fv(gl.getUniformLocation(this.gridProgram, 'uView'), false, view);
         gl.uniformMatrix4fv(gl.getUniformLocation(this.gridProgram, 'uProjection'), false, proj);
         gl.bindVertexArray(this.gridVao);
-        gl.drawArrays(gl.LINES, 0, 41 * 4);
+        gl.drawArrays(gl.LINES, 0, 51 * 4);
         this.drawCalls++;
         gl.disable(gl.BLEND);
 
-        // Draw Main Inspection Model
+        // Draw Main Model
         const model = this.identity();
-        // Slow gentle idle rotation
-        const spin = now * 0.0005;
+        const spin = now * 0.0004;
         this.rotateY(model, spin);
 
         gl.useProgram(this.program);
@@ -359,13 +396,22 @@ export class Viewport3D {
         gl.uniformMatrix4fv(gl.getUniformLocation(this.program, 'uView'), false, view);
         gl.uniformMatrix4fv(gl.getUniformLocation(this.program, 'uProjection'), false, proj);
 
-        gl.uniform3f(gl.getUniformLocation(this.program, 'uLightPos'), 5.0, 8.0, 6.0);
-        gl.uniform3f(gl.getUniformLocation(this.program, 'uLightColor'), 1.0, 0.95, 0.9);
-        gl.uniform3f(gl.getUniformLocation(this.program, 'uObjectColor'), 0.85, 0.22, 0.25); // Sleeping Dogs crimson red
+        gl.uniform3f(gl.getUniformLocation(this.program, 'uLightPos'), 6.0, 10.0, 7.0);
+        gl.uniform3f(gl.getUniformLocation(this.program, 'uLightColor'), 1.0, 0.96, 0.92);
+        gl.uniform3f(gl.getUniformLocation(this.program, 'uObjectColor'), 0.88, 0.18, 0.22); // Crimson red
         gl.uniform3f(gl.getUniformLocation(this.program, 'uViewPos'), eyeX, eyeY, eyeZ);
 
+        gl.activeTexture(gl.TEXTURE0);
+        if (this.hasTexture && this.texture) {
+            gl.bindTexture(gl.TEXTURE_2D, this.texture);
+            gl.uniform1i(gl.getUniformLocation(this.program, 'uTexture'), 0);
+            gl.uniform1i(gl.getUniformLocation(this.program, 'uHasTexture'), 1);
+        } else {
+            gl.uniform1i(gl.getUniformLocation(this.program, 'uHasTexture'), 0);
+        }
+
         gl.bindVertexArray(this.vao);
-        gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0);
+        gl.drawElements(gl.TRIANGLES, this.triangleCount * 3, gl.UNSIGNED_SHORT, 0);
         this.drawCalls++;
     }
 

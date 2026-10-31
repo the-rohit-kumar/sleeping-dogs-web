@@ -72,3 +72,4 @@ if __name__ == "__main__":
         idx = parse_bix(bix_path)
         compressed_count = sum(1 for e in idx.entries if e.is_compressed)
         print(f"Archive: {idx.archive_name:15s} | BIX: {bix_path.name:18s} | Entries: {idx.entry_count:6d} | Compressed: {compressed_count:5d} | Raw: {idx.entry_count - compressed_count:5d}")
+

@@ -69,3 +69,60 @@ $$\text{mPart1Size} + \text{mPart2Size} = \text{mTotalSpan} + \text{mPadding}$$
 
 For single-part entries ($\text{mPart1Size} = 0, \text{mPart2Size} = 0, \text{mPadding} = 0$):
 $$\text{Payload Size} = \text{mTotalSpan}$$
+
+
+---
+
+## 4. Illusion Engine Texture Specification (`Illusion::rTexture`)
+
+**Status:** `CONFIRMED` via Ghidra decompiler analysis of `FUN_140a18e90` and `FUN_140a16ed0`.
+
+### 4.1 Chunk Header Layout
+
+| Relative Offset | Type | Field | Description |
+|---|---|---|---|
+| `+0x24` | `uint32_t` | `mFlags` | Texture flags (cube map, volume, deferred streaming) |
+| `+0x28` | `uint8_t` | `mFormat` | Texture compression format code (see below) |
+| `+0x29` | `uint8_t` | `mDimension` | Dimension type: `0` = 2D Texture, `2` = Cube Map, `3` = Volume |
+| `+0x30` | `uint16_t` | `mWidth` | Width in pixels |
+| `+0x32` | `uint16_t` | `mHeight` | Height in pixels |
+| `+0x34` | `uint8_t` | `mMipLevels` | Number of mipmap levels |
+| `+0x36` | `uint16_t` | `mDepthOrArraySize` | Array slices or 3D depth |
+| `+0xB4` | `uint8_t[]` | `mPixels` | Raw block-compressed or uncompressed pixel payload |
+
+### 4.2 Format Code Table & Direct3D 11 / WebGL2 / WebGPU Mapping
+
+| Code | Format Name | Block Size | WebGL2 / WebGPU Equivalent | Usage in Sleeping Dogs |
+|---|---|---|---|---|
+| `0` | `RGBA8_UNORM` | 4 bytes / pixel | `gl.RGBA8` / `'rgba8unorm'` | UI icons, fonts, uncompressed textures |
+| `1` | `BC1_UNORM` (DXT1) | 8 bytes / 4x4 block | `COMPRESSED_RGBA_S3TC_DXT1_EXT` / `'bc1-rgba-unorm'` | Diffuse textures, vehicle liveries, environment |
+| `2` | `BC2_UNORM` (DXT3) | 16 bytes / 4x4 block | `COMPRESSED_RGBA_S3TC_DXT3_EXT` / `'bc2-rgba-unorm'` | Decals with sharp alpha |
+| `3` | `BC3_UNORM` (DXT5) | 16 bytes / 4x4 block | `COMPRESSED_RGBA_S3TC_DXT5_EXT` / `'bc3-rgba-unorm'` | Diffuse with smooth alpha, specular maps |
+| `4` | `BC4_UNORM` (ATI1) | 8 bytes / 4x4 block | `COMPRESSED_RED_RGTC1_EXT` / `'bc4-r-unorm'` | Height maps, ambient occlusion |
+| `5` | `BC5_UNORM` (ATI2/3Dc)| 16 bytes / 4x4 block| `COMPRESSED_SIGNED_RG_RGTC2_EXT` / `'bc5-rg-unorm'` | Tangent-space normal maps |
+
+### 4.3 Block Compression Math
+For a mip level with dimensions $(W, H)$:
+$$\text{RowPitch} = \left\lfloor\frac{W + 3}{4}\right\rfloor \times \text{BlockSize}$$
+$$\text{SlicePitch} = \left\lfloor\frac{H + 3}{4}\right\rfloor \times \text{RowPitch}$$
+
+---
+
+## 5. Illusion Engine Buffer Specification (`Illusion::BufferLoader`)
+
+**Status:** `CONFIRMED` via Ghidra decompiler analysis of `FUN_140a18c70` and `FUN_140a16e20`.
+
+### 5.1 Buffer Descriptor Layout
+
+| Relative Offset | Type | Field | Description |
+|---|---|---|---|
+| `-0x38` | `uint8_t` | `mBufferType` | `0` = Vertex Buffer (`D3D11_BIND_VERTEX_BUFFER`), `1` = Index Buffer (`D3D11_BIND_INDEX_BUFFER`) |
+| `-0x36` | `uint16_t` | `mFlags` | Stride and access flags |
+| `-0x34` | `uint32_t` | `mByteWidth` | Total buffer payload size in bytes (`D3D11_BUFFER_DESC::ByteWidth`) |
+| `-0x30` | `int64_t` | `mDataOffset` | Relative offset from this field to raw buffer memory |
+
+### 5.2 Vertex Buffer Layouts
+Sleeping Dogs uses interleaved vertex streams:
+- **Standard Stride (32 bytes):** Position (3x float32), Normal (3x float32), UV0 (2x float32)
+- **High-Detail Mesh Stride (40 bytes):** Position (3x float32), Normal (3x float32), Tangent (4x int8_snorm), UV0 (2x float32)
+- **Skinned Mesh Stride (48 bytes):** Position (3x float32), BlendWeights (4x uint8_unorm), BlendIndices (4x uint8), Normal (3x float32), UV0 (2x float32)

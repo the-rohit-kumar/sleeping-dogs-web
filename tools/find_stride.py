@@ -22,3 +22,4 @@ if __name__ == "__main__":
     inspect_records(r"C:\Program Files (x86)\Steam\steamapps\common\SleepingDogsDefinitiveEdition\CharactersHD.bix")
     inspect_records(r"C:\Program Files (x86)\Steam\steamapps\common\SleepingDogsDefinitiveEdition\Global.bix")
     inspect_records(r"C:\Program Files (x86)\Steam\steamapps\common\SleepingDogsDefinitiveEdition\UI.bix")
+

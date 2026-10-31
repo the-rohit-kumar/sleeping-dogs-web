@@ -58,3 +58,16 @@ This ledger tracks verified technical facts, inferences, hypotheses, and unknown
 | AR-02 | `CONFIRMED` | BIX Header Layout | All 11 `.bix` files | Offset 0x00: Magic, 0x04: Payload size, 0x44: Archive name ASCII, 0x70: Entry count, 0xC0: Start of 24-byte record array. |
 | AR-03 | `CONFIRMED` | 24-byte Entry Layout | All 26,894 entries across 11 archives | Offset 0: mUID, 4: mOffset in .big, 8: mPart1Size, 12: mPart2Size, 16: mPadding, 20: mTotalSpan. Invariant: `mPart1Size + mPart2Size == mTotalSpan + mPadding` verified on 100% of multi-part records (12,614/12,614). |
 | AR-04 | `UNKNOWN` | Compression Codecs | BIG payloads | Exact compression algorithms (e.g., zlib, LZO, LZMA, or proprietary) to be verified from chunks. |
+
+---
+
+## 5. Illusion Engine Architecture (Textures & Geometry)
+
+| ID | Status | Subject | Evidence / Address | Details |
+|---|---|---|---|---|
+| IL-01 | `CONFIRMED` | Rendering Namespace | RTTI in `.rdata` (`0x1420317f8`, `0x1420214d8`) | Engine graphics layer is namespaced as `Illusion::` (`Illusion::rTexture`, `Illusion::rMaterial`, `Illusion::BufferLoader`, `Illusion::TextureLoader`). |
+| IL-02 | `CONFIRMED` | Compression Engine | `0x140e94000`, `0x1408e3380`, `0x141ac3781` | Statically links zlib / Deflate 1.2.7 (`deflate 1.2.7 Copyright 1995-2012 Jean-loup Gailly and Mark Adler`). Used in Autodesk Scaleform GFx UI streams and chunk decompressors. |
+| IL-03 | `CONFIRMED` | `Illusion::rTexture` Header | `0x140a18e90`, `0x140a16ed0` | Offset `+0x28`: Format code (0=RGBA8, 1=BC1, 2=BC2, 3=BC3, 4=BC4, 5=BC5), `+0x30`: Width, `+0x32`: Height, `+0x34`: MipLevels, `+0x36`: Array/Depth. `+0xB4`: pixel stream. Maps 1:1 to `D3D11_TEXTURE2D_DESC`. |
+| IL-04 | `CONFIRMED` | Block Compression Pitch | `0x140a18e90` lines 183-184 | RowPitch computed as `((width + 3) / 4) * blockSize`, SlicePitch as `((height + 3) / 4) * rowPitch`. 8 bytes/block for BC1, 16 bytes/block for BC2/BC3/BC5. |
+| IL-05 | `CONFIRMED` | `Illusion::BufferLoader` Descriptors | `0x140a18c70`, `0x140a16e20` | Offset `-0x38`: BufferType (0=Vertex, 1=Index), `-0x34`: ByteWidth, `-0x30`: 64-bit relative data offset to raw vertex/index array. Dispatches directly to `ID3D11Device::CreateBuffer`. |
+| IL-06 | `CONFIRMED` | Vertex Stream Attributes | `0x140a18c70` & `Vehicles.big` at `0x1f0a400` | Interleaved vertex buffers support 32-byte (Pos3+Norm3+UV2), 40-byte (Pos3+Norm3+Tang4+UV2), and 48-byte skinned vertex streams. Single-part archive entries store uncompressed raw geometry buffers. |

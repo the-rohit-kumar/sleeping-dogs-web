@@ -15,18 +15,19 @@ flowchart LR
 
 ---
 
-## Milestone 1: The Initial Vertical Slice (Current Target)
+## Milestone 1: The Initial Vertical Slice (Completed)
 **Goal:** Prove end-to-end viability by rendering a real, locally owned asset from the game archives in a modern browser canvas.
-- [ ] Read-only BIG/BIX parser with bounds checks and automated tests.
-- [ ] Extraction of candidate asset from `UI.big` or `PrefabData.big`.
-- [ ] Browser shell (Vite + WebGPU / WebGL2 canvas).
-- [ ] Render 3D / 2D resource with orbit camera and technical metadata inspector.
+- [x] Read-only BIG/BIX parser with bounds checks and automated tests.
+- [x] Extraction of candidate asset from `UI.big` or `PrefabData.big`.
+- [x] Browser shell (Vite + WebGPU / WebGL2 canvas).
+- [x] Render 3D / 2D resource with orbit camera and technical metadata inspector.
 
-## Milestone 2: Static Geometry, Textures & Shading
+## Milestone 2: Static Geometry, Textures & Shading (Completed)
 **Goal:** Render complete static props, building meshes, and multi-layer materials.
-- [ ] Geometry decoder (vertex buffers, normals, UVs, index buffers).
-- [ ] Texture decoding (BC1/BC3/BC7 block decompression or GPU-native texture upload).
-- [ ] Basic PBR/Lambertian shader pipeline matching D3D11 shader constants.
+- [x] Geometry decoder (vertex buffers, normals, UVs, index buffers) via `Illusion::BufferLoader` reverse engineering.
+- [x] Texture decoding (BC1/BC2/BC3/BC5 block decompression and WebGL2 texture binding) via `Illusion::rTexture`.
+- [x] Shader pipeline matching D3D11 lighting and material uniforms.
+- [x] Live interactive browser client running with model/texture switcher and real-time HUD.
 
 ## Milestone 3: World Streaming & Scene Graph
 **Goal:** Load Hong Kong street sections with spatial hierarchy.
@@ -49,3 +50,4 @@ flowchart LR
 - [ ] Vehicle physics and traffic navigation.
 - [ ] Melee combat state machine.
 - [ ] Script and mission triggers.
+

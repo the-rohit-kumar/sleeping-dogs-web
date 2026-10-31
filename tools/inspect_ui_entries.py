@@ -25,3 +25,4 @@ with open(big_path, "rb") as big_file:
         magic = head[:4].hex(' ') if len(head) >= 4 else "N/A"
         ascii_sample = "".join(chr(b) if 32 <= b < 127 else "." for b in head)
         print(f"Entry {i:04d}: UID=0x{u1:08x}, off=0x{u2:08x} ({u2:9d}), csize={u3:8d}, usize={u4:8d}, flags=0x{u5:x}, u6={u6:8d} | magic=[{magic}] {ascii_sample}")
+
