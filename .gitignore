@@ -1,0 +1,40 @@
+# Proprietary game assets & binaries - NEVER commit
+*.big
+*.bix
+*.pck
+*.bik
+*.bk2
+*.exe
+*.dll
+*.pdb
+*.rdb
+
+# Ghidra project files and locks
+*.gpr
+*.rep
+*.lock
+*.lock~
+
+# Node / Web dependencies
+node_modules/
+dist/
+build/
+.cache/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+
+# Operating system / IDE files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Local extraction dumps
+extracted_assets/
+temp/
+tmp/
