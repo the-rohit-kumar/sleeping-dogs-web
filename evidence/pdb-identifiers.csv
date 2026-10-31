@@ -1,0 +1,15 @@
+﻿Binary,Format,GUID,Signature,Age,EmbeddedPdbPath
+C:\Program Files (x86)\Steam\steamapps\common\SleepingDogsDefinitiveEdition\bink2w64.dll,RSDS,e6ae86cc-a095-431d-be26-1a80f1ee587a,,1,C:\devel\projects\bink\build\bink2w64.pdb
+C:\Program Files (x86)\Steam\steamapps\common\SleepingDogsDefinitiveEdition\d3dcompiler_46.dll,RSDS,73a84a14-3485-434b-a165-6c99f7e094d4,,1,D3DCompiler_46.pdb
+C:\Program Files (x86)\Steam\steamapps\common\SleepingDogsDefinitiveEdition\libeay32-ttv.dll,RSDS,ac5d43ea-0e71-4cf2-8bb7-8e07aadf89f4,,1,c:\openssl-1.0.1c\out64dll\libeay32-ttv.pdb
+C:\Program Files (x86)\Steam\steamapps\common\SleepingDogsDefinitiveEdition\redist\D3D11Install_2010.exe,RSDS,e6f28b2e-10ab-4b0d-99e3-84f06692ae68,,6,D:\DX11\Samples\DirectXSamples\D3D11InstallHelper\Release\D3D11Install_2010.pdb
+C:\Program Files (x86)\Steam\steamapps\common\SleepingDogsDefinitiveEdition\redist\D3D11InstallHelper.dll,RSDS,c2987122-1c46-43ff-8b7e-bf658059d312,,1,D:\DX11\Samples\DirectXSamples\D3D11InstallHelper\Release\D3D11InstallHelper.pdb
+C:\Program Files (x86)\Steam\steamapps\common\SleepingDogsDefinitiveEdition\redist\DXRedist\DSETUP.dll,RSDS,28dcef84-c731-4c8a-baee-e60a37e4b556,,1,DSETUP.pdb
+C:\Program Files (x86)\Steam\steamapps\common\SleepingDogsDefinitiveEdition\redist\DXRedist\dsetup32.dll,RSDS,7eb6eaa8-e95c-420f-994c-b6ee087b3ce3,,1,dsetup32.pdb
+C:\Program Files (x86)\Steam\steamapps\common\SleepingDogsDefinitiveEdition\redist\DXRedist\DXSETUP.exe,RSDS,0f88dc88-5c52-419e-9c30-13a1d0887c73,,1,DXSETUP.pdb
+C:\Program Files (x86)\Steam\steamapps\common\SleepingDogsDefinitiveEdition\redist\vcredist_x64.exe,RSDS,cb2d5fe3-c4b4-412d-a234-9cd567b668c5,,1,sfxcab.pdb
+C:\Program Files (x86)\Steam\steamapps\common\SleepingDogsDefinitiveEdition\sdhdship.exe,RSDS,39fb50f8-bf80-45cf-b459-c80373629312,,16,d:\ufg\madscience\project\builds\sdhd\sdhd_pc\build\project\int\sdhd-pc64-ship\sdhdship.pdb
+C:\Program Files (x86)\Steam\steamapps\common\SleepingDogsDefinitiveEdition\sdkencryptedappticket64.dll,RSDS,a1949f57-a5ed-46e8-823d-d235c4c152d6,,1,c:\buildslave\steam_rel_client_win64\build\src\sdkencryptedappticketlib\win64\Release\sdkencryptedappticket64.pdb
+C:\Program Files (x86)\Steam\steamapps\common\SleepingDogsDefinitiveEdition\ssleay32-ttv.dll,RSDS,a9c8fc66-ee5e-4ef4-afee-78656019de98,,1,c:\openssl-1.0.1c\out64dll\ssleay32-ttv.pdb
+C:\Program Files (x86)\Steam\steamapps\common\SleepingDogsDefinitiveEdition\steam_api64.dll,RSDS,5b60cda5-847e-40a1-a830-2b12174eb4ef,,1,c:\buildslave\steam_rel_client_win64\build\src\steam_api\win64\Release\steam_api64.pdb
+C:\Program Files (x86)\Steam\steamapps\common\SleepingDogsDefinitiveEdition\twitchsdk_64_release.dll,RSDS,68e8ac1b-88a1-489e-8754-fd2e29c78195,,2,C:\Users\dfrostick\Documents\GitHub\twitchsdk\lib\twitchsdk_64_release.pdb

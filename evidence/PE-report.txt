@@ -1,0 +1,149 @@
+﻿SLEEPING DOGS - READ-ONLY INVENTORY
+Generated UTC: 2026-10-31T04:01:00.2823328Z
+Game folder name: SleepingDogsDefinitiveEdition
+Files: 248
+Total size (GiB): 16.51
+
+EXECUTABLES / DLLS
+
+RelativePath                  SizeBytes Machine                        OptionalHeader FileVersion    
+------------                  --------- -------                        -------------- -----------    
+avutil-ttv-51.dll                653832 x64 (IMAGE_FILE_MACHINE_AMD64) PE32+ (64-bit)                
+bink2w64.dll                     435712 x64 (IMAGE_FILE_MACHINE_AMD64) PE32+ (64-bit) 1.994e         
+d3dcompiler_46.dll              3873224 x64 (IMAGE_FILE_MACHINE_AMD64) PE32+ (64-bit) 9.30.9200.16384
+libcurl-ttv.dll                  389632 x64 (IMAGE_FILE_MACHINE_AMD64) PE32+ (64-bit) 7.26.0         
+libcurl.dll                      304128 x64 (IMAGE_FILE_MACHINE_AMD64) PE32+ (64-bit) 7.30.0         
+libeay32-ttv.dll                1646080 x64 (IMAGE_FILE_MACHINE_AMD64) PE32+ (64-bit) 1.0.1c         
+libeay32.dll                    1294336 x64 (IMAGE_FILE_MACHINE_AMD64) PE32+ (64-bit) 0.9.8y         
+libmp3lame-ttv.dll               688161 x64 (IMAGE_FILE_MACHINE_AMD64) PE32+ (64-bit)                
+sdhdship.exe                   37490688 x64 (IMAGE_FILE_MACHINE_AMD64) PE32+ (64-bit) 1.0.000.0      
+sdkencryptedappticket64.dll      655040 x64 (IMAGE_FILE_MACHINE_AMD64) PE32+ (64-bit)                
+ssleay32-ttv.dll                 338944 x64 (IMAGE_FILE_MACHINE_AMD64) PE32+ (64-bit) 1.0.1c         
+ssleay32.dll                     267776 x64 (IMAGE_FILE_MACHINE_AMD64) PE32+ (64-bit) 0.9.8y         
+steam_api64.dll                  119488 x64 (IMAGE_FILE_MACHINE_AMD64) PE32+ (64-bit) 02.19.34.93    
+swresample-ttv-0.dll             361103 x64 (IMAGE_FILE_MACHINE_AMD64) PE32+ (64-bit)                
+twitchsdk_64_release.dll         930304 x64 (IMAGE_FILE_MACHINE_AMD64) PE32+ (64-bit)                
+redist\D3D11InstallHelper.dll     50688 x86 (IMAGE_FILE_MACHINE_I386)  PE32           1.00.000.0000  
+redist\D3D11Install_2010.exe     204800 x86 (IMAGE_FILE_MACHINE_I386)  PE32           1.00.000.0000  
+redist\vcredist_x64.exe         5673816 x86 (IMAGE_FILE_MACHINE_I386)  PE32           10.0.40219.01  
+redist\DXRedist\DSETUP.dll        95576 x86 (IMAGE_FILE_MACHINE_I386)  PE32           4.9.0.0904     
+redist\DXRedist\dsetup32.dll    1566040 x86 (IMAGE_FILE_MACHINE_I386)  PE32           4.9.0.0904     
+redist\DXRedist\DXSETUP.exe      517976 x86 (IMAGE_FILE_MACHINE_I386)  PE32           4.9.0.0904     
+
+
+
+LARGEST FILES
+
+RelativePath                                  SizeBytes
+------------                                  ---------
+GameHD.big                                   6072156160
+Game.big                                     4313022464
+data\Audio\SD2\SFX.pck                       2160538169
+Characters.big                               1504739328
+data\Audio\SD2\English(US).pck                992982825
+AnimationNIS.big                              482885632
+GameHD2.big                                   458534912
+CharactersHD.big                              413016064
+UI.big                                        212897792
+Vehicles.big                                  141185024
+Animation.big                                 110895104
+data\Movies\NIS_CNY_1_INTRO_MONTAGE.bik        91532480
+data\Movies\FE_Press_Start_Loop.bik            81686504
+data\Movies\FE_Main_Menu_Loop.bik              74725792
+Global.big                                     60555264
+data\Movies\NIS_ZODIAC_FINALE.bik              54187464
+data\Movies\NIS_ZODIAC_WELCOME.bik             53090276
+data\Movies\NIS_ZODIAC_FERRY_INTRO.bik         44838660
+sdhdship.exe                                   37490688
+data\Movies\NIS_ZODIAC_FIGHT_TO_DEATH.bik      36817592
+data\Movies\NIS_CNY_0_TITLE.bk2                25713432
+data\Movies\NIS_CNY_0_TITLE.bik                20540988
+data\Movies\NIS_CNY_1_INTRO_MONTAGE.bk2        19584540
+data\shaders\shaders.temp.bin                  14129280
+data\Movies\torture_flashback_01.bik            9394792
+data\Movies\ZODIAC_LMS_INTRO.bik                8956876
+data\Movies\torture_flashback_02.bik            8668180
+data\Movies\torture_flashback_03.bik            7917736
+data\Movies\torture_pendrew_1.bik               7408156
+data\Movies\PhotoCamera_ImportantVisitor.bik    7259896
+
+
+
+DATA FILE SIGNATURES
+
+RelativePath                                     SizeBytes First32BytesHex                                                                                
+------------                                     --------- ---------------                                                                                
+Animation.big                                    110895104 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Animation.bix                                        25896 A8 40 5C 2C 18 65 00 00 18 65 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+AnimationNIS.big                                 482885632 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+AnimationNIS.bix                                     11496 A8 40 5C 2C D8 2C 00 00 D8 2C 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+buildlab.defaults.dat                                12855 1A 61 58 45 53 47 12 65 44 5C 44 4A 70 50 5C 55 44 05 5B 19 67 43 53 16 1A 31 59 16 5A 00 17 78
+buildlab.project.dat                                 48373 0A 73 42 5B 5A 51 7E 51 55 07 3B 6C 3E 09 62 51 44 05 5A 19 59 55 4F 59 14 36 44 0B 5C 01 54 4D
+Characters.big                                  1504739328 74 DD 18 14 70 05 00 00 70 05 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Characters.bix                                      107880 A8 40 5C 2C 58 A5 01 00 58 A5 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+CharactersHD.big                                 413016064 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+CharactersHD.bix                                      9648 A8 40 5C 2C A0 25 00 00 A0 25 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Game.big                                        4313022464 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Game.bix                                            171744 A8 40 5C 2C D0 9E 02 00 D0 9E 02 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+GameHD.big                                      6072156160 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+GameHD.bix                                          102432 A8 40 5C 2C 10 90 01 00 10 90 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+GameHD2.big                                      458534912 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+GameHD2.bix                                           1248 A8 40 5C 2C D0 04 00 00 D0 04 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Global.big                                        60555264 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Global.bix                                           22104 A8 40 5C 2C 48 56 00 00 48 56 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+installscript.vdf                                     1325 22 49 6E 73 74 61 6C 6C 53 63 72 69 70 74 22 0D 0A 7B 0D 0A 09 22 52 65 67 69 73 74 72 79 22 0D
+PrefabData.big                                        4096 3F 90 6A 61 90 00 00 00 90 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+PrefabData.bix                                         216 A8 40 5C 2C C8 00 00 00 C8 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+UI.big                                           212897792 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+UI.bix                                              166104 A8 40 5C 2C C8 88 02 00 C8 88 02 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+UserOptions.dat                                        500 0A 64 44 57 44 7A 42 44 5E 56 58 15 09 38 38 10 16 58 61 5C 40 43 5F 0B 58 58 07 4A 06 4A 02 05
+Vehicles.big                                     141185024 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+Vehicles.bix                                         28800 A8 40 5C 2C 70 70 00 00 70 70 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+data\Audio\SD2\English(US).pck                   992982825 41 4B 50 4B 0C B5 0F 00 01 00 00 00 34 00 00 00 64 00 00 00 64 B4 0F 00 02 00 00 00 14 00 00 00
+data\Audio\SD2\SFX.pck                          2160538169 41 4B 50 4B 04 F4 00 00 01 00 00 00 14 00 00 00 2C 47 00 00 B4 AC 00 00 01 00 00 00 0C 00 00 00
+data\Movies\BNK_Monitor_1.bik                       465524 42 49 4B 69 6C 1A 07 00 E5 00 00 00 7C 15 00 00 E5 00 00 00 00 01 00 00 00 01 00 00 0F 00 00 00
+data\Movies\BNK_Monitor_2.bik                       467060 42 49 4B 69 6C 20 07 00 E9 00 00 00 D8 13 00 00 E9 00 00 00 00 01 00 00 00 01 00 00 0F 00 00 00
+data\Movies\BNK_Monitor_3.bik                       149516 42 49 4B 69 04 48 02 00 3A 00 00 00 A8 1A 00 00 3A 00 00 00 00 01 00 00 00 01 00 00 0F 00 00 00
+data\Movies\Bride_to_be_titlecard.bik                11152 42 49 4B 69 88 2B 00 00 44 00 00 00 7C 01 00 00 44 00 00 00 00 05 00 00 D0 02 00 00 30 75 00 00
+data\Movies\FE_Main_Menu_Loop.bik                 74725792 4B 42 32 69 98 39 74 04 A0 05 00 00 74 55 02 00 A0 05 00 00 80 07 00 00 38 04 00 00 40 4B 4C 00
+data\Movies\FE_Main_Menu_Trans.bik                 3680856 42 49 4B 69 50 2A 38 00 3D 00 00 00 D8 A1 02 00 3D 00 00 00 00 05 00 00 D0 02 00 00 80 96 98 00
+data\Movies\FE_Press_Start_Loop.bik               81686504 42 49 4B 69 E0 6F DE 04 A0 05 00 00 20 81 02 00 A0 05 00 00 00 05 00 00 D0 02 00 00 40 4B 4C 00
+data\Movies\FE_Press_Start_Trans.bik               3459076 42 49 4B 69 FC C7 34 00 3D 00 00 00 A4 A7 01 00 3D 00 00 00 00 05 00 00 D0 02 00 00 80 96 98 00
+data\Movies\HK_Intro_Video_Console.bk2             2116124 4B 42 32 69 14 4A 20 00 3F 01 00 00 7C C5 00 00 3F 01 00 00 00 05 00 00 D0 02 00 00 80 96 98 00
+data\Movies\NIS_CNY_0_TITLE.bik                   20540988 42 49 4B 69 34 6E 39 01 DE 02 00 00 A0 72 01 00 DE 02 00 00 00 05 00 00 D0 02 00 00 1E 00 00 00
+data\Movies\NIS_CNY_0_TITLE.bk2                   25713432 4B 42 32 69 10 5B 88 01 DE 02 00 00 B4 C1 01 00 DE 02 00 00 80 07 00 00 38 04 00 00 1E 00 00 00
+data\Movies\NIS_CNY_1_INTRO_MONTAGE.bik           91532480 42 49 4B 69 B8 AC 74 05 CD 04 00 00 0C 23 02 00 CD 04 00 00 80 07 00 00 38 04 00 00 1E 00 00 00
+data\Movies\NIS_CNY_1_INTRO_MONTAGE.bk2           19584540 4B 42 32 69 14 D6 2A 01 D1 04 00 00 24 7D 00 00 D1 04 00 00 00 05 00 00 D0 02 00 00 1E 00 00 00
+data\Movies\NIS_ZODIAC_FERRY_INTRO.bik            44838660 42 49 4B 69 FC 2E AC 02 4A 08 00 00 DC DD 00 00 4A 08 00 00 00 05 00 00 D0 02 00 00 30 75 00 00
+data\Movies\NIS_ZODIAC_FIGHT_TO_DEATH.bik         36817592 42 49 4B 69 B0 CA 31 02 AB 06 00 00 2C CB 00 00 AB 06 00 00 00 05 00 00 D0 02 00 00 30 75 00 00
+data\Movies\NIS_ZODIAC_FINALE.bik                 54187464 42 49 4B 69 C0 D5 3A 03 C1 09 00 00 60 20 01 00 C1 09 00 00 00 05 00 00 D0 02 00 00 30 75 00 00
+data\Movies\NIS_ZODIAC_FIRE_WIN.bik                3877052 42 49 4B 69 B4 28 3B 00 C1 00 00 00 3C CC 00 00 C1 00 00 00 00 05 00 00 D0 02 00 00 30 75 00 00
+data\Movies\NIS_ZODIAC_WELCOME.bik                53090276 42 49 4B 69 DC 17 2A 03 8D 09 00 00 BC D0 00 00 8D 09 00 00 00 05 00 00 D0 02 00 00 30 75 00 00
+data\Movies\PhotoCamera_Hotshot.bik                4740952 42 49 4B 69 50 57 48 00 B4 00 00 00 54 3F 01 00 B4 00 00 00 00 05 00 00 D0 02 00 00 80 96 98 00
+data\Movies\PhotoCamera_ImportantVisitor.bik       7259896 42 49 4B 69 F0 C6 6E 00 B4 00 00 00 F8 F2 01 00 B4 00 00 00 00 05 00 00 D0 02 00 00 80 96 98 00
+data\Movies\PhotoCamera_Kidnapper.bik              3935116 42 49 4B 69 84 0B 3C 00 96 00 00 00 1C 41 01 00 96 00 00 00 00 05 00 00 D0 02 00 00 80 96 98 00
+data\Movies\PhotoCamera_PopstarDeal.bik            4736852 42 49 4B 69 4C 47 48 00 B4 00 00 00 2C 42 01 00 B4 00 00 00 00 05 00 00 D0 02 00 00 80 96 98 00
+data\Movies\PhotoCamera_PopstarExecution.bik       4731932 42 49 4B 69 14 34 48 00 B4 00 00 00 60 41 01 00 B4 00 00 00 00 05 00 00 D0 02 00 00 80 96 98 00
+data\Movies\PhotoCamera_SerialKiller_Bodies.bik    4739892 42 49 4B 69 2C 53 48 00 B4 00 00 00 18 46 01 00 B4 00 00 00 00 05 00 00 D0 02 00 00 80 96 98 00
+data\Movies\torture_flashback_01.bik               9394792 42 49 4B 69 60 5A 8F 00 F3 00 00 00 84 16 02 00 F3 00 00 00 00 05 00 00 D0 02 00 00 1E 00 00 00
+data\Movies\torture_flashback_02.bik               8668180 42 49 4B 69 0C 44 84 00 C5 00 00 00 90 5D 01 00 C5 00 00 00 00 05 00 00 D0 02 00 00 1E 00 00 00
+data\Movies\torture_flashback_03.bik               7917736 42 49 4B 69 A0 D0 78 00 7D 00 00 00 CC 21 02 00 7D 00 00 00 00 05 00 00 D0 02 00 00 1E 00 00 00
+data\Movies\torture_flashback_04.bik               6413476 42 49 4B 69 9C DC 61 00 D9 00 00 00 28 71 01 00 D9 00 00 00 00 05 00 00 D0 02 00 00 1E 00 00 00
+data\Movies\torture_pendrew_1.bik                  7408156 42 49 4B 69 14 0A 71 00 72 01 00 00 4C 09 01 00 72 01 00 00 00 05 00 00 D0 02 00 00 B5 0B 00 00
+data\Movies\torture_uncle_po_1.bik                 2483140 42 49 4B 69 BC E3 25 00 66 00 00 00 84 8B 00 00 66 00 00 00 00 05 00 00 D0 02 00 00 1E 00 00 00
+data\Movies\torture_uncle_po_2.bik                 3960448 42 49 4B 69 78 6E 3C 00 B0 00 00 00 D8 03 01 00 B0 00 00 00 00 05 00 00 D0 02 00 00 1E 00 00 00
+data\Movies\ZODIAC_CH_INTRO.bik                    3647780 42 49 4B 69 1C A9 37 00 AB 00 00 00 C0 A8 00 00 AB 00 00 00 00 05 00 00 D0 02 00 00 30 75 00 00
+data\Movies\ZODIAC_ENDGAME_ZHANG_INTRO.bik         2694156 42 49 4B 69 04 1C 29 00 83 00 00 00 F8 F8 00 00 83 00 00 00 00 05 00 00 D0 02 00 00 30 75 00 00
+data\Movies\ZODIAC_ENDGAME_ZHANG_RUNS.bik          3139456 42 49 4B 69 78 E7 2F 00 93 00 00 00 A4 0E 01 00 93 00 00 00 00 05 00 00 D0 02 00 00 30 75 00 00
+data\Movies\ZODIAC_HH_AMBUSH.bik                   4939084 42 49 4B 69 44 5D 4B 00 F8 00 00 00 D0 01 01 00 F8 00 00 00 00 05 00 00 D0 02 00 00 30 75 00 00
+data\Movies\ZODIAC_HH_KARL_INTRO.bik               3649472 42 49 4B 69 B8 AF 37 00 C8 00 00 00 B8 D9 00 00 C8 00 00 00 00 05 00 00 D0 02 00 00 30 75 00 00
+data\Movies\ZODIAC_LMS_INTRO.bik                   8956876 42 49 4B 69 C4 AB 88 00 A7 01 00 00 44 BA 00 00 A7 01 00 00 00 05 00 00 D0 02 00 00 30 75 00 00
+data\Movies\ZODIAC_TBF_ROUND1.bik                  4186848 42 49 4B 69 D8 E2 3F 00 C1 00 00 00 74 0B 01 00 C1 00 00 00 00 05 00 00 D0 02 00 00 30 75 00 00
+data\Movies\ZODIAC_TBF_ROUND2.bik                  2462884 42 49 4B 69 9C 94 25 00 85 00 00 00 14 E3 00 00 85 00 00 00 00 05 00 00 D0 02 00 00 30 75 00 00
+data\Movies\ZODIAC_TBF_ROUND3.bik                  3774484 42 49 4B 69 0C 98 39 00 AE 00 00 00 A4 23 01 00 AE 00 00 00 00 05 00 00 D0 02 00 00 30 75 00 00
+data\shaders\shaders.perm.bin                        82280 EF AE 46 0C B0 3D 00 00 B0 3D 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+data\shaders\shaders.temp.bin                     14129280 0C E5 5B 98 50 14 00 00 50 14 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+data\UI\Config\FontDefinition.xml                     4074 3C 46 6F 6E 74 44 65 66 69 6E 69 74 69 6F 6E 3E 0D 0A 09 3C 4C 61 6E 67 75 61 67 65 20 6E 61 6D
+
+
+

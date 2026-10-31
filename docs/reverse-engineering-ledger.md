@@ -35,7 +35,9 @@ This ledger tracks verified technical facts, inferences, hypotheses, and unknown
 | GF-05 | `CONFIRMED` | D3D11 Device Creation | `0x14069f9e0` | Calls `D3D11CreateDevice` with selected adapter `DAT_142439af8`, `D3D_DRIVER_TYPE_UNKNOWN`, flags `0x20` (`BGRA_SUPPORT`), SDK Version `7`. Device stored in `DAT_142439ae0`, context in `DAT_142439ae8`. |
 | GF-06 | `CONFIRMED` | Feature Level Floor | `0x14069f9e0` | Rejects feature levels below `0xA000` (Direct3D 10.0). Tiers: <10.1 => 0, 10.1..<11.0 => 1, >=11.0 => 2. |
 | GF-07 | `STRONG INFERENCE` | GPU Timing Queries | `0x14069f9e0` | Creates two disjoint queries (`D3D11_QUERY_TIMESTAMP_DISJOINT`, type 3) and four timestamp queries (`D3D11_QUERY_TIMESTAMP`, type 2) via device vtable slot `+0xC0`. |
-| GF-08 | `UNKNOWN` | Swap Chain Creation | Global search needed | Swap chain creation call site and presentation loop (`IDXGISwapChain::Present`) not yet mapped. |
+| GF-08 | `CONFIRMED` | Swap Chain Creation | `0x1406a04a0` | Calls `IDXGIFactory::CreateSwapChain` (vtable +0x50), `IDXGISwapChain::GetBuffer` (+0x48), `ID3D11Device::CreateRenderTargetView` (+0x48). Swap chain stored in `DAT_142439b10`, backbuffer texture in `DAT_142439aa0`, RTV in `DAT_142439b18`. |
+| GF-09 | `CONFIRMED` | Swap Chain Resize | `0x1406a14e0` | Calls `IDXGISwapChain::ResizeBuffers` (vtable +0x68) with BufferCount=2, format 0x1C (`DXGI_FORMAT_R8G8B8A8_UNORM`), flags=2. Reconstructs BackBuffer, PresentBuffer, LeftEye, RightEye targets. |
+| GF-10 | `CONFIRMED` | Frame Submission & Present | `0x1406a0870` | Copies render target to backbuffer via `ID3D11DeviceContext::CopyResource` (vtable +0x178), executes `IDXGISwapChain::Present` (+0x40), checks for device loss (`0x887A0005`, `0x887A0007`), and triggers automatic device re-creation if lost. |
 
 ---
 
@@ -52,7 +54,7 @@ This ledger tracks verified technical facts, inferences, hypotheses, and unknown
 
 | ID | Status | Subject | Evidence / Address | Details |
 |---|---|---|---|---|
-| AR-01 | `CONFIRMED` | BIX Magic Signature | `data-file-signatures.csv`, `PrefabData.bix`, `Global.bix` | `.bix` files begin with 4-byte magic `A8 40 5C 2C` (`0x2C5C40A8` in Little Endian). |
-| AR-02 | `CONFIRMED` | BIX Size Fields | `PrefabData.bix`, `Global.bix` | Bytes 4-7 and 8-11 encode the index payload byte length (Total File Size - 16 bytes). |
-| AR-03 | `STRONG INFERENCE` | Index Record Content | SDModding references & hex audit | Entries contain resource UID / name hash, offset in `.big`, compressed size, uncompressed size, and compression flags. |
+| AR-01 | `CONFIRMED` | BIX Magic Signature | `data-file-signatures.csv`, all `.bix` | `.bix` files begin with 4-byte magic `A8 40 5C 2C` (`0x2C5C40A8` in Little Endian). |
+| AR-02 | `CONFIRMED` | BIX Header Layout | All 11 `.bix` files | Offset 0x00: Magic, 0x04: Payload size, 0x44: Archive name ASCII, 0x70: Entry count, 0xC0: Start of 24-byte record array. |
+| AR-03 | `CONFIRMED` | 24-byte Entry Layout | All 26,894 entries across 11 archives | Offset 0: mUID, 4: mOffset in .big, 8: mPart1Size, 12: mPart2Size, 16: mPadding, 20: mTotalSpan. Invariant: `mPart1Size + mPart2Size == mTotalSpan + mPadding` verified on 100% of multi-part records (12,614/12,614). |
 | AR-04 | `UNKNOWN` | Compression Codecs | BIG payloads | Exact compression algorithms (e.g., zlib, LZO, LZMA, or proprietary) to be verified from chunks. |

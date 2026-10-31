@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sleeping Dogs — Browser Reconstruction Engine</title>
+    <style>
+        :root {
+            --bg-dark: #0b0d11;
+            --panel-bg: #13171f;
+            --panel-border: #232a38;
+            --accent-crimson: #d92638;
+            --accent-cyan: #00d2ff;
+            --text-main: #e2e8f0;
+            --text-muted: #8b9bb4;
+            --code-bg: #080a0e;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            height: 48px;
+            background: var(--panel-bg);
+            border-bottom: 1px solid var(--panel-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+        }
+
+        .title-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-tag {
+            background: var(--accent-crimson);
+            color: white;
+            font-weight: 800;
+            font-size: 11px;
+            letter-spacing: 1px;
+            padding: 3px 8px;
+            border-radius: 3px;
+        }
+
+        h1 {
+            font-size: 15px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .status-pills {
+            display: flex;
+            gap: 8px;
+        }
+
+        .pill {
+            background: rgba(0, 210, 255, 0.1);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(0, 210, 255, 0.3);
+            font-size: 11px;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-family: monospace;
+        }
+
+        .container {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            height: calc(100vh - 48px);
+        }
+
+        /* Sidebar / Explorer */
+        aside {
+            background: var(--panel-bg);
+            border-right: 1px solid var(--panel-border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .section-header {
+            padding: 12px 16px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--panel-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .dropzone {
+            margin: 12px 16px;
+            padding: 16px;
+            border: 2px dashed var(--panel-border);
+            border-radius: 6px;
+            text-align: center;
+            font-size: 12px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .dropzone:hover, .dropzone.dragover {
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+            background: rgba(0, 210, 255, 0.05);
+        }
+
+        .archive-info-card {
+            margin: 0 16px 12px 16px;
+            padding: 12px;
+            background: var(--code-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 12px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+        }
+
+        .info-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .info-label {
+            color: var(--text-muted);
+        }
+
+        .entry-list {
+            flex: 1;
+            overflow-y: auto;
+            border-top: 1px solid var(--panel-border);
+        }
+
+        .entry-item {
+            padding: 8px 16px;
+            font-family: monospace;
+            font-size: 12px;
+            display: flex;
+            justify-content: space-between;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .entry-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .entry-item.active {
+            background: rgba(217, 38, 56, 0.15);
+            border-left: 3px solid var(--accent-crimson);
+            color: #fff;
+        }
+
+        /* 3D Viewport Area */
+        main {
+            position: relative;
+            background: #000;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .hud-overlay {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            background: rgba(11, 13, 17, 0.85);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+            padding: 12px 16px;
+            font-family: monospace;
+            font-size: 12px;
+            pointer-events: none;
+            min-width: 200px;
+        }
+
+        .hud-title {
+            color: var(--accent-cyan);
+            font-weight: 700;
+            margin-bottom: 8px;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 4px;
+        }
+
+        .controls-hint {
+            position: absolute;
+            bottom: 16px;
+            right: 16px;
+            background: rgba(11, 13, 17, 0.8);
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 11px;
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        .controls-hint span {
+            color: var(--text-main);
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="title-group">
+            <span class="logo-tag">SLEEPING DOGS</span>
+            <h1>BROWSER RECONSTRUCTION ENGINE // VERTICAL SLICE</h1>
+        </div>
+        <div class="status-pills">
+            <span class="pill" id="pill-pipeline">Direct3D 11: Mapped</span>
+            <span class="pill" id="pill-bix">BIG/BIX: Verified</span>
+            <span class="pill" id="pill-renderer">Renderer: WebGL2 Active</span>
+        </div>
+    </header>
+
+    <div class="container">
+        <aside>
+            <div class="section-header">
+                <span>Archive Inspector</span>
+                <span id="badge-count" style="color: var(--accent-cyan);">0 Entries</span>
+            </div>
+
+            <div class="dropzone" id="dropzone">
+                <strong>Drag &amp; Drop a .bix file here</strong><br>
+                <span>or click to browse from local game folder</span>
+                <input type="file" id="file-input" accept=".bix" style="display: none;">
+            </div>
+
+            <div class="archive-info-card" id="archive-card">
+                <div class="info-row"><span class="info-label">Active Archive:</span><strong id="card-name">None loaded</strong></div>
+                <div class="info-row"><span class="info-label">Resource Count:</span><span id="card-entries">0</span></div>
+                <div class="info-row"><span class="info-label">Payload Size:</span><span id="card-size">0 bytes</span></div>
+                <div class="info-row"><span class="info-label">Invariant Check:</span><span id="card-status" style="color: var(--accent-cyan);">Ready</span></div>
+            </div>
+
+            <div class="section-header">
+                <span>Resource Entries</span>
+                <span style="font-size: 10px; color: var(--text-muted);">UID | OFFSET | SPAN</span>
+            </div>
+
+            <div class="entry-list" id="entry-list">
+                <!-- Populated dynamically -->
+            </div>
+        </aside>
+
+        <main>
+            <canvas id="viewport"></canvas>
+
+            <div class="hud-overlay">
+                <div class="hud-title">REAL-TIME PIPELINE HUD</div>
+                <div class="info-row"><span class="info-label">FPS:</span><span id="hud-fps" style="color: #4ade80;">--</span></div>
+                <div class="info-row"><span class="info-label">Frame Time:</span><span id="hud-frametime">-- ms</span></div>
+                <div class="info-row"><span class="info-label">Draw Calls:</span><span id="hud-drawcalls">2</span></div>
+                <div class="info-row"><span class="info-label">Triangles:</span><span id="hud-triangles">12</span></div>
+                <div class="info-row"><span class="info-label">Active Target:</span><span id="hud-target" style="color: var(--accent-crimson);">BackBuffer</span></div>
+            </div>
+
+            <div class="controls-hint">
+                <span>Left Click + Drag:</span> Orbit | <span>Right Click + Drag:</span> Pan | <span>Scroll:</span> Zoom
+            </div>
+        </main>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

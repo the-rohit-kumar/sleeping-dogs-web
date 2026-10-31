@@ -1,0 +1,178 @@
+SLEEPING DOGS PE INSPECTION (READ-ONLY)
+Game folder: C:\Program Files (x86)\Steam\steamapps\common\SleepingDogsDefinitiveEdition
+PE files scanned: 21
+PDB files found in game folder: 0
+
+BINARIES
+
+[C:\Program Files (x86)\Steam\steamapps\common\SleepingDogsDefinitiveEdition\avutil-ttv-51.dll]
+Machine: x64 (0x8664) | PE32+
+Image base: 0x70a40000 | Entry point RVA: 0x1420
+Image size: 638,976 bytes
+Sections: .text (raw 154,624, VA 0x1000), .data (raw 15,872, VA 0x27000), .rdata (raw 26,624, VA 0x2b000), .pdata (raw 5,120, VA 0x32000), .xdata (raw 5,120, VA 0x34000), .bss (raw 0, VA 0x36000), .edata (raw 7,168, VA 0x3c000), .idata (raw 4,096, VA 0x3e000), .CRT (raw 512, VA 0x3f000), .tls (raw 512, VA 0x40000), .reloc (raw 1,536, VA 0x41000), /4 (raw 3,072, VA 0x42000), /19 (raw 113,152, VA 0x43000), /31 (raw 19,456, VA 0x5f000), /45 (raw 29,184, VA 0x64000), /57 (raw 9,728, VA 0x6c000), /70 (raw 1,024, VA 0x6f000), /81 (raw 168,960, VA 0x70000), /92 (raw 5,120, VA 0x9a000)
+Imported DLLs: kernel32.dll, msvcrt.dll, msvcrt.dll
+CodeView/PDB: no RSDS/NB10 record found
+
+[C:\Program Files (x86)\Steam\steamapps\common\SleepingDogsDefinitiveEdition\bink2w64.dll]
+Machine: x64 (0x8664) | PE32+
+Image base: 0x180000000 | Entry point RVA: 0x3a78
+Image size: 577,536 bytes
+Sections: .text (raw 57,344, VA 0x1000), BINK16 (raw 2,560, VA 0xf000), BINK32 (raw 3,072, VA 0x10000), BINKP8 (raw 3,072, VA 0x11000), BINK (raw 239,616, VA 0x12000), RADCODE (raw 2,048, VA 0x4d000), BINKBSS (raw 0, VA 0x4e000), .rdata (raw 28,672, VA 0x69000), .data (raw 22,016, VA 0x70000), .pdata (raw 9,728, VA 0x77000), BINKDATA (raw 12,288, VA 0x7a000), BINKCONS (raw 30,720, VA 0x7d000), RADDATA (raw 512, VA 0x85000), RADCONST (raw 512, VA 0x86000), .rsrc (raw 19,968, VA 0x87000), .reloc (raw 2,048, VA 0x8c000)
+Imported DLLs: user32.dll, gdi32.dll, kernel32.dll, winmm.dll, ole32.dll
+Delay imports: mss64.dll
+CodeView/PDB: {"format": "RSDS", "guid": "e6ae86cc-a095-431d-be26-1a80f1ee587a", "age": 1, "pdb_path": "C:\\devel\\projects\\bink\\build\\bink2w64.pdb"}
+
+[C:\Program Files (x86)\Steam\steamapps\common\SleepingDogsDefinitiveEdition\d3dcompiler_46.dll]
+Machine: x64 (0x8664) | PE32+
+Image base: 0x180000000 | Entry point RVA: 0x2b8200
+Image size: 3,891,200 bytes
+Sections: .text (raw 3,652,096, VA 0x1000), .data (raw 40,448, VA 0x37d000), .pdata (raw 113,664, VA 0x38c000), .idata (raw 6,144, VA 0x3a8000), .rsrc (raw 1,024, VA 0x3aa000), .reloc (raw 43,520, VA 0x3ab000)
+Imported DLLs: msvcrt.dll, advapi32.dll, kernel32.dll, rpcrt4.dll
+CodeView/PDB: {"format": "RSDS", "guid": "73a84a14-3485-434b-a165-6c99f7e094d4", "age": 1, "pdb_path": "D3DCompiler_46.pdb"}
+
+[C:\Program Files (x86)\Steam\steamapps\common\SleepingDogsDefinitiveEdition\libcurl-ttv.dll]
+Machine: x64 (0x8664) | PE32+
+Image base: 0x180000000 | Entry point RVA: 0x39120
+Image size: 409,600 bytes
+Sections: .text (raw 294,400, VA 0x1000), .rdata (raw 67,584, VA 0x49000), .data (raw 6,656, VA 0x5a000), .pdata (raw 15,872, VA 0x5e000), .rsrc (raw 1,536, VA 0x62000), .reloc (raw 2,560, VA 0x63000)
+Imported DLLs: ws2_32.dll, wldap32.dll, libeay32-ttv.dll, ssleay32-ttv.dll, kernel32.dll
+CodeView/PDB: no RSDS/NB10 record found
+
+[C:\Program Files (x86)\Steam\steamapps\common\SleepingDogsDefinitiveEdition\libcurl.dll]
+Machine: x64 (0x8664) | PE32+
+Image base: 0x180000000 | Entry point RVA: 0x37f5c
+Image size: 323,584 bytes
+Sections: .text (raw 226,816, VA 0x1000), .rdata (raw 59,392, VA 0x39000), .data (raw 512, VA 0x48000), .pdata (raw 13,312, VA 0x49000), .rsrc (raw 1,536, VA 0x4d000), .reloc (raw 1,536, VA 0x4e000)
+Imported DLLs: wldap32.dll, ws2_32.dll, ssleay32.dll, libeay32.dll, kernel32.dll, msvcr100.dll
+CodeView/PDB: no RSDS/NB10 record found
+
+[C:\Program Files (x86)\Steam\steamapps\common\SleepingDogsDefinitiveEdition\libeay32-ttv.dll]
+Machine: x64 (0x8664) | PE32+
+Image base: 0x180000000 | Entry point RVA: 0xd3220
+Image size: 1,675,264 bytes
+Sections: .text (raw 985,600, VA 0x1000), .rdata (raw 325,120, VA 0xf2000), .data (raw 241,664, VA 0x142000), .pdata (raw 71,168, VA 0x181000), .rsrc (raw 1,536, VA 0x193000), .reloc (raw 19,968, VA 0x194000)
+Imported DLLs: ws2_32.dll, gdi32.dll, advapi32.dll, user32.dll, msvcr100.dll, kernel32.dll
+CodeView/PDB: {"format": "RSDS", "guid": "ac5d43ea-0e71-4cf2-8bb7-8e07aadf89f4", "age": 1, "pdb_path": "c:\\openssl-1.0.1c\\out64dll\\libeay32-ttv.pdb"}
+
+[C:\Program Files (x86)\Steam\steamapps\common\SleepingDogsDefinitiveEdition\libeay32.dll]
+Machine: x64 (0x8664) | PE32+
+Image base: 0x180000000 | Entry point RVA: 0xbc144
+Image size: 1,327,104 bytes
+Sections: .text (raw 768,000, VA 0x1000), .rdata (raw 336,896, VA 0xbd000), .data (raw 104,448, VA 0x110000), .pdata (raw 58,880, VA 0x12e000), .rsrc (raw 2,048, VA 0x13d000), .reloc (raw 23,040, VA 0x13e000)
+Imported DLLs: wsock32.dll, gdi32.dll, advapi32.dll, user32.dll, msvcr90.dll, kernel32.dll
+CodeView/PDB: no RSDS/NB10 record found
+
+[C:\Program Files (x86)\Steam\steamapps\common\SleepingDogsDefinitiveEdition\libmp3lame-ttv.dll]
+Machine: x64 (0x8664) | PE32+
+Image base: 0x6eb80000 | Entry point RVA: 0x1420
+Image size: 851,968 bytes
+Sections: .text (raw 318,464, VA 0x1000), .data (raw 4,608, VA 0x4f000), .rdata (raw 45,056, VA 0x51000), .pdata (raw 6,656, VA 0x5c000), .xdata (raw 7,680, VA 0x5e000), .bss (raw 0, VA 0x60000), .edata (raw 11,776, VA 0x90000), .idata (raw 3,072, VA 0x93000), .CRT (raw 512, VA 0x94000), .tls (raw 512, VA 0x95000), .reloc (raw 1,024, VA 0x96000), /4 (raw 2,048, VA 0x97000), /19 (raw 79,872, VA 0x98000), /31 (raw 13,824, VA 0xac000), /45 (raw 18,944, VA 0xb0000), /57 (raw 7,168, VA 0xb5000), /70 (raw 512, VA 0xb7000), /81 (raw 91,136, VA 0xb8000), /92 (raw 3,072, VA 0xcf000)
+Imported DLLs: kernel32.dll, msvcrt.dll
+CodeView/PDB: no RSDS/NB10 record found
+
+[C:\Program Files (x86)\Steam\steamapps\common\SleepingDogsDefinitiveEdition\redist\D3D11Install_2010.exe]
+Machine: x86 (0x014c) | PE32
+Image base: 0x400000 | Entry point RVA: 0x1c19
+Image size: 221,184 bytes
+Sections: .text (raw 31,744, VA 0x1000), .rdata (raw 10,752, VA 0x9000), .data (raw 3,584, VA 0xc000), .rsrc (raw 153,600, VA 0xf000), .reloc (raw 4,096, VA 0x35000)
+Imported DLLs: kernel32.dll, user32.dll, shell32.dll, d3d11installhelper.dll
+CodeView/PDB: {"format": "RSDS", "guid": "e6f28b2e-10ab-4b0d-99e3-84f06692ae68", "age": 6, "pdb_path": "D:\\DX11\\Samples\\DirectXSamples\\D3D11InstallHelper\\Release\\D3D11Install_2010.pdb"}
+
+[C:\Program Files (x86)\Steam\steamapps\common\SleepingDogsDefinitiveEdition\redist\D3D11InstallHelper.dll]
+Machine: x86 (0x014c) | PE32
+Image base: 0x10000000 | Entry point RVA: 0x25c0
+Image size: 65,536 bytes
+Sections: .text (raw 24,064, VA 0x1000), .rdata (raw 14,848, VA 0x7000), .data (raw 4,096, VA 0xb000), .rsrc (raw 1,536, VA 0xd000), .reloc (raw 5,120, VA 0xe000)
+Imported DLLs: kernel32.dll, shell32.dll, ole32.dll, oleaut32.dll, msi.dll
+CodeView/PDB: {"format": "RSDS", "guid": "c2987122-1c46-43ff-8b7e-bf658059d312", "age": 1, "pdb_path": "D:\\DX11\\Samples\\DirectXSamples\\D3D11InstallHelper\\Release\\D3D11InstallHelper.pdb"}
+
+[C:\Program Files (x86)\Steam\steamapps\common\SleepingDogsDefinitiveEdition\redist\DXRedist\DSETUP.dll]
+Machine: x86 (0x014c) | PE32
+Image base: 0x10000000 | Entry point RVA: 0x6bbc
+Image size: 106,496 bytes
+Sections: .text (raw 76,288, VA 0x1000), .data (raw 4,608, VA 0x14000), .rsrc (raw 2,048, VA 0x17000), .reloc (raw 5,632, VA 0x18000)
+Imported DLLs: kernel32.dll, user32.dll, advapi32.dll, winmm.dll, version.dll, ole32.dll
+CodeView/PDB: {"format": "RSDS", "guid": "28dcef84-c731-4c8a-baee-e60a37e4b556", "age": 1, "pdb_path": "DSETUP.pdb"}
+
+[C:\Program Files (x86)\Steam\steamapps\common\SleepingDogsDefinitiveEdition\redist\DXRedist\dsetup32.dll]
+Machine: x86 (0x014c) | PE32
+Image base: 0x10000000 | Entry point RVA: 0xf663
+Image size: 1,581,056 bytes
+Sections: .text (raw 112,640, VA 0x1000), .data (raw 5,120, VA 0x1d000), .rsrc (raw 1,430,528, VA 0x21000), .reloc (raw 10,752, VA 0x17f000)
+Imported DLLs: kernel32.dll, gdi32.dll, user32.dll, advapi32.dll, version.dll, shell32.dll
+CodeView/PDB: {"format": "RSDS", "guid": "7eb6eaa8-e95c-420f-994c-b6ee087b3ce3", "age": 1, "pdb_path": "dsetup32.pdb"}
+
+[C:\Program Files (x86)\Steam\steamapps\common\SleepingDogsDefinitiveEdition\redist\DXRedist\DXSETUP.exe]
+Machine: x86 (0x014c) | PE32
+Image base: 0x1000000 | Entry point RVA: 0x709f
+Image size: 532,480 bytes
+Sections: .text (raw 90,624, VA 0x1000), .data (raw 5,120, VA 0x18000), .rsrc (raw 409,088, VA 0x1c000), .reloc (raw 6,144, VA 0x80000)
+Imported DLLs: advapi32.dll, kernel32.dll, gdi32.dll, user32.dll, version.dll, comctl32.dll
+CodeView/PDB: {"format": "RSDS", "guid": "0f88dc88-5c52-419e-9c30-13a1d0887c73", "age": 1, "pdb_path": "DXSETUP.pdb"}
+
+[C:\Program Files (x86)\Steam\steamapps\common\SleepingDogsDefinitiveEdition\redist\vcredist_x64.exe]
+Machine: x86 (0x014c) | PE32
+Image base: 0x1000000 | Entry point RVA: 0x63ff
+Image size: 131,072 bytes
+Sections: .text (raw 34,304, VA 0x2000), .data (raw 512, VA 0xc000), .rsrc (raw 5,632,000, VA 0x1e000)
+Imported DLLs: msvcrt.dll, advapi32.dll, kernel32.dll, user32.dll, ntdll.dll, comctl32.dll, shell32.dll
+CodeView/PDB: {"format": "RSDS", "guid": "cb2d5fe3-c4b4-412d-a234-9cd567b668c5", "age": 1, "pdb_path": "sfxcab.pdb"}
+
+[C:\Program Files (x86)\Steam\steamapps\common\SleepingDogsDefinitiveEdition\sdhdship.exe]
+Machine: x64 (0x8664) | PE32+
+Image base: 0x140000000 | Entry point RVA: 0x12ba5b4
+Image size: 41,308,160 bytes
+Sections: .text (raw 23,238,144, VA 0x1000), .rdata (raw 10,444,800, VA 0x162b000), .data (raw 1,079,296, VA 0x2021000), .pdata (raw 1,514,496, VA 0x24c9000), .tls (raw 512, VA 0x263b000), _RDATA (raw 33,792, VA 0x263c000), .rsrc (raw 662,528, VA 0x2645000), .reloc (raw 516,096, VA 0x26e7000)
+Imported DLLs: winhttp.dll, libcurl.dll, advapi32.dll, kernel32.dll, gdi32.dll, ole32.dll, oleaut32.dll, psapi.dll, secur32.dll, shlwapi.dll, user32.dll, winmm.dll, wsock32.dll, iphlpapi.dll, msacm32.dll, d3d11.dll, d3dcompiler_46.dll, dinput8.dll, dxgi.dll, xinput9_1_0.dll, wininet.dll, steam_api64.dll, twitchsdk_64_release.dll, bink2w64.dll, crypt32.dll
+CodeView/PDB: {"format": "RSDS", "guid": "39fb50f8-bf80-45cf-b459-c80373629312", "age": 16, "pdb_path": "d:\\ufg\\madscience\\project\\builds\\sdhd\\sdhd_pc\\build\\project\\int\\sdhd-pc64-ship\\sdhdship.pdb"}
+
+[C:\Program Files (x86)\Steam\steamapps\common\SleepingDogsDefinitiveEdition\sdkencryptedappticket64.dll]
+Machine: x64 (0x8664) | PE32+
+Image base: 0x180000000 | Entry point RVA: 0x586e4
+Image size: 675,840 bytes
+Sections: .text (raw 454,144, VA 0x1000), .rdata (raw 145,920, VA 0x70000), .data (raw 15,360, VA 0x94000), .pdata (raw 26,624, VA 0x9c000), .reloc (raw 7,168, VA 0xa3000)
+Imported DLLs: kernel32.dll
+CodeView/PDB: {"format": "RSDS", "guid": "a1949f57-a5ed-46e8-823d-d235c4c152d6", "age": 1, "pdb_path": "c:\\buildslave\\steam_rel_client_win64\\build\\src\\sdkencryptedappticketlib\\win64\\Release\\sdkencryptedappticket64.pdb"}
+
+[C:\Program Files (x86)\Steam\steamapps\common\SleepingDogsDefinitiveEdition\ssleay32-ttv.dll]
+Machine: x64 (0x8664) | PE32+
+Image base: 0x180000000 | Entry point RVA: 0x37488
+Image size: 356,352 bytes
+Sections: .text (raw 223,744, VA 0x1000), .rdata (raw 37,376, VA 0x38000), .data (raw 60,928, VA 0x42000), .pdata (raw 10,240, VA 0x52000), .rsrc (raw 1,536, VA 0x55000), .reloc (raw 4,096, VA 0x56000)
+Imported DLLs: libeay32-ttv.dll, msvcr100.dll, kernel32.dll
+CodeView/PDB: {"format": "RSDS", "guid": "a9c8fc66-ee5e-4ef4-afee-78656019de98", "age": 1, "pdb_path": "c:\\openssl-1.0.1c\\out64dll\\ssleay32-ttv.pdb"}
+
+[C:\Program Files (x86)\Steam\steamapps\common\SleepingDogsDefinitiveEdition\ssleay32.dll]
+Machine: x64 (0x8664) | PE32+
+Image base: 0x180000000 | Entry point RVA: 0x2eac4
+Image size: 286,720 bytes
+Sections: .text (raw 188,928, VA 0x1000), .rdata (raw 47,616, VA 0x30000), .data (raw 16,384, VA 0x3c000), .pdata (raw 8,704, VA 0x41000), .rsrc (raw 2,048, VA 0x44000), .reloc (raw 3,072, VA 0x45000)
+Imported DLLs: libeay32.dll, msvcr90.dll, kernel32.dll
+CodeView/PDB: no RSDS/NB10 record found
+
+[C:\Program Files (x86)\Steam\steamapps\common\SleepingDogsDefinitiveEdition\steam_api64.dll]
+Machine: x64 (0x8664) | PE32+
+Image base: 0x3b400000 | Entry point RVA: 0x74e0
+Image size: 139,264 bytes
+Sections: .text (raw 75,776, VA 0x1000), .rdata (raw 24,064, VA 0x14000), .data (raw 5,632, VA 0x1a000), .pdata (raw 4,608, VA 0x1e000), .rsrc (raw 2,048, VA 0x20000), .reloc (raw 1,536, VA 0x21000)
+Imported DLLs: kernel32.dll, advapi32.dll, shell32.dll
+CodeView/PDB: {"format": "RSDS", "guid": "5b60cda5-847e-40a1-a830-2b12174eb4ef", "age": 1, "pdb_path": "c:\\buildslave\\steam_rel_client_win64\\build\\src\\steam_api\\win64\\Release\\steam_api64.pdb"}
+
+[C:\Program Files (x86)\Steam\steamapps\common\SleepingDogsDefinitiveEdition\swresample-ttv-0.dll]
+Machine: x64 (0x8664) | PE32+
+Image base: 0x65980000 | Entry point RVA: 0x1420
+Image size: 352,256 bytes
+Sections: .text (raw 83,968, VA 0x1000), .data (raw 4,608, VA 0x16000), .rdata (raw 7,168, VA 0x18000), .rodata (raw 512, VA 0x1a000), .pdata (raw 2,560, VA 0x1b000), .xdata (raw 2,560, VA 0x1c000), .bss (raw 0, VA 0x1d000), .edata (raw 4,096, VA 0x1f000), .idata (raw 3,072, VA 0x20000), .CRT (raw 512, VA 0x21000), .tls (raw 512, VA 0x22000), .reloc (raw 512, VA 0x23000), /4 (raw 2,048, VA 0x24000), /19 (raw 72,704, VA 0x25000), /31 (raw 11,776, VA 0x37000), /45 (raw 15,872, VA 0x3a000), /57 (raw 6,656, VA 0x3e000), /70 (raw 512, VA 0x40000), /81 (raw 80,896, VA 0x41000), /92 (raw 3,072, VA 0x55000)
+Imported DLLs: kernel32.dll, msvcrt.dll, avutil-ttv-51.dll
+CodeView/PDB: no RSDS/NB10 record found
+
+[C:\Program Files (x86)\Steam\steamapps\common\SleepingDogsDefinitiveEdition\twitchsdk_64_release.dll]
+Machine: x64 (0x8664) | PE32+
+Image base: 0x180000000 | Entry point RVA: 0x71164
+Image size: 1,028,096 bytes
+Sections: .text (raw 595,968, VA 0x1000), .rdata (raw 231,936, VA 0x93000), .data (raw 49,152, VA 0xcc000), .pdata (raw 34,304, VA 0xec000), .rsrc (raw 512, VA 0xf5000), .reloc (raw 17,408, VA 0xf6000)
+Imported DLLs: libcurl-ttv.dll, libmp3lame-ttv.dll, swresample-ttv-0.dll, kernel32.dll, advapi32.dll, ole32.dll, oleaut32.dll, ws2_32.dll
+CodeView/PDB: {"format": "RSDS", "guid": "68e8ac1b-88a1-489e-8754-fd2e29c78195", "age": 2, "pdb_path": "C:\\Users\\dfrostick\\Documents\\GitHub\\twitchsdk\\lib\\twitchsdk_64_release.pdb"}
+
+PDB FILES FOUND:
+None in the scanned game folder.
