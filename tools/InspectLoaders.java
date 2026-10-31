@@ -81,3 +81,4 @@ public class InspectLoaders extends GhidraScript {
         println("SUCCESS: Wrote loader research to " + outFile.getAbsolutePath());
     }
 }
+

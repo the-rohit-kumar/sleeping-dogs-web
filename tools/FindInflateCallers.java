@@ -76,3 +76,4 @@ public class FindInflateCallers extends GhidraScript {
         println("SUCCESS: Wrote inflate callers to " + outFile.getAbsolutePath());
     }
 }
+

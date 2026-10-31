@@ -30,3 +30,4 @@ public class DecompileFunc extends GhidraScript {
         println("Done!");
     }
 }
+

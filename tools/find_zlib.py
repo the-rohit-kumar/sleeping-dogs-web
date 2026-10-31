@@ -21,3 +21,4 @@ for ze in zerrs:
     pos = data.find(ze)
     if pos != -1:
         print(f"Found zlib string: '{ze.decode()}' at file offset 0x{pos:x}")
+

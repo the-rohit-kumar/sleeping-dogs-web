@@ -24,3 +24,4 @@ public class FindTextureTypes extends GhidraScript {
         println("Total matched: " + count);
     }
 }
+

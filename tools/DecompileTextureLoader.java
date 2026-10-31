@@ -30,3 +30,4 @@ public class DecompileTextureLoader extends GhidraScript {
         println("Done decompiling TextureLoader methods!");
     }
 }
+

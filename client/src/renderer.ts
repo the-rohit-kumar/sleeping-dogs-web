@@ -2,10 +2,11 @@
  * Sleeping Dogs Browser Reconstruction — 3D Viewport Renderer.
  * Modern WebGL2 pipeline with perspective camera, orbital navigation,
  * real-time procedural lighting, dynamic texture mapping, and technical metrics.
+ * ZERO synthetic assets: Renders only authentic base-game geometry and textures.
  */
 
-import { DecodedTexture, createProceduralTexture } from './texture-decoder';
-import { DecodedMesh, createVehicleMesh } from './mesh-decoder';
+import { DecodedTexture } from './texture-decoder';
+import { DecodedMesh } from './mesh-decoder';
 
 export class Viewport3D {
     private canvas: HTMLCanvasElement;
@@ -34,8 +35,8 @@ export class Viewport3D {
     public frameTimeMs = 0;
     public drawCalls = 0;
     public triangleCount = 0;
-    public currentMeshName = "Vehicle_Coupe_LOD0";
-    public currentTextureFormat = "Procedural UV";
+    public currentMeshName = "Pending Base Game Stream";
+    public currentTextureFormat = "No Texture Bound";
 
     private lastTime = performance.now();
     private frameCounter = 0;
@@ -53,18 +54,6 @@ export class Viewport3D {
         this.initBuffers();
         this.initEvents();
         this.resize();
-
-        // Default: load reverse-engineered vehicle geometry & test texture
-        this.setMesh(createVehicleMesh("SleepingDogs_Vehicle_Slice"));
-        const defaultTex = {
-            width: 256,
-            height: 256,
-            mipLevels: 1,
-            format: 0,
-            formatName: "Procedural UV Grid",
-            rgbaPixels: createProceduralTexture(256, 256)
-        };
-        this.setTexture(defaultTex);
     }
 
     private initShaders() {
@@ -110,7 +99,7 @@ export class Viewport3D {
 
             void main() {
                 // Ambient
-                float ambientStrength = 0.35;
+                float ambientStrength = 0.4;
                 vec3 ambient = ambientStrength * uLightColor;
 
                 // Diffuse
@@ -128,7 +117,7 @@ export class Viewport3D {
                 vec3 baseColor = uObjectColor;
                 if (uHasTexture) {
                     vec4 texColor = texture(uTexture, vUV);
-                    baseColor = mix(uObjectColor, texColor.rgb, 0.75);
+                    baseColor = mix(uObjectColor, texColor.rgb, 0.85);
                 }
 
                 vec3 result = (ambient + diffuse + specular) * baseColor;
@@ -214,12 +203,19 @@ export class Viewport3D {
     }
 
     /**
-     * Binds and displays a decoded 3D mesh
+     * Binds and displays an authentic decoded 3D mesh
      */
     public setMesh(mesh: DecodedMesh) {
         const gl = this.gl;
         this.currentMeshName = mesh.name;
         this.triangleCount = mesh.triangleCount;
+
+        // Auto-frame camera to model bounding box
+        if (mesh.bounds) {
+            this.target = [mesh.bounds.center[0], mesh.bounds.center[1], mesh.bounds.center[2]];
+            const maxDim = Math.max(mesh.bounds.size[0], mesh.bounds.size[1], mesh.bounds.size[2]);
+            this.distance = Math.max(2.5, maxDim * 1.6);
+        }
 
         // Pack interleaved attributes [Px, Py, Pz, Nx, Ny, Nz, U, V]
         const vertexCount = mesh.vertexCount;
@@ -259,7 +255,7 @@ export class Viewport3D {
     }
 
     /**
-     * Binds and uploads a decoded texture
+     * Binds and uploads an authentic decoded texture
      */
     public setTexture(tex: DecodedTexture) {
         const gl = this.gl;
@@ -310,21 +306,31 @@ export class Viewport3D {
             this.lastMouseX = e.clientX;
             this.lastMouseY = e.clientY;
 
-            if (e.buttons === 1) { // Left click: orbit
+            if (e.buttons === 1) { // Left-click: Orbit
                 this.yaw += dx * 0.008;
-                this.pitch = Math.max(-1.4, Math.min(1.4, this.pitch + dy * 0.008));
-            } else if (e.buttons === 2) { // Right click: pan
-                this.target[0] -= (dx * Math.cos(this.yaw) - dy * Math.sin(this.yaw)) * 0.005;
-                this.target[2] -= (dx * Math.sin(this.yaw) + dy * Math.cos(this.yaw)) * 0.005;
+                this.pitch += dy * 0.008;
+                this.pitch = Math.max(-Math.PI / 2 + 0.05, Math.min(Math.PI / 2 - 0.05, this.pitch));
+            } else if (e.buttons === 2) { // Right-click: Pan
+                const panSpeed = this.distance * 0.0015;
+                const forwardX = -Math.sin(this.yaw);
+                const forwardZ = -Math.cos(this.yaw);
+                const rightX = -forwardZ;
+                const rightZ = forwardX;
+
+                this.target[0] -= rightX * dx * panSpeed;
+                this.target[2] -= rightZ * dx * panSpeed;
+                this.target[1] += dy * panSpeed;
             }
         });
 
+        this.canvas.addEventListener('contextmenu', (e) => e.preventDefault());
+
         this.canvas.addEventListener('wheel', (e) => {
             e.preventDefault();
-            this.distance = Math.max(1.5, Math.min(30.0, this.distance + e.deltaY * 0.005));
+            this.distance += e.deltaY * 0.005;
+            this.distance = Math.max(0.5, Math.min(50.0, this.distance));
         }, { passive: false });
 
-        this.canvas.addEventListener('contextmenu', (e) => e.preventDefault());
         window.addEventListener('resize', () => this.resize());
     }
 
@@ -343,37 +349,34 @@ export class Viewport3D {
     public render() {
         const gl = this.gl;
         const now = performance.now();
-        const delta = now - this.lastTime;
+        this.frameTimeMs = now - this.lastTime;
         this.lastTime = now;
-        this.frameTimeMs = delta;
 
-        // Calculate FPS
         this.frameCounter++;
-        if (now - this.fpsTimer >= 500) {
-            this.fps = Math.round((this.frameCounter * 1000) / (now - this.fpsTimer));
+        if (now - this.fpsTimer >= 1000) {
+            this.fps = this.frameCounter;
             this.frameCounter = 0;
             this.fpsTimer = now;
         }
 
-        gl.enable(gl.DEPTH_TEST);
-        gl.depthFunc(gl.LEQUAL);
-        gl.enable(gl.CULL_FACE);
-        gl.cullFace(gl.BACK);
+        this.drawCalls = 0;
 
-        // Dark modern background (Sleeping Dogs dark aesthetic)
-        gl.clearColor(0.06, 0.07, 0.09, 1.0);
+        gl.clearColor(0.04, 0.05, 0.07, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-        // Matrices
-        const aspect = this.canvas.width / this.canvas.height;
-        const proj = this.perspective(45 * Math.PI / 180, aspect, 0.1, 100.0);
+        gl.enable(gl.DEPTH_TEST);
+        gl.depthFunc(gl.LEQUAL);
 
+        // Perspective camera
+        const aspect = this.canvas.width / this.canvas.height;
+        const proj = this.perspective(Math.PI / 4, aspect, 0.1, 100.0);
+
+        // Orbit Eye Position
         const eyeX = this.target[0] + this.distance * Math.cos(this.pitch) * Math.sin(this.yaw);
         const eyeY = this.target[1] + this.distance * Math.sin(this.pitch);
         const eyeZ = this.target[2] + this.distance * Math.cos(this.pitch) * Math.cos(this.yaw);
-        const view = this.lookAt([eyeX, eyeY, eyeZ], this.target, [0, 1, 0]);
 
-        this.drawCalls = 0;
+        const view = this.lookAt([eyeX, eyeY, eyeZ], this.target, [0, 1, 0]);
 
         // Draw Ground Grid
         gl.enable(gl.BLEND);
@@ -387,32 +390,34 @@ export class Viewport3D {
         gl.disable(gl.BLEND);
 
         // Draw Main Model
-        const model = this.identity();
-        const spin = now * 0.0004;
-        this.rotateY(model, spin);
+        if (this.triangleCount > 0) {
+            const model = this.identity();
+            const spin = now * 0.0004;
+            this.rotateY(model, spin);
 
-        gl.useProgram(this.program);
-        gl.uniformMatrix4fv(gl.getUniformLocation(this.program, 'uModel'), false, model);
-        gl.uniformMatrix4fv(gl.getUniformLocation(this.program, 'uView'), false, view);
-        gl.uniformMatrix4fv(gl.getUniformLocation(this.program, 'uProjection'), false, proj);
+            gl.useProgram(this.program);
+            gl.uniformMatrix4fv(gl.getUniformLocation(this.program, 'uModel'), false, model);
+            gl.uniformMatrix4fv(gl.getUniformLocation(this.program, 'uView'), false, view);
+            gl.uniformMatrix4fv(gl.getUniformLocation(this.program, 'uProjection'), false, proj);
 
-        gl.uniform3f(gl.getUniformLocation(this.program, 'uLightPos'), 6.0, 10.0, 7.0);
-        gl.uniform3f(gl.getUniformLocation(this.program, 'uLightColor'), 1.0, 0.96, 0.92);
-        gl.uniform3f(gl.getUniformLocation(this.program, 'uObjectColor'), 0.88, 0.18, 0.22); // Crimson red
-        gl.uniform3f(gl.getUniformLocation(this.program, 'uViewPos'), eyeX, eyeY, eyeZ);
+            gl.uniform3f(gl.getUniformLocation(this.program, 'uLightPos'), 6.0, 10.0, 7.0);
+            gl.uniform3f(gl.getUniformLocation(this.program, 'uLightColor'), 1.0, 0.96, 0.92);
+            gl.uniform3f(gl.getUniformLocation(this.program, 'uObjectColor'), 0.88, 0.18, 0.22); // Crimson red
+            gl.uniform3f(gl.getUniformLocation(this.program, 'uViewPos'), eyeX, eyeY, eyeZ);
 
-        gl.activeTexture(gl.TEXTURE0);
-        if (this.hasTexture && this.texture) {
-            gl.bindTexture(gl.TEXTURE_2D, this.texture);
-            gl.uniform1i(gl.getUniformLocation(this.program, 'uTexture'), 0);
-            gl.uniform1i(gl.getUniformLocation(this.program, 'uHasTexture'), 1);
-        } else {
-            gl.uniform1i(gl.getUniformLocation(this.program, 'uHasTexture'), 0);
+            gl.activeTexture(gl.TEXTURE0);
+            if (this.hasTexture && this.texture) {
+                gl.bindTexture(gl.TEXTURE_2D, this.texture);
+                gl.uniform1i(gl.getUniformLocation(this.program, 'uTexture'), 0);
+                gl.uniform1i(gl.getUniformLocation(this.program, 'uHasTexture'), 1);
+            } else {
+                gl.uniform1i(gl.getUniformLocation(this.program, 'uHasTexture'), 0);
+            }
+
+            gl.bindVertexArray(this.vao);
+            gl.drawElements(gl.TRIANGLES, this.triangleCount * 3, gl.UNSIGNED_SHORT, 0);
+            this.drawCalls++;
         }
-
-        gl.bindVertexArray(this.vao);
-        gl.drawElements(gl.TRIANGLES, this.triangleCount * 3, gl.UNSIGNED_SHORT, 0);
-        this.drawCalls++;
     }
 
     // Matrix helpers

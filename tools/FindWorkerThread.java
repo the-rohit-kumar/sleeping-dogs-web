@@ -57,3 +57,4 @@ public class FindWorkerThread extends GhidraScript {
         println("SUCCESS: Wrote worker thread research to " + outFile.getAbsolutePath());
     }
 }
+

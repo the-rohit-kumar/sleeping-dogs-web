@@ -35,3 +35,4 @@ public class DecompileCoreLoaders extends GhidraScript {
         println("Done!");
     }
 }
+

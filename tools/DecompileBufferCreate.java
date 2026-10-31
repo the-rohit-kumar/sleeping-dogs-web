@@ -30,3 +30,4 @@ public class DecompileBufferCreate extends GhidraScript {
         println("Done!");
     }
 }
+

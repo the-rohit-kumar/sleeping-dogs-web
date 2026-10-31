@@ -83,3 +83,4 @@ public class FindLoaders extends GhidraScript {
         return findBytes(addr, bytes);
     }
 }
+

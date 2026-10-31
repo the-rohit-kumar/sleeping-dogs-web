@@ -1,9 +1,24 @@
+/**
+ * main.ts
+ * Main entry point for the Sleeping Dogs Browser Reconstruction Engine.
+ * Streams authentic vehicle and character geometry and textures directly from
+ * the local base-game read-only bridge (http://127.0.0.1:8080/).
+ * ZERO synthetic assets: 100% extracted from Sleeping Dogs: Definitive Edition.
+ */
+
 import { Viewport3D } from './renderer';
 import { parseBixBuffer, BixArchive } from './bix-parser';
-import { createVehicleMesh, DecodedMesh } from './mesh-decoder';
-import { decompressBC1, decompressBC3, createProceduralTexture, TextureFormat, DecodedTexture } from './texture-decoder';
+import { parseIllusionBuffer } from './mesh-decoder';
+import { decodeAuthenticTexture, TextureFormat } from './texture-decoder';
+import {
+    loadAuthenticVehicle,
+    loadAuthenticCharacter,
+    loadAuthenticTexture,
+    fetchArchiveIndex,
+    fetchRange
+} from './asset-loader';
 
-window.addEventListener('DOMContentLoaded', () => {
+window.addEventListener('DOMContentLoaded', async () => {
     const canvas = document.getElementById('viewport') as HTMLCanvasElement;
     const renderer = new Viewport3D(canvas);
 
@@ -27,150 +42,180 @@ window.addEventListener('DOMContentLoaded', () => {
 
     // Showcase buttons
     const btnMeshVehicle = document.getElementById('btn-mesh-vehicle')!;
-    const btnMeshCrate = document.getElementById('btn-mesh-crate')!;
-    const btnTexBc1 = document.getElementById('btn-tex-bc1')!;
+    const btnMeshCharacter = document.getElementById('btn-mesh-character')!;
     const btnTexBc3 = document.getElementById('btn-tex-bc3')!;
-    const btnTexUv = document.getElementById('btn-tex-uv')!;
 
-    // Simple procedural box mesh for crate
-    function createCrateMesh(): DecodedMesh {
-        const p = [
-            -1, -1,  1,   1, -1,  1,   1,  1,  1,  -1,  1,  1,
-            -1, -1, -1,  -1,  1, -1,   1,  1, -1,   1, -1, -1,
-            -1,  1, -1,  -1,  1,  1,   1,  1,  1,   1,  1, -1,
-            -1, -1, -1,   1, -1, -1,   1, -1,  1,  -1, -1,  1,
-             1, -1, -1,   1,  1, -1,   1,  1,  1,   1, -1,  1,
-            -1, -1, -1,  -1, -1,  1,  -1,  1,  1,  -1,  1, -1
-        ];
-        const n = [
-             0, 0, 1,   0, 0, 1,   0, 0, 1,   0, 0, 1,
-             0, 0,-1,   0, 0,-1,   0, 0,-1,   0, 0,-1,
-             0, 1, 0,   0, 1, 0,   0, 1, 0,   0, 1, 0,
-             0,-1, 0,   0,-1, 0,   0,-1, 0,   0,-1, 0,
-             1, 0, 0,   1, 0, 0,   1, 0, 0,   1, 0, 0,
-            -1, 0, 0,  -1, 0, 0,  -1, 0, 0,  -1, 0, 0
-        ];
-        const u = [
-            0,0, 1,0, 1,1, 0,1,
-            1,0, 1,1, 0,1, 0,0,
-            0,1, 0,0, 1,0, 1,1,
-            0,0, 1,0, 1,1, 0,1,
-            1,0, 1,1, 0,1, 0,0,
-            0,0, 1,0, 1,1, 0,1
-        ];
-        const idx = [
-             0, 1, 2,  0, 2, 3,
-             4, 5, 6,  4, 6, 7,
-             8, 9,10,  8,10,11,
-            12,13,14, 12,14,15,
-            16,17,18, 16,18,19,
-            20,21,22, 20,22,23
-        ];
-        return {
-            name: "Prop_Shipping_Crate",
-            positions: new Float32Array(p),
-            normals: new Float32Array(n),
-            uvs: new Float32Array(u),
-            indices: new Uint16Array(idx),
-            vertexCount: 24,
-            triangleCount: 12
-        };
+    // Archive selector buttons
+    const btnBixVehicles = document.getElementById('btn-bix-vehicles')!;
+    const btnBixCharacters = document.getElementById('btn-bix-characters')!;
+    const btnBixUi = document.getElementById('btn-bix-ui')!;
+
+    let currentArchiveName = 'Vehicles';
+    let currentArchive: BixArchive | null = null;
+    let hasAuthenticTexture = false;
+
+    // Helper: Format bytes
+    function formatBytes(bytes: number): string {
+        if (bytes === 0) return '0 B';
+        const k = 1024;
+        const sizes = ['B', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     }
 
-    // Showcase button events
-    btnMeshVehicle.addEventListener('click', () => {
+    // Populate Sidebar Entry List
+    function renderEntries(archive: BixArchive) {
+        currentArchive = archive;
+        cardName.textContent = archive.name;
+        cardEntries.textContent = `${archive.entries.length} assets`;
+        cardSize.textContent = formatBytes(archive.payloadSize);
+        cardStatus.textContent = 'HTTP 206 Streaming Active';
+        cardStatus.style.color = '#4ade80';
+        badgeCount.textContent = `${archive.entries.length} Entries`;
+
+        entryList.innerHTML = '';
+        const fragment = document.createDocumentFragment();
+
+        // Render first 200 entries for smooth scrolling performance
+        const displayLimit = Math.min(archive.entries.length, 250);
+        for (let i = 0; i < displayLimit; i++) {
+            const e = archive.entries[i];
+            const div = document.createElement('div');
+            div.className = 'entry-item';
+            div.id = `entry-${i}`;
+
+            const hexUid = e.uidHex;
+            const hexOff = e.offsetHex;
+
+            div.innerHTML = `
+                <div>
+                    <span style="color: var(--accent-cyan); margin-right: 6px;">#${e.index}</span>
+                    <span>${hexUid}</span>
+                </div>
+                <div style="color: var(--text-muted); font-size: 10px;">
+                    ${hexOff} | ${e.totalSpan}b
+                </div>
+            `;
+
+            div.addEventListener('click', async () => {
+                document.querySelectorAll('.entry-item').forEach(el => el.classList.remove('active'));
+                div.classList.add('active');
+
+                // If entry has a non-zero span, stream it live from .big
+                if (e.totalSpan > 0) {
+                    try {
+                        const raw = await fetchRange(archive.name.replace('.bix', ''), e.offset, e.totalSpan);
+
+                        // Try decoding as buffer mesh
+                        const mesh = parseIllusionBuffer(raw, `Entry_${hexUid}`);
+                        if (mesh) {
+                            renderer.setMesh(mesh);
+                            hudMesh.textContent = mesh.name;
+                        } else if (raw.length >= 4096) {
+                            // Try decoding as BC3 texture
+                            const dim = raw.length >= 16384 ? 128 : 64;
+                            const tex = decodeAuthenticTexture(raw.subarray(16), dim, dim, TextureFormat.BC3, `Tex_${hexUid}`);
+                            renderer.setTexture(tex);
+                            hudTexture.textContent = tex.formatName;
+                        }
+                    } catch (err) {
+                        console.warn(`Could not decode entry ${hexUid}:`, err);
+                    }
+                }
+            });
+
+            fragment.appendChild(div);
+        }
+
+        entryList.appendChild(fragment);
+    }
+
+    // Stream an archive index (.bix) from base game bridge
+    async function switchArchive(name: string) {
+        currentArchiveName = name;
+        [btnBixVehicles, btnBixCharacters, btnBixUi].forEach(b => b.classList.remove('active'));
+
+        if (name === 'Vehicles') btnBixVehicles.classList.add('active');
+        if (name === 'Characters') btnBixCharacters.classList.add('active');
+        if (name === 'UI') btnBixUi.classList.add('active');
+
+        cardStatus.textContent = `Streaming ${name}.bix...`;
+        cardStatus.style.color = 'var(--accent-cyan)';
+
+        try {
+            const archive = await fetchArchiveIndex(name);
+            renderEntries(archive);
+        } catch (err: any) {
+            cardStatus.textContent = `Error: ${err.message}`;
+            cardStatus.style.color = 'var(--accent-crimson)';
+        }
+    }
+
+    // Showcase: Authentic Vehicle (2A)
+    btnMeshVehicle.addEventListener('click', async () => {
         btnMeshVehicle.classList.add('active');
-        btnMeshCrate.classList.remove('active');
-        renderer.setMesh(createVehicleMesh("SleepingDogs_Sedan_LOD0"));
+        btnMeshCharacter.classList.remove('active');
+
+        try {
+            hudMesh.textContent = "Streaming Vehicles.big [0x01f0a400]...";
+            const mesh = await loadAuthenticVehicle();
+            renderer.setMesh(mesh);
+            hudMesh.textContent = mesh.name;
+        } catch (err: any) {
+            hudMesh.textContent = `Error: ${err.message}`;
+        }
     });
 
-    btnMeshCrate.addEventListener('click', () => {
-        btnMeshCrate.classList.add('active');
+    // Showcase: Authentic Character (2B)
+    btnMeshCharacter.addEventListener('click', async () => {
+        btnMeshCharacter.classList.add('active');
         btnMeshVehicle.classList.remove('active');
-        renderer.setMesh(createCrateMesh());
-    });
 
-    btnTexBc1.addEventListener('click', () => {
-        btnTexBc1.classList.add('active');
-        btnTexBc3.classList.remove('active');
-        btnTexUv.classList.remove('active');
-
-        // Create synthetic BC1 block compressed texture (simulating Sleeping Dogs vehicle paint/decal)
-        const bc1Blocks = new Uint8Array(64 * 64 * 8 / 16);
-        for (let i = 0; i < bc1Blocks.length; i += 8) {
-            bc1Blocks[i + 0] = 0xf8; bc1Blocks[i + 1] = 0x00; // Red color 0
-            bc1Blocks[i + 2] = 0x00; bc1Blocks[i + 3] = 0x1f; // Blue color 1
-            bc1Blocks[i + 4] = 0x1b; bc1Blocks[i + 5] = 0xe4; // Mixed interpolation
-            bc1Blocks[i + 6] = 0xe4; bc1Blocks[i + 7] = 0x1b;
+        try {
+            hudMesh.textContent = "Streaming Characters.big [0x161f3000]...";
+            const mesh = await loadAuthenticCharacter();
+            renderer.setMesh(mesh);
+            hudMesh.textContent = mesh.name;
+        } catch (err: any) {
+            hudMesh.textContent = `Error: ${err.message}`;
         }
-        const tex: DecodedTexture = {
-            width: 64,
-            height: 64,
-            mipLevels: 1,
-            format: TextureFormat.BC1,
-            formatName: "Decoded BC1 / DXT1",
-            rgbaPixels: decompressBC1(bc1Blocks, 64, 64)
-        };
-        renderer.setTexture(tex);
     });
 
-    btnTexBc3.addEventListener('click', () => {
+    // Showcase: Authentic UI Texture
+    btnTexBc3.addEventListener('click', async () => {
         btnTexBc3.classList.add('active');
-        btnTexBc1.classList.remove('active');
-        btnTexUv.classList.remove('active');
 
-        // Synthetic BC3 block compressed texture (with alpha gradient)
-        const bc3Blocks = new Uint8Array(64 * 64);
-        for (let i = 0; i < bc3Blocks.length; i += 16) {
-            bc3Blocks[i + 0] = 0xff; bc3Blocks[i + 1] = 0x20; // Alpha endpoints
-            bc3Blocks[i + 8] = 0x07; bc3Blocks[i + 9] = 0xe0; // Green color 0
-            bc3Blocks[i + 10] = 0xff; bc3Blocks[i + 11] = 0xff; // White color 1
-            bc3Blocks[i + 12] = 0x55; bc3Blocks[i + 13] = 0x55;
-            bc3Blocks[i + 14] = 0xaa; bc3Blocks[i + 15] = 0xaa;
+        try {
+            hudTexture.textContent = "Streaming UI.big [0x02f9ec00]...";
+            const tex = await loadAuthenticTexture();
+            renderer.setTexture(tex);
+            hasAuthenticTexture = true;
+            hudTexture.textContent = tex.formatName;
+        } catch (err: any) {
+            hudTexture.textContent = `Error: ${err.message}`;
         }
-        const tex: DecodedTexture = {
-            width: 64,
-            height: 64,
-            mipLevels: 1,
-            format: TextureFormat.BC3,
-            formatName: "Decoded BC3 / DXT5",
-            rgbaPixels: decompressBC3(bc3Blocks, 64, 64)
-        };
-        renderer.setTexture(tex);
     });
 
-    btnTexUv.addEventListener('click', () => {
-        btnTexUv.classList.add('active');
-        btnTexBc1.classList.remove('active');
-        btnTexBc3.classList.remove('active');
-        const tex: DecodedTexture = {
-            width: 256,
-            height: 256,
-            mipLevels: 1,
-            format: TextureFormat.RGBA8,
-            formatName: "Procedural UV Grid",
-            rgbaPixels: createProceduralTexture(256, 256)
-        };
-        renderer.setTexture(tex);
-    });
+    // Archive selector clicks
+    btnBixVehicles.addEventListener('click', () => switchArchive('Vehicles'));
+    btnBixCharacters.addEventListener('click', () => switchArchive('Characters'));
+    btnBixUi.addEventListener('click', () => switchArchive('UI'));
 
-    // Animation loop
-    function animate() {
-        renderer.render();
-
-        hudFps.textContent = renderer.fps.toString();
-        hudFrameTime.textContent = renderer.frameTimeMs.toFixed(2) + ' ms';
-        hudDrawCalls.textContent = renderer.drawCalls.toString();
-        hudTriangles.textContent = renderer.triangleCount.toLocaleString();
-        hudMesh.textContent = renderer.currentMeshName;
-        hudTexture.textContent = renderer.currentTextureFormat;
-
-        requestAnimationFrame(animate);
-    }
-    requestAnimationFrame(animate);
-
-    // File Drag & Drop Handlers
+    // Dropzone local file handler
     dropzone.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => {
+        const file = (e.target as HTMLInputElement).files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const buf = event.target?.result as ArrayBuffer;
+            if (buf) {
+                const archive = parseBixBuffer(buf);
+                renderEntries(archive);
+            }
+        };
+        reader.readAsArrayBuffer(file);
+    });
 
     dropzone.addEventListener('dragover', (e) => {
         e.preventDefault();
@@ -184,92 +229,52 @@ window.addEventListener('DOMContentLoaded', () => {
     dropzone.addEventListener('drop', (e) => {
         e.preventDefault();
         dropzone.classList.remove('dragover');
-        if (e.dataTransfer && e.dataTransfer.files.length > 0) {
-            handleFile(e.dataTransfer.files[0]);
-        }
-    });
-
-    fileInput.addEventListener('change', () => {
-        if (fileInput.files && fileInput.files.length > 0) {
-            handleFile(fileInput.files[0]);
-        }
-    });
-
-    function handleFile(file: File) {
+        const file = e.dataTransfer?.files?.[0];
+        if (!file) return;
         const reader = new FileReader();
-        reader.onload = () => {
-            try {
-                const buffer = reader.result as ArrayBuffer;
-                const archive = parseBixBuffer(buffer);
-                displayArchive(archive);
-            } catch (err: any) {
-                alert('Failed to parse archive: ' + err.message);
+        reader.onload = (event) => {
+            const buf = event.target?.result as ArrayBuffer;
+            if (buf) {
+                const archive = parseBixBuffer(buf);
+                renderEntries(archive);
             }
         };
         reader.readAsArrayBuffer(file);
-    }
+    });
 
-    function displayArchive(archive: BixArchive) {
-        cardName.textContent = archive.name;
-        cardEntries.textContent = archive.entryCount.toLocaleString();
-        cardSize.textContent = archive.payloadSize.toLocaleString() + ' bytes';
-        badgeCount.textContent = archive.entryCount.toLocaleString() + ' Entries';
+    // Initial Base Game Stream: Authentic Vehicle + Authentic Texture + Vehicles.bix Index
+    async function initBaseGameStream() {
+        try {
+            hudMesh.textContent = "Connecting to bridge at 127.0.0.1:8080...";
+            const vehicleMesh = await loadAuthenticVehicle();
+            renderer.setMesh(vehicleMesh);
+            hudMesh.textContent = vehicleMesh.name;
 
-        // Check mathematical invariants
-        let validInvariants = 0;
-        let multiPart = 0;
-        for (const e of archive.entries) {
-            if (e.isMultiPart) {
-                multiPart++;
-                if (e.part1Size + e.part2Size === e.totalSpan + e.padding) {
-                    validInvariants++;
-                }
-            }
-        }
+            const baseTex = await loadAuthenticTexture();
+            renderer.setTexture(baseTex);
+            hasAuthenticTexture = true;
+            hudTexture.textContent = baseTex.formatName;
 
-        if (multiPart === 0 || validInvariants === multiPart) {
-            cardStatus.textContent = '100% Invariants Verified';
-            cardStatus.style.color = '#4ade80';
-        } else {
-            cardStatus.textContent = `Warning: ${multiPart - validInvariants} invalid`;
-            cardStatus.style.color = '#ef4444';
-        }
-
-        entryList.innerHTML = '';
-        const displayLimit = Math.min(200, archive.entries.length);
-
-        for (let i = 0; i < displayLimit; i++) {
-            const e = archive.entries[i];
-            const div = document.createElement('div');
-            div.className = 'entry-item';
-            div.innerHTML = `
-                <span>${e.uidHex}</span>
-                <span style="color: var(--text-muted);">${e.offsetHex}</span>
-                <span style="color: var(--accent-cyan);">${e.totalSpan.toLocaleString()} B</span>
-            `;
-
-            div.addEventListener('click', () => {
-                document.querySelectorAll('.entry-item').forEach(el => el.classList.remove('active'));
-                div.classList.add('active');
-                console.log('Selected Resource Entry:', e);
-            });
-
-            entryList.appendChild(div);
+            await switchArchive('Vehicles');
+        } catch (err: any) {
+            console.error("Initial base game stream failure:", err);
+            hudMesh.textContent = `Stream Error: ${err.message}`;
         }
     }
 
-    // Load initial sample data (GameHD2 representation)
-    const initialSample: BixArchive = {
-        name: 'GameHD2 (Demo Catalog)',
-        entryCount: 44,
-        payloadSize: 1232,
-        entries: [
-            { index: 0, uid: 0x11718ba9, uidHex: '0x11718ba9', offset: 0x061c5000, offsetHex: '0x061c5000', part1Size: 3532176, part2Size: 24025815, padding: 7, totalSpan: 27557984, isMultiPart: true },
-            { index: 1, uid: 0x1435d4c6, uidHex: '0x1435d4c6', offset: 0x06d16c00, offsetHex: '0x06d16c00', part1Size: 1498056, part2Size: 979024, padding: 8, totalSpan: 2477072, isMultiPart: true },
-            { index: 2, uid: 0x15362c4c, uidHex: '0x15362c4c', offset: 0x02ad4800, offsetHex: '0x02ad4800', part1Size: 2525976, part2Size: 1312606, padding: 6, totalSpan: 3838576, isMultiPart: true },
-            { index: 3, uid: 0x203c51c5, uidHex: '0x203c51c5', offset: 0x01b44800, offsetHex: '0x01b44800', part1Size: 1928072, part2Size: 1682288, padding: 8, totalSpan: 3610352, isMultiPart: true },
-            { index: 4, uid: 0x2377ea2e, uidHex: '0x2377ea2e', offset: 0x0251a000, offsetHex: '0x0251a000', part1Size: 1958856, part2Size: 1377402, padding: 2, totalSpan: 3336256, isMultiPart: true }
-        ]
-    };
-    displayArchive(initialSample);
+    // Animation & HUD metrics loop
+    function animate() {
+        renderer.render();
+
+        hudFps.textContent = renderer.fps.toString();
+        hudFrameTime.textContent = renderer.frameTimeMs.toFixed(2) + ' ms';
+        hudDrawCalls.textContent = renderer.drawCalls.toString();
+        hudTriangles.textContent = renderer.triangleCount.toLocaleString();
+
+        requestAnimationFrame(animate);
+    }
+
+    // Launch!
+    animate();
+    initBaseGameStream();
 });
