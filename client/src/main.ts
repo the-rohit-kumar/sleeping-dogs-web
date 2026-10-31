@@ -13,6 +13,7 @@ import { decodeAuthenticTexture, TextureFormat } from './texture-decoder';
 import {
     loadAuthenticVehicle,
     loadAuthenticCharacter,
+    loadAuthenticWorldSector,
     loadAuthenticTexture,
     fetchArchiveIndex,
     fetchRange
@@ -43,11 +44,13 @@ window.addEventListener('DOMContentLoaded', async () => {
     // Showcase buttons
     const btnMeshVehicle = document.getElementById('btn-mesh-vehicle')!;
     const btnMeshCharacter = document.getElementById('btn-mesh-character')!;
+    const btnMeshWorld = document.getElementById('btn-mesh-world')!;
     const btnTexBc3 = document.getElementById('btn-tex-bc3')!;
 
     // Archive selector buttons
     const btnBixVehicles = document.getElementById('btn-bix-vehicles')!;
     const btnBixCharacters = document.getElementById('btn-bix-characters')!;
+    const btnBixGame = document.getElementById('btn-bix-game')!;
     const btnBixUi = document.getElementById('btn-bix-ui')!;
 
     let currentArchiveName = 'Vehicles';
@@ -133,10 +136,11 @@ window.addEventListener('DOMContentLoaded', async () => {
     // Stream an archive index (.bix) from base game bridge
     async function switchArchive(name: string) {
         currentArchiveName = name;
-        [btnBixVehicles, btnBixCharacters, btnBixUi].forEach(b => b.classList.remove('active'));
+        [btnBixVehicles, btnBixCharacters, btnBixGame, btnBixUi].forEach(b => b.classList.remove('active'));
 
         if (name === 'Vehicles') btnBixVehicles.classList.add('active');
         if (name === 'Characters') btnBixCharacters.classList.add('active');
+        if (name === 'Game') btnBixGame.classList.add('active');
         if (name === 'UI') btnBixUi.classList.add('active');
 
         cardStatus.textContent = `Streaming ${name}.bix...`;
@@ -155,6 +159,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     btnMeshVehicle.addEventListener('click', async () => {
         btnMeshVehicle.classList.add('active');
         btnMeshCharacter.classList.remove('active');
+        btnMeshWorld.classList.remove('active');
 
         try {
             hudMesh.textContent = "Streaming Vehicles.big [0x01f0a400]...";
@@ -170,10 +175,27 @@ window.addEventListener('DOMContentLoaded', async () => {
     btnMeshCharacter.addEventListener('click', async () => {
         btnMeshCharacter.classList.add('active');
         btnMeshVehicle.classList.remove('active');
+        btnMeshWorld.classList.remove('active');
 
         try {
             hudMesh.textContent = "Streaming Characters.big [0x161f3000]...";
             const mesh = await loadAuthenticCharacter();
+            renderer.setMesh(mesh);
+            hudMesh.textContent = mesh.name;
+        } catch (err: any) {
+            hudMesh.textContent = `Error: ${err.message}`;
+        }
+    });
+
+    // Showcase: Authentic World Sector (Milestone 3)
+    btnMeshWorld.addEventListener('click', async () => {
+        btnMeshWorld.classList.add('active');
+        btnMeshVehicle.classList.remove('active');
+        btnMeshCharacter.classList.remove('active');
+
+        try {
+            hudMesh.textContent = "Streaming Game.big [0x1b7ef400]...";
+            const mesh = await loadAuthenticWorldSector();
             renderer.setMesh(mesh);
             hudMesh.textContent = mesh.name;
         } catch (err: any) {
@@ -199,6 +221,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     // Archive selector clicks
     btnBixVehicles.addEventListener('click', () => switchArchive('Vehicles'));
     btnBixCharacters.addEventListener('click', () => switchArchive('Characters'));
+    btnBixGame.addEventListener('click', () => switchArchive('Game'));
     btnBixUi.addEventListener('click', () => switchArchive('UI'));
 
     // Dropzone local file handler

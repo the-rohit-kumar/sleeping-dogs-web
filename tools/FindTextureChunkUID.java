@@ -30,3 +30,4 @@ public class FindTextureChunkUID extends GhidraScript {
         println("Done!");
     }
 }
+

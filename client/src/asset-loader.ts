@@ -8,7 +8,12 @@
  */
 
 import { parseBixBuffer, BixArchive } from './bix-parser';
-import { decodeAuthenticVehicleMesh, decodeAuthenticCharacterMesh, DecodedMesh } from './mesh-decoder';
+import {
+  decodeAuthenticVehicleMesh,
+  decodeAuthenticCharacterMesh,
+  decodeAuthenticWorldMesh,
+  DecodedMesh
+} from './mesh-decoder';
 import { decodeAuthenticTexture, DecodedTexture, TextureFormat } from './texture-decoder';
 
 export const ASSET_BRIDGE_BASE = 'http://127.0.0.1:8080';
@@ -75,4 +80,13 @@ export async function loadAuthenticTexture(): Promise<DecodedTexture> {
   // Offset + 16 bytes chunk header skips straight to BC3 compressed blocks
   const payload = await fetchRange('UI', 0x02f9ec00 + 16, 16384);
   return decodeAuthenticTexture(payload, 128, 128, TextureFormat.BC3, "Authentic_UI_Texture (UI.big 0x02f9ec00)");
+}
+
+/**
+ * Loads authentic base-game Hong Kong world city sector from Game.big
+ * Resource UID: 0x7b8f6706 | Offset: 0x1b7ef400 | Span: 1,648 bytes
+ */
+export async function loadAuthenticWorldSector(): Promise<DecodedMesh> {
+  const data = await fetchRange('Game', 0x1b7ef400, 1648);
+  return decodeAuthenticWorldMesh(data, "Authentic_HongKong_Sector (Game.big 0x1b7ef400)");
 }

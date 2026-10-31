@@ -139,7 +139,6 @@ export function decodeAuthenticVehicleMesh(data: Uint8Array, name: string = "Aut
   const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
   const totalHalfFloats = Math.floor(data.byteLength / 2);
 
-  // Each vertex in the buffer is 4 half-floats (8 bytes: X, Y, Z, W)
   const rawPoints: number[] = [];
   const strideHalfFloats = 4;
   const count = Math.floor(totalHalfFloats / strideHalfFloats);
@@ -163,7 +162,6 @@ export function decodeAuthenticVehicleMesh(data: Uint8Array, name: string = "Aut
   const vertexCount = rawPoints.length / 3;
   const positions = new Float32Array(rawPoints);
 
-  // Generate triangle strip indices connecting the vertices
   const rawIndices: number[] = [];
   for (let i = 0; i < vertexCount - 2; i++) {
     if (i % 2 === 0) {
@@ -176,7 +174,6 @@ export function decodeAuthenticVehicleMesh(data: Uint8Array, name: string = "Aut
 
   const bounds = computeBounds(positions);
 
-  // Calculate UV coordinates mapped onto vehicle bounds
   const uvs = new Float32Array(vertexCount * 2);
   const spanX = Math.max(bounds.size[0], 0.01);
   const spanY = Math.max(bounds.size[1], 0.01);
@@ -265,15 +262,78 @@ export function decodeAuthenticCharacterMesh(data: Uint8Array, name: string = "A
 }
 
 /**
+ * Decodes authentic Hong Kong world/city sector geometry from Game.big payload
+ * Entry 0x7b8f6706 @ 0x1b7ef400 (1,648 bytes)
+ */
+export function decodeAuthenticWorldMesh(data: Uint8Array, name: string = "Authentic_HongKong_Sector"): DecodedMesh {
+  const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+  const totalHalfFloats = Math.floor(data.byteLength / 2);
+
+  const rawPoints: number[] = [];
+  const strideHalfFloats = 4;
+  const count = Math.floor(totalHalfFloats / strideHalfFloats);
+
+  for (let i = 0; i < count; i++) {
+    const hx = view.getUint16(i * 8 + 0, true);
+    const hy = view.getUint16(i * 8 + 2, true);
+    const hz = view.getUint16(i * 8 + 4, true);
+
+    const x = float16ToFloat32(hx);
+    const y = float16ToFloat32(hy);
+    const z = float16ToFloat32(hz);
+
+    if (Number.isFinite(x) && Number.isFinite(y) && Number.isFinite(z)) {
+      if (Math.abs(x) < 500.0 && Math.abs(y) < 500.0 && Math.abs(z) < 500.0) {
+        rawPoints.push(x, y, z);
+      }
+    }
+  }
+
+  const vertexCount = rawPoints.length / 3;
+  const positions = new Float32Array(rawPoints);
+
+  const rawIndices: number[] = [];
+  for (let i = 0; i < vertexCount - 2; i++) {
+    if (i % 2 === 0) {
+      rawIndices.push(i, i + 1, i + 2);
+    } else {
+      rawIndices.push(i + 1, i, i + 2);
+    }
+  }
+  const indices = new Uint16Array(rawIndices);
+
+  const bounds = computeBounds(positions);
+
+  const uvs = new Float32Array(vertexCount * 2);
+  const spanX = Math.max(bounds.size[0], 0.01);
+  const spanZ = Math.max(bounds.size[2], 0.01);
+  for (let i = 0; i < vertexCount; i++) {
+    uvs[i * 2 + 0] = (positions[i * 3 + 0] - bounds.min[0]) / spanX;
+    uvs[i * 2 + 1] = (positions[i * 3 + 2] - bounds.min[2]) / spanZ;
+  }
+
+  const normals = computeSmoothNormals(positions, indices, vertexCount);
+
+  return {
+    name,
+    positions,
+    normals,
+    uvs,
+    indices,
+    vertexCount,
+    triangleCount: indices.length / 3,
+    bounds
+  };
+}
+
+/**
  * Generic authentic buffer decoder for any Illusion::BufferLoader vertex buffer
  */
 export function parseIllusionBuffer(data: Uint8Array, name: string = "IllusionBuffer"): DecodedMesh | null {
   if (data.length < 64) return null;
 
   const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
-  const totalHalfFloats = Math.floor(data.byteLength / 2);
 
-  // Test stride 8 (Pos4 half-float) and stride 16 (Pos4 + Attrib4 half-float)
   for (const stride of [8, 16, 24]) {
     const rawPoints: number[] = [];
     const count = Math.floor(data.byteLength / stride);
@@ -289,7 +349,7 @@ export function parseIllusionBuffer(data: Uint8Array, name: string = "IllusionBu
       const z = float16ToFloat32(hz);
 
       if (Number.isFinite(x) && Number.isFinite(y) && Number.isFinite(z)) {
-        if (Math.abs(x) < 50.0 && Math.abs(y) < 50.0 && Math.abs(z) < 50.0) {
+        if (Math.abs(x) < 500.0 && Math.abs(y) < 500.0 && Math.abs(z) < 500.0) {
           rawPoints.push(x, y, z);
         }
       }

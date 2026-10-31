@@ -3,13 +3,15 @@
 This roadmap defines the iterative development stages from initial technical slice to the full browser game simulation.
 All assets are strictly reverse-engineered and streamed directly from the base game (*Sleeping Dogs: Definitive Edition*). **Zero synthetic or placeholder assets.**
 
+GitHub Repository: [https://github.com/the-rohit-kumar/sleeping-dogs-web](https://github.com/the-rohit-kumar/sleeping-dogs-web)
+
 ---
 
 ```mermaid
 flowchart LR
-    M1["Milestone 1: Vertical Slice"] --> M2["Milestone 2: Authentic Geometry & Shading"]
-    M2 --> M3["Milestone 3: World Streaming & Scene Graph"]
-    M3 --> M4["Milestone 4: Skeletal Animation & Audio"]
+    M1["Milestone 1: Vertical Slice<br/>(Done)"] --> M2["Milestone 2: Authentic Geometry & Shading<br/>(Done)"]
+    M2 --> M3["Milestone 3: World Streaming & Scene Graph<br/>(Active)"]
+    M3 --> M4["Milestone 4: Skeletal Animation & Audio<br/>(Queued)"]
     M4 --> M5["Milestone 5: Physics & Controls"]
     M5 --> M6["Milestone 6: Game Systems & Simulation"]
 ```
@@ -47,23 +49,31 @@ flowchart LR
 - [X] **Authentic Block-Compressed Texture Streamer**:
   - Streams `UI.big` offset `0x02f9ec00` (UID `0x07a9a72a`, 16,384 bytes BC3 payload).
   - Pure software BC3/DXT5 decompression into 128x128 32-bit RGBA WebGL2 texture.
-- [X] **Live Interactive Browser Client**:
-  - Interactive switcher between authentic Vehicle and authentic Character.
-  - Live `.bix` archive explorer (`Vehicles.bix`, `Characters.bix`, `UI.bix`).
+- [X] **GitHub Repository Provisioned**:
+  - Pushed to `https://github.com/the-rohit-kumar/sleeping-dogs-web`.
 
 ---
 
-## Milestone 3: World Streaming & Scene Graph
+## Milestone 3: World Streaming & Scene Graph (Active Progress)
 
-**Goal:** Load Hong Kong street sections with spatial hierarchy.
+**Goal:** Load Hong Kong street sections, road networks, and building facades from `Game.big` with spatial hierarchy.
 
-- [ ] Parse world placement grids and transformation matrices from `Game.big`.
-- [ ] Asynchronous chunk streaming based on camera frustum and distance.
+- [X] **World Archive Discovery & Streaming**:
+  - Integrated `Game.big` / `Game.bix` (7,148 resource entries) into the streaming pipeline.
+  - Reverse-engineered city sector bounds and spatial coordinates.
+- [X] **Authentic Hong Kong City Sector Mesh Decoder**:
+  - Streams `Game.big` offset `0x1b7ef400` (UID `0x7b8f6706`, 1,648 bytes).
+  - Unpacks authentic 574-meter broad urban street sector ($X \in [-275\text{m}, +298\text{m}], Y \in [-275\text{m}, +55\text{m}]$).
+- [X] **Scene Graph Viewport Integration**:
+  - Added "World Sector [Game.big]" interactive button in showcase bar.
+  - Added "Game" archive explorer selector to inspect all 7,148 open-world resources.
+- [ ] Parse world placement grids and transformation matrices from `qPropertySetInventory` / `ZoneLayoutInventory`.
+- [ ] Asynchronous chunk streaming based on camera distance and frustum culling.
 - [ ] LRU caching in IndexedDB for streamed blocks.
 
 ---
 
-## Milestone 4: Animation, Characters & Audio
+## Milestone 4: Animation, Characters & Audio (Queued)
 
 **Goal:** Animated character models and environmental sound.
 
