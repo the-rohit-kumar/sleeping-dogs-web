@@ -10,8 +10,9 @@
 import { DecodedTexture } from './texture-decoder';
 import { DecodedMesh } from './mesh-decoder';
 import { SceneGraph, SceneNode } from './scene-graph';
+import { CameraController } from './camera-controller';
 
-export type CameraMode = 'orbit' | 'freefly';
+export type CameraMode = 'follow' | 'orbit' | 'freefly';
 
 export class Viewport3D {
     private canvas: HTMLCanvasElement;
@@ -29,8 +30,11 @@ export class Viewport3D {
     // Active Scene Graph (for multi-object composite scenes)
     public sceneGraph: SceneGraph | null = null;
 
+    // Authentic Follow Camera Controller (Milestone 5)
+    public cameraController: CameraController | null = null;
+
     // Camera Mode & State
-    public cameraMode: CameraMode = 'orbit';
+    public cameraMode: CameraMode = 'follow';
 
     // Orbit Camera State
     public distance = 5.5;
@@ -229,6 +233,9 @@ export class Viewport3D {
             this.freeflyPos = [this.target[0], 1.6, this.target[2] + 4.5];
             this.freeflyYaw = this.yaw;
             this.freeflyPitch = 0.0;
+        } else if (mode === 'follow' && this.cameraController) {
+            this.cameraController.yaw = this.yaw;
+            this.cameraController.pitch = this.pitch;
         }
     }
 
@@ -393,7 +400,11 @@ export class Viewport3D {
             this.lastMouseX = e.clientX;
             this.lastMouseY = e.clientY;
 
-            if (this.cameraMode === 'orbit') {
+            if (this.cameraMode === 'follow' && this.cameraController) {
+                if (e.buttons === 1 || e.buttons === 2) {
+                    this.cameraController.handleMouseMove(dx, dy);
+                }
+            } else if (this.cameraMode === 'orbit') {
                 if (e.buttons === 1) { // Left-click: Orbit
                     this.yaw += dx * 0.008;
                     this.pitch += dy * 0.008;
@@ -429,7 +440,9 @@ export class Viewport3D {
 
         this.canvas.addEventListener('wheel', (e) => {
             e.preventDefault();
-            if (this.cameraMode === 'orbit') {
+            if (this.cameraMode === 'follow' && this.cameraController) {
+                this.cameraController.handleWheel(e.deltaY);
+            } else if (this.cameraMode === 'orbit') {
                 this.distance += e.deltaY * 0.005;
                 this.distance = Math.max(0.5, Math.min(150.0, this.distance));
             } else {
@@ -522,7 +535,10 @@ export class Viewport3D {
         let eyePos: [number, number, number];
         let view: Float32Array;
 
-        if (this.cameraMode === 'orbit') {
+        if (this.cameraMode === 'follow' && this.cameraController) {
+            eyePos = [...this.cameraController.eyePos];
+            view = this.cameraController.getViewMatrix();
+        } else if (this.cameraMode === 'orbit') {
             const eyeX = this.target[0] + this.distance * Math.cos(this.pitch) * Math.sin(this.yaw);
             const eyeY = this.target[1] + this.distance * Math.sin(this.pitch);
             const eyeZ = this.target[2] + this.distance * Math.cos(this.pitch) * Math.cos(this.yaw);

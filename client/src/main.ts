@@ -29,12 +29,22 @@ import {
 import { SceneGraph } from './scene-graph';
 import { AudioEngine, AUTHENTIC_TRACKS } from './audio-engine';
 import { AnimationPlayer, AUTHENTIC_ANIMS, AnimStateName } from './anim-player';
+import { PhysicsEngine } from './physics-engine';
+import { CameraController } from './camera-controller';
+import { CharacterController } from './character-controller';
 
 window.addEventListener('DOMContentLoaded', async () => {
     const canvas = document.getElementById('viewport') as HTMLCanvasElement;
     const renderer = new Viewport3D(canvas);
     const audioEngine = new AudioEngine();
     const animPlayer = new AnimationPlayer();
+    const physicsEngine = new PhysicsEngine();
+    const cameraController = new CameraController();
+    const characterController = new CharacterController();
+
+    // Attach authentic third-person camera controller to renderer
+    renderer.cameraController = cameraController;
+    renderer.setCameraMode('follow');
 
     // HUD Elements
     const hudFps = document.getElementById('hud-fps')!;
@@ -46,8 +56,22 @@ window.addEventListener('DOMContentLoaded', async () => {
     const hudAudio = document.getElementById('hud-audio')!;
     const hudAnim = document.getElementById('hud-anim')!;
     const hudCamMode = document.getElementById('hud-cam-mode')!;
+    const hudPlayerPos = document.getElementById('hud-player-pos')!;
+    const hudLocomotion = document.getElementById('hud-locomotion')!;
+    const hudGroundElev = document.getElementById('hud-ground-elev')!;
+    const hudCollisionStatus = document.getElementById('hud-collision-status')!;
     const hudCache = document.getElementById('hud-cache')!;
     const controlsHint = document.getElementById('controls-hint')!;
+
+    // Milestone 5: Havok Physics Elements
+    const badgePhysicsState = document.getElementById('badge-physics-state')!;
+    const btnPhysJump = document.getElementById('btn-phys-jump')!;
+    const btnPhysStrike = document.getElementById('btn-phys-strike')!;
+    const btnPhysReset = document.getElementById('btn-phys-reset')!;
+    const btnPhysSprint = document.getElementById('btn-phys-sprint')!;
+    const chkGroundClamp = document.getElementById('chk-ground-clamp') as HTMLInputElement;
+    const chkObstacleColl = document.getElementById('chk-obstacle-coll') as HTMLInputElement;
+    const chkCameraOcclusion = document.getElementById('chk-camera-occlusion') as HTMLInputElement;
 
     // Audio Elements
     const btnAudioToggle = document.getElementById('btn-audio-toggle')!;
@@ -110,24 +134,72 @@ window.addEventListener('DOMContentLoaded', async () => {
     // Camera Mode UI
     function updateCameraModeUI(mode: CameraMode) {
         renderer.setCameraMode(mode);
-        if (mode === 'orbit') {
+        if (mode === 'follow') {
+            btnCameraMode.textContent = 'Camera: Follow (3rd Person)';
+            btnCameraMode.style.borderColor = '#00d2ff';
+            btnCameraMode.style.color = '#00d2ff';
+            hudCamMode.textContent = 'Follow Camera (Wei Shen)';
+            controlsHint.innerHTML = '<span>[W][A][S][D]:</span> Move Wei Shen | <span>[Shift]:</span> Sprint | <span>[Space]:</span> Jump | <span>Left Drag:</span> Look | <span>L-Click:</span> Strike';
+        } else if (mode === 'orbit') {
             btnCameraMode.textContent = 'Camera: Orbit';
             btnCameraMode.style.borderColor = '#a78bfa';
             btnCameraMode.style.color = '#a78bfa';
             hudCamMode.textContent = 'Orbit Turntable';
-            controlsHint.innerHTML = '<span>Left Drag:</span> Orbit | <span>Right Drag:</span> Pan | <span>Scroll:</span> Zoom | <span>Click "Camera"</span> for Street WASD';
+            controlsHint.innerHTML = '<span>Left Drag:</span> Orbit | <span>Right Drag:</span> Pan | <span>Scroll:</span> Zoom | <span>Click "Camera"</span> to change mode';
         } else {
             btnCameraMode.textContent = 'Camera: Street (WASD)';
             btnCameraMode.style.borderColor = '#38bdf8';
             btnCameraMode.style.color = '#38bdf8';
             hudCamMode.textContent = 'Street Free-Fly (WASD)';
-            controlsHint.innerHTML = '<span>[W][A][S][D]:</span> Move | <span>[Shift]:</span> Sprint | <span>[E]/[Space]:</span> Up | <span>[Q]/[C]:</span> Down | <span>Drag:</span> Look';
+            controlsHint.innerHTML = '<span>[W][A][S][D]:</span> Fly Move | <span>[Shift]:</span> Sprint | <span>[E]/[Space]:</span> Up | <span>[Q]/[C]:</span> Down | <span>Drag:</span> Look';
         }
     }
 
     btnCameraMode.addEventListener('click', () => {
-        const nextMode = renderer.cameraMode === 'orbit' ? 'freefly' : 'orbit';
-        updateCameraModeUI(nextMode);
+        const order: CameraMode[] = ['follow', 'orbit', 'freefly'];
+        const nextIdx = (order.indexOf(renderer.cameraMode) + 1) % order.length;
+        updateCameraModeUI(order[nextIdx]);
+    });
+
+    // Milestone 5: Physics Controls Wiring
+    btnPhysJump.addEventListener('click', () => {
+        characterController.jump();
+    });
+
+    btnPhysStrike.addEventListener('click', () => {
+        characterController.triggerAttack(animPlayer, audioEngine);
+    });
+
+    btnPhysReset.addEventListener('click', () => {
+        characterController.position = [-2.2, 0.0, 1.2];
+        characterController.velocity = [0, 0, 0];
+        characterController.isGrounded = true;
+        cameraController.targetPos = [...characterController.position];
+    });
+
+    btnPhysSprint.addEventListener('click', () => {
+        // Toggle sprint mode simulation
+        characterController.isSprinting = !characterController.isSprinting;
+        btnPhysSprint.classList.toggle('active', characterController.isSprinting);
+    });
+
+    chkGroundClamp.addEventListener('change', () => {
+        physicsEngine.groundClampingEnabled = chkGroundClamp.checked;
+    });
+
+    chkObstacleColl.addEventListener('change', () => {
+        physicsEngine.obstacleCollisionEnabled = chkObstacleColl.checked;
+    });
+
+    chkCameraOcclusion.addEventListener('change', () => {
+        physicsEngine.cameraOcclusionEnabled = chkCameraOcclusion.checked;
+    });
+
+    // Viewport click triggers combat strike in follow camera mode
+    canvas.addEventListener('click', (e) => {
+        if (renderer.cameraMode === 'follow' && e.button === 0) {
+            characterController.triggerAttack(animPlayer, audioEngine);
+        }
     });
 
     // Populate Scene Hierarchy Panel
@@ -275,12 +347,19 @@ window.addEventListener('DOMContentLoaded', async () => {
             renderer.setSceneGraph(sceneGraph);
             renderSceneHierarchy(sceneGraph);
 
-            renderer.target = [0, 0.4, 0];
-            renderer.distance = 12.0;
-            renderer.yaw = 0.8;
-            renderer.pitch = 0.35;
+            // Initialize Havok collision world from authentic street & vehicle nodes
+            const worldNode = sceneGraph.getNode('node-hk-sector');
+            const vehicleNode = sceneGraph.getNode('node-vehicle');
+            physicsEngine.initFromSceneNodes(worldNode, vehicleNode);
 
-            cardStatus.textContent = 'Assembled composite street scene graph';
+            // Position player character and lock follow camera
+            characterController.position = [-2.2, 0.0, 1.2];
+            characterController.velocity = [0, 0, 0];
+            characterController.isGrounded = true;
+            cameraController.targetPos = [...characterController.position];
+            updateCameraModeUI('follow');
+
+            cardStatus.textContent = 'Assembled composite street scene with Havok physics & follow camera';
             cardStatus.style.color = '#4ade80';
         } catch (err: any) {
             console.error('Failed to load composite street scene:', err);
@@ -494,22 +573,43 @@ window.addEventListener('DOMContentLoaded', async () => {
         const deltaTimeSec = Math.min((now - lastLoopTime) / 1000.0, 0.1);
         lastLoopTime = now;
 
-        // 1. Advance Skeletal Motion & Update Node Transforms
+        // 1. Advance Player Character Locomotion & Havok Physics (Milestone 5)
+        if (renderer.sceneGraph) {
+            characterController.update(
+                deltaTimeSec,
+                cameraController.yaw,
+                physicsEngine,
+                renderer.sceneGraph,
+                animPlayer,
+                audioEngine
+            );
+
+            // Update authentic Sleeping Dogs follow camera target
+            cameraController.targetPos = [...characterController.position];
+            cameraController.update(deltaTimeSec, physicsEngine);
+        }
+
+        // 2. Advance Skeletal Motion & Update Joint Transforms
         animPlayer.update(deltaTimeSec, renderer.sceneGraph);
 
-        // 2. Render 3D Viewport
+        // 3. Render 3D Viewport
         renderer.render();
 
-        // 3. Update Audio Listener from Camera
-        const camPos: [number, number, number] = renderer.cameraMode === 'freefly'
-            ? [renderer.freeflyPos[0], renderer.freeflyPos[1], renderer.freeflyPos[2]]
-            : [renderer.target[0], renderer.target[1] + 1.6, renderer.target[2] + 4.0];
+        // 4. Update Audio Listener from Camera
+        let camPos: [number, number, number];
+        if (renderer.cameraMode === 'follow') {
+            camPos = [cameraController.eyePos[0], cameraController.eyePos[1], cameraController.eyePos[2]];
+        } else if (renderer.cameraMode === 'freefly') {
+            camPos = [renderer.freeflyPos[0], renderer.freeflyPos[1], renderer.freeflyPos[2]];
+        } else {
+            camPos = [renderer.target[0], renderer.target[1] + 1.6, renderer.target[2] + 4.0];
+        }
         audioEngine.updateListener(camPos, [0, 0, -1]);
 
-        // 4. Render Audio Visualizer
+        // 5. Render Audio Visualizer
         renderAudioSpectrum();
 
-        // 5. Update HUD and Animation Timeline
+        // 6. Update Engine Pipeline HUD
         hudFps.textContent = `${renderer.fps}`;
         hudFrameTime.textContent = `${renderer.frameTimeMs.toFixed(1)} ms`;
         hudDrawCalls.textContent = `${renderer.drawCalls}`;
@@ -517,6 +617,30 @@ window.addEventListener('DOMContentLoaded', async () => {
         hudMesh.textContent = renderer.currentMeshName;
         hudTexture.textContent = renderer.currentTextureFormat;
         hudCache.textContent = `L1: ${cacheStats.l1Hits} | L2: ${cacheStats.l2Hits} | Miss: ${cacheStats.misses} | ${formatBytes(cacheStats.bytesLoaded)}`;
+
+        // Milestone 5: Physics & Locomotion Telemetry
+        hudPlayerPos.textContent = `X: ${characterController.position[0].toFixed(2)} Y: ${characterController.position[1].toFixed(2)} Z: ${characterController.position[2].toFixed(2)}`;
+        const horizSpeed = Math.hypot(characterController.velocity[0], characterController.velocity[2]);
+        const stateTag = characterController.isAttacking
+            ? 'STRIKE'
+            : (characterController.isGrounded
+                ? (characterController.isSprinting ? 'SPRINT' : (horizSpeed > 0.15 ? 'WALK' : 'IDLE'))
+                : 'AIRBORNE');
+        hudLocomotion.textContent = `${horizSpeed.toFixed(1)} m/s [${stateTag}]`;
+        hudGroundElev.textContent = `Y: ${characterController.groundY.toFixed(2)}m [${characterController.surfaceNormal[0].toFixed(1)}, ${characterController.surfaceNormal[1].toFixed(1)}, ${characterController.surfaceNormal[2].toFixed(1)}] ${characterController.slopeDegrees.toFixed(0)}°`;
+
+        const obsStatus = characterController.isColliding ? 'VEHICLE CONTACT' : 'CLEAR';
+        const camOcclStatus = cameraController.inCollision ? `PUSH: ${cameraController.collisionPush.toFixed(2)}m` : 'UNBLOCKED';
+        hudCollisionStatus.textContent = `${obsStatus} | ${camOcclStatus}`;
+
+        badgePhysicsState.textContent = characterController.isAttacking
+            ? 'Combat Strike'
+            : (characterController.isGrounded
+                ? (characterController.isColliding ? 'Obstacle Contact' : 'Grounded')
+                : 'Airborne');
+        badgePhysicsState.style.color = characterController.isColliding
+            ? '#f59e0b'
+            : (characterController.isGrounded ? '#4ade80' : '#38bdf8');
 
         if (!isScrubbingTimeline) {
             const clip = animPlayer.getActiveClip();

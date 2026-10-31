@@ -12,8 +12,8 @@ flowchart LR
     M1["Milestone 1: Vertical Slice<br/>(Done)"] --> M2["Milestone 2: Authentic Geometry & Shading<br/>(Done)"]
     M2 --> M3["Milestone 3: World Streaming & Scene Graph<br/>(Done)"]
     M3 --> M4["Milestone 4: Skeletal Animation & Audio<br/>(Done)"]
-    M4 --> M5["Milestone 5: Physics & Controls<br/>(Active)"]
-    M5 --> M6["Milestone 6: Game Systems & Simulation"]
+    M4 --> M5["Milestone 5: Physics & Controls<br/>(Done)"]
+    M5 --> M6["Milestone 6: Game Systems & Simulation<br/>(Active)"]
 ```
 
 ---
@@ -102,12 +102,37 @@ flowchart LR
 
 ---
 
-## Milestone 5: Physics, Collision & Camera (Active)
+## Milestone 5: Physics, Collision & Camera (Completed)
 
 **Goal:** Controllable character moving through colliding physical geometry with street collision and authentic third-person camera.
 
-- [ ] Reverse-engineer collision volumes, Havok MOPP trees, and road surface meshes from `Game.big`.
-- [ ] Implement collision detection and terrain surface clamping for characters and vehicles.
+- [X] **Havok Physics World & Collision Subsystem Reverse-Engineered (`client/src/physics-engine.ts`)**:
+  - Discovered and parsed authentic Havok 2013 tagfile binary containers (`0x57e0e057 0x10c0c010`) in `Game.big` (`hkpMoppBvTreeShape`, `hkpExtendedMeshShape`, `CSidewalk`, `World`).
+  - Implemented high-performance Möller–Trumbore ray-triangle intersection querying authentic Hong Kong road geometry (`Game.big` 0x1b7ef400).
+  - Ground terrain clamping with normal vector calculation, height snapping within Havok `supportDistance` (0.25m), and slope sliding exceeding `maxSlope` ($\pi/3 = 60^\circ$).
+- [X] **Authentic Havok Character Capsule Collider (`hkpCharacterRigidBodyCinfo`)**:
+  - Character capsule dimensions: $r = 0.35$m, $h = 1.85$m, gravity $g = -18.0\text{ m/s}^2$.
+  - Dynamic horizontal collision deflection against Sedan chassis bounding box (`Vehicles.big` 0x01f0a400) preventing penetration and facilitating edge sliding.
+- [X] **Authentic Third-Person Follow Camera (`client/src/camera-controller.ts`)**:
+  - Reconstructed Sleeping Dogs `FollowCameraWalk` from binary symbols and parameters:
+    - Over-the-shoulder offset: $[0.22, 1.45, 0.0]$, EyeRise: $0.25$, Latitude bounds $[-32^\circ, +63^\circ]$, Radius $[1.8\text{m}, 4.8\text{m}]$.
+    - Spring-damper smoothing: `SmoothRatePos` 0.15, `SmoothRateRot` 0.22.
+    - Camera occlusion avoidance: Raycasts from character look target to camera eye; applies `Collision Push` and `Collision Rise` to eliminate terrain and wall clipping.
+- [X] **Responsive Character Locomotion Controller (`client/src/character-controller.ts`)**:
+  - Full WASD locomotion relative to camera azimuth, Shift sprint (5.2 m/s), Space jump (5.5 m/s impulse), and Left-Click combat strike punch.
+  - Dynamic synchronization with skeletal animation (`CP_StateWalk`, `Wei_IdleBreathing`, `FSR_CombatStance`) and Wwise combat strike audio.
+- [X] **Automated Browser Test Suite Verified (`tools/verify_milestone5.js`)**:
+  - Verified follow camera initialization, forward street walking, vehicle obstacle collision deflection, jump gravity landing, and combat strike.
+
+---
+
+## Milestone 6: Gameplay, NPCs, Vehicles & Missions (Active)
+
+**Goal:** Interactive vehicle driving, pedestrian NPC AI agents, combat grappling, and mission logic.
+
+- [ ] Interactive vehicle entry and driving physics (`PhysicsCar` / suspension dynamics).
+- [ ] Hong Kong pedestrian crowd AI (`AICharacterControllerComponent` / wandering state machine).
+- [ ] Melee combat targeting, lock-on, counters, and environmental grab points.
 - [ ] Implement authentic third-person chase camera orbiting Wei Shen with collision avoidance and smooth dampening.
 - [ ] Controllable character movement controller (WASD + mouse / gamepad) traversing the Hong Kong street.
 

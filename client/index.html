@@ -362,7 +362,7 @@
                 <button class="btn-toggle" id="btn-mesh-character">Character [Characters.big]</button>
                 <button class="btn-toggle" id="btn-mesh-world">World Sector [Game.big]</button>
                 <button class="btn-toggle active" id="btn-tex-bc3">UI Texture [BC3/DXT5]</button>
-                <button class="btn-toggle" id="btn-camera-mode" style="border-color: #a78bfa; color: #a78bfa;">Camera: Orbit</button>
+                <button class="btn-toggle" id="btn-camera-mode" style="border-color: #00d2ff; color: #00d2ff;">Camera: Follow (3rd Person)</button>
             </div>
 
             <!-- Milestone 4: Audio Subsystem Panel -->
@@ -410,6 +410,34 @@
                     <button class="btn-toggle" id="btn-speed-05" style="padding: 2px 6px; font-size: 10px;">0.5x</button>
                     <button class="btn-toggle active" id="btn-speed-10" style="padding: 2px 6px; font-size: 10px;">1.0x</button>
                     <button class="btn-toggle" id="btn-speed-20" style="padding: 2px 6px; font-size: 10px;">2.0x</button>
+                </div>
+            </div>
+
+            <!-- Milestone 5: Havok Physics & Character Controller Panel -->
+            <div class="section-header">
+                <span>Havok Physics &amp; Controller (hkpWorld)</span>
+                <span id="badge-physics-state" style="color: #4ade80;">Grounded</span>
+            </div>
+            <div class="subsystem-card">
+                <div class="track-grid" style="margin-bottom: 6px;">
+                    <button class="btn-toggle active" id="btn-phys-jump">Jump [Space]</button>
+                    <button class="btn-toggle" id="btn-phys-strike">Strike [L-Click]</button>
+                    <button class="btn-toggle" id="btn-phys-reset">Reset Pos</button>
+                    <button class="btn-toggle active" id="btn-phys-sprint">Sprint [Shift]</button>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 4px; font-size: 10px; color: var(--text-muted); margin-top: 6px;">
+                    <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                        <input type="checkbox" id="chk-ground-clamp" checked>
+                        <span>Street Terrain Clamping (Game.big)</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                        <input type="checkbox" id="chk-obstacle-coll" checked>
+                        <span>Vehicle Chassis Collision (Vehicles.big)</span>
+                    </label>
+                    <label style="display: flex; align-items: center; gap: 4px; cursor: pointer;">
+                        <input type="checkbox" id="chk-camera-occlusion" checked>
+                        <span>Camera Occlusion Avoidance (FollowCameraWalk)</span>
+                    </label>
                 </div>
             </div>
 
@@ -470,14 +498,18 @@
                 <div class="info-row"><span class="info-label">Texture Mapped:</span><span id="hud-texture" style="color: #f59e0b; font-size: 11px;">--</span></div>
                 <div class="info-row"><span class="info-label">Audio Stream:</span><span id="hud-audio" style="color: #34d399; font-size: 11px;">Hong Kong Ambience [48 kHz]</span></div>
                 <div class="info-row"><span class="info-label">Animation:</span><span id="hud-anim" style="color: #fbbf24; font-size: 11px;">FSR_LightAttack (Combat Stance)</span></div>
-                <div class="info-row"><span class="info-label">Camera Mode:</span><span id="hud-cam-mode" style="color: #a78bfa; font-size: 11px;">Orbit Turntable</span></div>
+                <div class="info-row"><span class="info-label">Camera Mode:</span><span id="hud-cam-mode" style="color: #00d2ff; font-size: 11px;">Follow (3rd Person)</span></div>
+                <div class="info-row"><span class="info-label">Wei Shen Pos:</span><span id="hud-player-pos" style="color: #38bdf8; font-size: 11px;">X: -2.20 Y: 0.00 Z: 1.20</span></div>
+                <div class="info-row"><span class="info-label">Locomotion:</span><span id="hud-locomotion" style="color: #4ade80; font-size: 11px;">0.0 m/s [GROUNDED]</span></div>
+                <div class="info-row"><span class="info-label">Terrain &amp; Normal:</span><span id="hud-ground-elev" style="color: #facc15; font-size: 11px;">Y: 0.00m [0.0, 1.0, 0.0]</span></div>
+                <div class="info-row"><span class="info-label">Havok Collision:</span><span id="hud-collision-status" style="color: #f472b6; font-size: 11px;">Clear | Camera Push: 0.0m</span></div>
                 <div class="info-row"><span class="info-label">Stream Cache:</span><span id="hud-cache" style="color: #38bdf8; font-size: 11px;">L1: 0 | L2: 0 | 0 KB</span></div>
                 <div class="info-row"><span class="info-label">Data Origin:</span><span style="color: var(--accent-crimson);">Sleeping Dogs (Definitive Edition)</span></div>
                 <div class="info-row"><span class="info-label">Synthetic Assets:</span><span style="color: #4ade80; font-weight: 700;">ZERO (100% Authentic)</span></div>
             </div>
 
             <div class="controls-hint" id="controls-hint">
-                <span>Left Drag:</span> Orbit | <span>Right Drag:</span> Pan | <span>Scroll:</span> Zoom | <span>C:</span> Switch to Street Camera
+                <span>[W][A][S][D]:</span> Move Wei Shen | <span>[Shift]:</span> Sprint | <span>[Space]:</span> Jump | <span>Left Drag:</span> Look/Orbit | <span>L-Click:</span> Strike
             </div>
         </main>
     </div>
