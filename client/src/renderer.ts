@@ -1,34 +1,54 @@
 /**
  * Sleeping Dogs Browser Reconstruction — 3D Viewport Renderer.
- * Modern WebGL2 pipeline with perspective camera, orbital navigation,
- * real-time procedural lighting, dynamic texture mapping, and technical metrics.
+ * Modern WebGL2 pipeline with perspective camera, dual camera controllers
+ * (Orbital Inspection & First-Person Street Free-Fly), real-time lighting,
+ * dynamic texture mapping, multi-node Scene Graph hierarchy, and technical metrics.
+ *
  * ZERO synthetic assets: Renders only authentic base-game geometry and textures.
  */
 
 import { DecodedTexture } from './texture-decoder';
 import { DecodedMesh } from './mesh-decoder';
+import { SceneGraph, SceneNode } from './scene-graph';
+
+export type CameraMode = 'orbit' | 'freefly';
 
 export class Viewport3D {
     private canvas: HTMLCanvasElement;
     private gl: WebGL2RenderingContext;
     private program!: WebGLProgram;
     private gridProgram!: WebGLProgram;
-    private vao!: WebGLVertexArrayObject;
+    private singleVao!: WebGLVertexArrayObject;
     private gridVao!: WebGLVertexArrayObject;
     private texture: WebGLTexture | null = null;
     private hasTexture = false;
 
-    private vbo!: WebGLBuffer;
-    private ebo!: WebGLBuffer;
+    private singleVbo!: WebGLBuffer;
+    private singleEbo!: WebGLBuffer;
 
-    // Camera state
+    // Active Scene Graph (for multi-object composite scenes)
+    public sceneGraph: SceneGraph | null = null;
+
+    // Camera Mode & State
+    public cameraMode: CameraMode = 'orbit';
+
+    // Orbit Camera State
     public distance = 5.5;
     public yaw = 0.75;
     public pitch = 0.35;
     public target = [0, 0.4, 0];
+
+    // Free-Fly Street Camera State
+    public freeflyPos = [0.0, 1.6, 6.0]; // Eye level (1.6m height)
+    public freeflyYaw = 0.0;
+    public freeflyPitch = 0.0;
+    public moveSpeed = 6.0; // meters per second
+    public sprintMultiplier = 2.8;
+
     private isDragging = false;
     private lastMouseX = 0;
     private lastMouseY = 0;
+    private keysDown = new Set<string>();
 
     // Metrics
     public fps = 0;
@@ -99,7 +119,7 @@ export class Viewport3D {
 
             void main() {
                 // Ambient
-                float ambientStrength = 0.4;
+                float ambientStrength = 0.38;
                 vec3 ambient = ambientStrength * uLightColor;
 
                 // Diffuse
@@ -145,7 +165,7 @@ export class Viewport3D {
             out vec4 fragColor;
             void main() {
                 float dist = length(vWorldPos.xz);
-                float alpha = exp(-dist * 0.12);
+                float alpha = exp(-dist * 0.05);
                 vec2 g = abs(fract(vWorldPos.xz) - 0.5) / fwidth(vWorldPos.xz);
                 float line = min(g.x, g.y);
                 float gridMask = 1.0 - min(line, 1.0);
@@ -180,14 +200,14 @@ export class Viewport3D {
 
     private initBuffers() {
         const gl = this.gl;
-        this.vao = gl.createVertexArray()!;
-        this.vbo = gl.createBuffer()!;
-        this.ebo = gl.createBuffer()!;
+        this.singleVao = gl.createVertexArray()!;
+        this.singleVbo = gl.createBuffer()!;
+        this.singleEbo = gl.createBuffer()!;
 
-        // Ground Grid Geometry
-        const gridSize = 25;
+        // Ground Grid Geometry (Large 60m x 60m street grid)
+        const gridSize = 60;
         const gridVerts: number[] = [];
-        for (let i = -gridSize; i <= gridSize; i++) {
+        for (let i = -gridSize; i <= gridSize; i += 2) {
             gridVerts.push(-gridSize, 0, i, gridSize, 0, i);
             gridVerts.push(i, 0, -gridSize, i, 0, gridSize);
         }
@@ -202,22 +222,36 @@ export class Viewport3D {
         gl.bindVertexArray(null);
     }
 
-    /**
-     * Binds and displays an authentic decoded 3D mesh
-     */
-    public setMesh(mesh: DecodedMesh) {
-        const gl = this.gl;
-        this.currentMeshName = mesh.name;
-        this.triangleCount = mesh.triangleCount;
-
-        // Auto-frame camera to model bounding box
-        if (mesh.bounds) {
-            this.target = [mesh.bounds.center[0], mesh.bounds.center[1], mesh.bounds.center[2]];
-            const maxDim = Math.max(mesh.bounds.size[0], mesh.bounds.size[1], mesh.bounds.size[2]);
-            this.distance = Math.max(2.5, maxDim * 1.6);
+    public setCameraMode(mode: CameraMode) {
+        this.cameraMode = mode;
+        if (mode === 'freefly') {
+            // Initialize freefly position relative to current target
+            this.freeflyPos = [this.target[0], 1.6, this.target[2] + 4.5];
+            this.freeflyYaw = this.yaw;
+            this.freeflyPitch = 0.0;
         }
+    }
 
-        // Pack interleaved attributes [Px, Py, Pz, Nx, Ny, Nz, U, V]
+    /**
+     * Sets an active composite Scene Graph
+     */
+    public setSceneGraph(sg: SceneGraph) {
+        this.sceneGraph = sg;
+        this.currentMeshName = `Composite Scene Graph (${sg.getAllNodes().length} Nodes)`;
+        this.triangleCount = sg.getTotalTriangles();
+    }
+
+    /**
+     * Prepares GPU buffers for a specific SceneNode
+     */
+    private initNodeGpu(node: SceneNode) {
+        const gl = this.gl;
+        const mesh = node.mesh;
+
+        node.vao = gl.createVertexArray();
+        node.vbo = gl.createBuffer();
+        node.ebo = gl.createBuffer();
+
         const vertexCount = mesh.vertexCount;
         const interleaved = new Float32Array(vertexCount * 8);
         for (let i = 0; i < vertexCount; i++) {
@@ -233,12 +267,65 @@ export class Viewport3D {
             interleaved[i * 8 + 7] = mesh.uvs[i * 2 + 1];
         }
 
-        gl.bindVertexArray(this.vao);
+        gl.bindVertexArray(node.vao);
 
-        gl.bindBuffer(gl.ARRAY_BUFFER, this.vbo);
+        gl.bindBuffer(gl.ARRAY_BUFFER, node.vbo);
         gl.bufferData(gl.ARRAY_BUFFER, interleaved, gl.STATIC_DRAW);
 
-        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.ebo);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, node.ebo);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, mesh.indices, gl.STATIC_DRAW);
+
+        const stride = 8 * 4;
+        gl.vertexAttribPointer(0, 3, gl.FLOAT, false, stride, 0);
+        gl.enableVertexAttribArray(0);
+
+        gl.vertexAttribPointer(1, 3, gl.FLOAT, false, stride, 3 * 4);
+        gl.enableVertexAttribArray(1);
+
+        gl.vertexAttribPointer(2, 2, gl.FLOAT, false, stride, 6 * 4);
+        gl.enableVertexAttribArray(2);
+
+        gl.bindVertexArray(null);
+        node.gpuReady = true;
+    }
+
+    /**
+     * Binds and displays a single authentic decoded 3D mesh
+     */
+    public setMesh(mesh: DecodedMesh) {
+        this.sceneGraph = null; // Clear multi-node graph when viewing single mesh
+        const gl = this.gl;
+        this.currentMeshName = mesh.name;
+        this.triangleCount = mesh.triangleCount;
+
+        // Auto-frame camera to model bounding box
+        if (mesh.bounds) {
+            this.target = [mesh.bounds.center[0], mesh.bounds.center[1], mesh.bounds.center[2]];
+            const maxDim = Math.max(mesh.bounds.size[0], mesh.bounds.size[1], mesh.bounds.size[2]);
+            this.distance = Math.max(2.5, maxDim * 1.6);
+        }
+
+        const vertexCount = mesh.vertexCount;
+        const interleaved = new Float32Array(vertexCount * 8);
+        for (let i = 0; i < vertexCount; i++) {
+            interleaved[i * 8 + 0] = mesh.positions[i * 3 + 0];
+            interleaved[i * 8 + 1] = mesh.positions[i * 3 + 1];
+            interleaved[i * 8 + 2] = mesh.positions[i * 3 + 2];
+
+            interleaved[i * 8 + 3] = mesh.normals[i * 3 + 0];
+            interleaved[i * 8 + 4] = mesh.normals[i * 3 + 1];
+            interleaved[i * 8 + 5] = mesh.normals[i * 3 + 2];
+
+            interleaved[i * 8 + 6] = mesh.uvs[i * 2 + 0];
+            interleaved[i * 8 + 7] = mesh.uvs[i * 2 + 1];
+        }
+
+        gl.bindVertexArray(this.singleVao);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, this.singleVbo);
+        gl.bufferData(gl.ARRAY_BUFFER, interleaved, gl.STATIC_DRAW);
+
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.singleEbo);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, mesh.indices, gl.STATIC_DRAW);
 
         const stride = 8 * 4;
@@ -306,32 +393,89 @@ export class Viewport3D {
             this.lastMouseX = e.clientX;
             this.lastMouseY = e.clientY;
 
-            if (e.buttons === 1) { // Left-click: Orbit
-                this.yaw += dx * 0.008;
-                this.pitch += dy * 0.008;
-                this.pitch = Math.max(-Math.PI / 2 + 0.05, Math.min(Math.PI / 2 - 0.05, this.pitch));
-            } else if (e.buttons === 2) { // Right-click: Pan
-                const panSpeed = this.distance * 0.0015;
-                const forwardX = -Math.sin(this.yaw);
-                const forwardZ = -Math.cos(this.yaw);
-                const rightX = -forwardZ;
-                const rightZ = forwardX;
+            if (this.cameraMode === 'orbit') {
+                if (e.buttons === 1) { // Left-click: Orbit
+                    this.yaw += dx * 0.008;
+                    this.pitch += dy * 0.008;
+                    this.pitch = Math.max(-Math.PI / 2 + 0.05, Math.min(Math.PI / 2 - 0.05, this.pitch));
+                } else if (e.buttons === 2) { // Right-click: Pan
+                    const panSpeed = this.distance * 0.0015;
+                    const forwardX = -Math.sin(this.yaw);
+                    const forwardZ = -Math.cos(this.yaw);
+                    const rightX = -forwardZ;
+                    const rightZ = forwardX;
 
-                this.target[0] -= rightX * dx * panSpeed;
-                this.target[2] -= rightZ * dx * panSpeed;
-                this.target[1] += dy * panSpeed;
+                    this.target[0] -= rightX * dx * panSpeed;
+                    this.target[2] -= rightZ * dx * panSpeed;
+                    this.target[1] += dy * panSpeed;
+                }
+            } else {
+                // Free-Fly Camera Look
+                this.freeflyYaw += dx * 0.004;
+                this.freeflyPitch -= dy * 0.004;
+                this.freeflyPitch = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, this.freeflyPitch));
             }
+        });
+
+        window.addEventListener('keydown', (e) => {
+            this.keysDown.add(e.code);
+        });
+
+        window.addEventListener('keyup', (e) => {
+            this.keysDown.delete(e.code);
         });
 
         this.canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 
         this.canvas.addEventListener('wheel', (e) => {
             e.preventDefault();
-            this.distance += e.deltaY * 0.005;
-            this.distance = Math.max(0.5, Math.min(50.0, this.distance));
+            if (this.cameraMode === 'orbit') {
+                this.distance += e.deltaY * 0.005;
+                this.distance = Math.max(0.5, Math.min(150.0, this.distance));
+            } else {
+                // Adjust freefly movement speed with wheel
+                this.moveSpeed += (e.deltaY < 0 ? 1.0 : -1.0);
+                this.moveSpeed = Math.max(1.0, Math.min(30.0, this.moveSpeed));
+            }
         }, { passive: false });
 
         window.addEventListener('resize', () => this.resize());
+    }
+
+    private updateFreefly(deltaTimeSec: number) {
+        if (this.cameraMode !== 'freefly') return;
+
+        const isSprinting = this.keysDown.has('ShiftLeft') || this.keysDown.has('ShiftRight');
+        const speed = this.moveSpeed * (isSprinting ? this.sprintMultiplier : 1.0) * deltaTimeSec;
+
+        // Forward vector in horizontal plane
+        const fX = -Math.sin(this.freeflyYaw);
+        const fZ = -Math.cos(this.freeflyYaw);
+        const rX = -fZ;
+        const rZ = fX;
+
+        if (this.keysDown.has('KeyW')) {
+            this.freeflyPos[0] += fX * speed;
+            this.freeflyPos[2] += fZ * speed;
+        }
+        if (this.keysDown.has('KeyS')) {
+            this.freeflyPos[0] -= fX * speed;
+            this.freeflyPos[2] -= fZ * speed;
+        }
+        if (this.keysDown.has('KeyA')) {
+            this.freeflyPos[0] -= rX * speed;
+            this.freeflyPos[2] -= rZ * speed;
+        }
+        if (this.keysDown.has('KeyD')) {
+            this.freeflyPos[0] += rX * speed;
+            this.freeflyPos[2] += rZ * speed;
+        }
+        if (this.keysDown.has('KeyE') || this.keysDown.has('Space')) {
+            this.freeflyPos[1] += speed; // Elevate
+        }
+        if (this.keysDown.has('KeyQ') || this.keysDown.has('KeyC')) {
+            this.freeflyPos[1] -= speed; // Lower
+        }
     }
 
     public resize() {
@@ -350,6 +494,7 @@ export class Viewport3D {
         const gl = this.gl;
         const now = performance.now();
         this.frameTimeMs = now - this.lastTime;
+        const deltaTimeSec = Math.min((now - this.lastTime) / 1000.0, 0.1);
         this.lastTime = now;
 
         this.frameCounter++;
@@ -359,6 +504,9 @@ export class Viewport3D {
             this.fpsTimer = now;
         }
 
+        // Process freefly movement
+        this.updateFreefly(deltaTimeSec);
+
         this.drawCalls = 0;
 
         gl.clearColor(0.04, 0.05, 0.07, 1.0);
@@ -367,16 +515,32 @@ export class Viewport3D {
         gl.enable(gl.DEPTH_TEST);
         gl.depthFunc(gl.LEQUAL);
 
-        // Perspective camera
+        // Perspective Camera
         const aspect = this.canvas.width / this.canvas.height;
-        const proj = this.perspective(Math.PI / 4, aspect, 0.1, 100.0);
+        const proj = this.perspective(Math.PI / 4, aspect, 0.1, 500.0);
 
-        // Orbit Eye Position
-        const eyeX = this.target[0] + this.distance * Math.cos(this.pitch) * Math.sin(this.yaw);
-        const eyeY = this.target[1] + this.distance * Math.sin(this.pitch);
-        const eyeZ = this.target[2] + this.distance * Math.cos(this.pitch) * Math.cos(this.yaw);
+        let eyePos: [number, number, number];
+        let view: Float32Array;
 
-        const view = this.lookAt([eyeX, eyeY, eyeZ], this.target, [0, 1, 0]);
+        if (this.cameraMode === 'orbit') {
+            const eyeX = this.target[0] + this.distance * Math.cos(this.pitch) * Math.sin(this.yaw);
+            const eyeY = this.target[1] + this.distance * Math.sin(this.pitch);
+            const eyeZ = this.target[2] + this.distance * Math.cos(this.pitch) * Math.cos(this.yaw);
+            eyePos = [eyeX, eyeY, eyeZ];
+            view = this.lookAt(eyePos, this.target, [0, 1, 0]);
+        } else {
+            eyePos = [this.freeflyPos[0], this.freeflyPos[1], this.freeflyPos[2]];
+            // Forward look direction
+            const lookDirX = -Math.sin(this.freeflyYaw) * Math.cos(this.freeflyPitch);
+            const lookDirY = Math.sin(this.freeflyPitch);
+            const lookDirZ = -Math.cos(this.freeflyYaw) * Math.cos(this.freeflyPitch);
+            const lookTarget: [number, number, number] = [
+                eyePos[0] + lookDirX,
+                eyePos[1] + lookDirY,
+                eyePos[2] + lookDirZ
+            ];
+            view = this.lookAt(eyePos, lookTarget, [0, 1, 0]);
+        }
 
         // Draw Ground Grid
         gl.enable(gl.BLEND);
@@ -385,36 +549,59 @@ export class Viewport3D {
         gl.uniformMatrix4fv(gl.getUniformLocation(this.gridProgram, 'uView'), false, view);
         gl.uniformMatrix4fv(gl.getUniformLocation(this.gridProgram, 'uProjection'), false, proj);
         gl.bindVertexArray(this.gridVao);
-        gl.drawArrays(gl.LINES, 0, 51 * 4);
+        gl.drawArrays(gl.LINES, 0, 61 * 4);
         this.drawCalls++;
         gl.disable(gl.BLEND);
 
-        // Draw Main Model
-        if (this.triangleCount > 0) {
+        // Render Geometry
+        gl.useProgram(this.program);
+        gl.uniformMatrix4fv(gl.getUniformLocation(this.program, 'uView'), false, view);
+        gl.uniformMatrix4fv(gl.getUniformLocation(this.program, 'uProjection'), false, proj);
+        gl.uniform3f(gl.getUniformLocation(this.program, 'uLightPos'), 20.0, 45.0, 30.0);
+        gl.uniform3f(gl.getUniformLocation(this.program, 'uLightColor'), 1.0, 0.96, 0.92);
+        gl.uniform3f(gl.getUniformLocation(this.program, 'uViewPos'), eyePos[0], eyePos[1], eyePos[2]);
+
+        gl.activeTexture(gl.TEXTURE0);
+        if (this.hasTexture && this.texture) {
+            gl.bindTexture(gl.TEXTURE_2D, this.texture);
+            gl.uniform1i(gl.getUniformLocation(this.program, 'uTexture'), 0);
+            gl.uniform1i(gl.getUniformLocation(this.program, 'uHasTexture'), 1);
+        } else {
+            gl.uniform1i(gl.getUniformLocation(this.program, 'uHasTexture'), 0);
+        }
+
+        if (this.sceneGraph) {
+            // Render Multi-Node Scene Graph
+            let totalTris = 0;
+            const nodes = this.sceneGraph.getAllNodes();
+            for (const node of nodes) {
+                if (!node.visible || !node.mesh) continue;
+
+                if (!node.gpuReady) {
+                    this.initNodeGpu(node);
+                }
+
+                gl.uniformMatrix4fv(gl.getUniformLocation(this.program, 'uModel'), false, node.transform);
+                gl.uniform3f(gl.getUniformLocation(this.program, 'uObjectColor'), node.color[0], node.color[1], node.color[2]);
+
+                gl.bindVertexArray(node.vao!);
+                gl.drawElements(gl.TRIANGLES, node.mesh.triangleCount * 3, gl.UNSIGNED_SHORT, 0);
+                this.drawCalls++;
+                totalTris += node.mesh.triangleCount;
+            }
+            this.triangleCount = totalTris;
+        } else if (this.triangleCount > 0) {
+            // Render Single Active Mesh (with auto-spin if in orbit mode)
             const model = this.identity();
-            const spin = now * 0.0004;
-            this.rotateY(model, spin);
-
-            gl.useProgram(this.program);
-            gl.uniformMatrix4fv(gl.getUniformLocation(this.program, 'uModel'), false, model);
-            gl.uniformMatrix4fv(gl.getUniformLocation(this.program, 'uView'), false, view);
-            gl.uniformMatrix4fv(gl.getUniformLocation(this.program, 'uProjection'), false, proj);
-
-            gl.uniform3f(gl.getUniformLocation(this.program, 'uLightPos'), 6.0, 10.0, 7.0);
-            gl.uniform3f(gl.getUniformLocation(this.program, 'uLightColor'), 1.0, 0.96, 0.92);
-            gl.uniform3f(gl.getUniformLocation(this.program, 'uObjectColor'), 0.88, 0.18, 0.22); // Crimson red
-            gl.uniform3f(gl.getUniformLocation(this.program, 'uViewPos'), eyeX, eyeY, eyeZ);
-
-            gl.activeTexture(gl.TEXTURE0);
-            if (this.hasTexture && this.texture) {
-                gl.bindTexture(gl.TEXTURE_2D, this.texture);
-                gl.uniform1i(gl.getUniformLocation(this.program, 'uTexture'), 0);
-                gl.uniform1i(gl.getUniformLocation(this.program, 'uHasTexture'), 1);
-            } else {
-                gl.uniform1i(gl.getUniformLocation(this.program, 'uHasTexture'), 0);
+            if (this.cameraMode === 'orbit') {
+                const spin = now * 0.0004;
+                this.rotateY(model, spin);
             }
 
-            gl.bindVertexArray(this.vao);
+            gl.uniformMatrix4fv(gl.getUniformLocation(this.program, 'uModel'), false, model);
+            gl.uniform3f(gl.getUniformLocation(this.program, 'uObjectColor'), 0.88, 0.18, 0.22); // Crimson
+
+            gl.bindVertexArray(this.singleVao);
             gl.drawElements(gl.TRIANGLES, this.triangleCount * 3, gl.UNSIGNED_SHORT, 0);
             this.drawCalls++;
         }
@@ -434,11 +621,11 @@ export class Viewport3D {
 
     private lookAt(eye: number[], center: number[], up: number[]): Float32Array {
         const z0 = eye[0] - center[0], z1 = eye[1] - center[1], z2 = eye[2] - center[2];
-        const lenZ = 1 / Math.hypot(z0, z1, z2);
+        const lenZ = 1 / (Math.hypot(z0, z1, z2) || 1);
         const zx = z0 * lenZ, zy = z1 * lenZ, zz = z2 * lenZ;
 
         const x0 = up[1] * zz - up[2] * zy, x1 = up[2] * zx - up[0] * zz, x2 = up[0] * zy - up[1] * zx;
-        const lenX = 1 / Math.hypot(x0, x1, x2);
+        const lenX = 1 / (Math.hypot(x0, x1, x2) || 1);
         const xx = x0 * lenX, xy = x1 * lenX, xz = x2 * lenX;
 
         const yx = zy * xz - zz * xy, yy = zz * xx - zx * xz, yz = zx * xy - zy * xx;

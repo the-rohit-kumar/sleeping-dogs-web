@@ -101,21 +101,22 @@
             font-size: 11px;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 0.5px;
             color: var(--text-muted);
             border-bottom: 1px solid var(--panel-border);
+            background: rgba(0, 0, 0, 0.2);
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
 
         .showcase-bar {
-            padding: 10px 16px;
-            background: rgba(0,0,0,0.25);
-            border-bottom: 1px solid var(--panel-border);
             display: flex;
             flex-wrap: wrap;
             gap: 6px;
+            padding: 10px 16px;
+            background: rgba(0,0,0,0.25);
+            border-bottom: 1px solid var(--panel-border);
         }
 
         .btn-toggle {
@@ -140,6 +141,24 @@
             border-color: var(--accent-cyan);
             color: var(--accent-cyan);
             font-weight: 700;
+        }
+
+        .btn-special {
+            background: rgba(217, 38, 56, 0.2);
+            border-color: var(--accent-crimson);
+            color: #ff8591;
+            font-weight: 700;
+        }
+
+        .btn-special:hover {
+            background: rgba(217, 38, 56, 0.35);
+            color: #ffffff;
+        }
+
+        .btn-special.active {
+            background: var(--accent-crimson);
+            border-color: var(--accent-crimson);
+            color: #ffffff;
         }
 
         .archive-stream-bar {
@@ -190,6 +209,23 @@
 
         .info-label {
             color: var(--text-muted);
+        }
+
+        .node-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 4px 0;
+            font-size: 11px;
+            font-family: monospace;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .node-row label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
         }
 
         .entry-list {
@@ -243,7 +279,7 @@
             font-family: monospace;
             font-size: 12px;
             pointer-events: none;
-            min-width: 300px;
+            min-width: 320px;
         }
 
         .hud-title {
@@ -258,18 +294,19 @@
             position: absolute;
             bottom: 16px;
             right: 16px;
-            background: rgba(11, 13, 17, 0.85);
+            background: rgba(11, 13, 17, 0.88);
             border: 1px solid var(--panel-border);
             border-radius: 6px;
-            padding: 8px 12px;
+            padding: 8px 14px;
             font-size: 11px;
             color: var(--text-muted);
             pointer-events: none;
+            font-family: monospace;
         }
 
         .controls-hint span {
-            color: var(--text-main);
-            font-weight: 600;
+            color: var(--accent-cyan);
+            font-weight: 700;
         }
     </style>
 </head>
@@ -289,14 +326,25 @@
     <div class="container">
         <aside>
             <div class="section-header">
-                <span>Authentic Base-Game Stream // Models &amp; Textures</span>
+                <span>Authentic Base-Game Stream // Scene &amp; Models</span>
             </div>
 
             <div class="showcase-bar">
-                <button class="btn-toggle active" id="btn-mesh-vehicle">Vehicle [Vehicles.big]</button>
+                <button class="btn-toggle btn-special active" id="btn-composite-street">Street Scene [Composite Graph]</button>
+                <button class="btn-toggle" id="btn-mesh-vehicle">Vehicle [Vehicles.big]</button>
                 <button class="btn-toggle" id="btn-mesh-character">Character [Characters.big]</button>
                 <button class="btn-toggle" id="btn-mesh-world">World Sector [Game.big]</button>
                 <button class="btn-toggle active" id="btn-tex-bc3">UI Texture [BC3/DXT5]</button>
+                <button class="btn-toggle" id="btn-camera-mode" style="border-color: #a78bfa; color: #a78bfa;">Camera: Orbit</button>
+            </div>
+
+            <div class="section-header" id="header-scene-graph">
+                <span>Scene Graph Hierarchy</span>
+                <span style="color: #4ade80;" id="badge-node-count">3 Nodes</span>
+            </div>
+
+            <div id="scene-hierarchy" style="padding: 8px 16px; background: rgba(0,0,0,0.25); border-bottom: 1px solid var(--panel-border);">
+                <!-- Populated dynamically when composite graph is active -->
             </div>
 
             <div class="section-header">
@@ -305,9 +353,9 @@
             </div>
 
             <div class="archive-stream-bar">
-                <button class="btn-toggle active" id="btn-bix-vehicles" style="flex: 1;">Vehicles</button>
+                <button class="btn-toggle" id="btn-bix-vehicles" style="flex: 1;">Vehicles</button>
                 <button class="btn-toggle" id="btn-bix-characters" style="flex: 1;">Characters</button>
-                <button class="btn-toggle" id="btn-bix-game" style="flex: 1;">Game</button>
+                <button class="btn-toggle active" id="btn-bix-game" style="flex: 1;">Game</button>
                 <button class="btn-toggle" id="btn-bix-ui" style="flex: 1;">UI</button>
             </div>
 
@@ -318,9 +366,9 @@
             </div>
 
             <div class="archive-info-card" id="archive-card">
-                <div class="info-row"><span class="info-label">Active Archive:</span><strong id="card-name">Vehicles.bix</strong></div>
-                <div class="info-row"><span class="info-label">Resource Count:</span><span id="card-entries">--</span></div>
-                <div class="info-row"><span class="info-label">Payload Size:</span><span id="card-size">--</span></div>
+                <div class="info-row"><span class="info-label">Active Archive:</span><strong id="card-name">Game.bix</strong></div>
+                <div class="info-row"><span class="info-label">Resource Count:</span><span id="card-entries">7148 assets</span></div>
+                <div class="info-row"><span class="info-label">Payload Size:</span><span id="card-size">4.02 GB</span></div>
                 <div class="info-row"><span class="info-label">Bridge Status:</span><span id="card-status" style="color: #4ade80;">HTTP 206 Streaming</span></div>
             </div>
 
@@ -341,16 +389,18 @@
                 <div class="hud-title">AUTHENTIC ENGINE PIPELINE HUD</div>
                 <div class="info-row"><span class="info-label">FPS:</span><span id="hud-fps" style="color: #4ade80;">--</span></div>
                 <div class="info-row"><span class="info-label">Frame Time:</span><span id="hud-frametime">-- ms</span></div>
-                <div class="info-row"><span class="info-label">Draw Calls:</span><span id="hud-drawcalls">2</span></div>
+                <div class="info-row"><span class="info-label">Draw Calls:</span><span id="hud-drawcalls">--</span></div>
                 <div class="info-row"><span class="info-label">Triangles:</span><span id="hud-triangles">--</span></div>
                 <div class="info-row"><span class="info-label">3D Geometry:</span><span id="hud-mesh" style="color: var(--accent-cyan); font-size: 11px;">--</span></div>
                 <div class="info-row"><span class="info-label">Texture Mapped:</span><span id="hud-texture" style="color: #f59e0b; font-size: 11px;">--</span></div>
+                <div class="info-row"><span class="info-label">Camera Mode:</span><span id="hud-cam-mode" style="color: #a78bfa; font-size: 11px;">Orbit Turntable</span></div>
+                <div class="info-row"><span class="info-label">Stream Cache:</span><span id="hud-cache" style="color: #38bdf8; font-size: 11px;">L1: 0 | L2: 0 | 0 KB</span></div>
                 <div class="info-row"><span class="info-label">Data Origin:</span><span style="color: var(--accent-crimson);">Sleeping Dogs (Definitive Edition)</span></div>
                 <div class="info-row"><span class="info-label">Synthetic Assets:</span><span style="color: #4ade80; font-weight: 700;">ZERO (100% Authentic)</span></div>
             </div>
 
-            <div class="controls-hint">
-                <span>Left Click + Drag:</span> Orbit | <span>Right Click + Drag:</span> Pan | <span>Scroll:</span> Zoom
+            <div class="controls-hint" id="controls-hint">
+                <span>Left Drag:</span> Orbit | <span>Right Drag:</span> Pan | <span>Scroll:</span> Zoom | <span>C:</span> Switch to Street Camera
             </div>
         </main>
     </div>

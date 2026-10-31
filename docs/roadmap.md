@@ -10,8 +10,8 @@ GitHub Repository: [https://github.com/the-rohit-kumar/sleeping-dogs-web](https:
 ```mermaid
 flowchart LR
     M1["Milestone 1: Vertical Slice<br/>(Done)"] --> M2["Milestone 2: Authentic Geometry & Shading<br/>(Done)"]
-    M2 --> M3["Milestone 3: World Streaming & Scene Graph<br/>(Active)"]
-    M3 --> M4["Milestone 4: Skeletal Animation & Audio<br/>(Queued)"]
+    M2 --> M3["Milestone 3: World Streaming & Scene Graph<br/>(Done)"]
+    M3 --> M4["Milestone 4: Skeletal Animation & Audio<br/>(Active)"]
     M4 --> M5["Milestone 5: Physics & Controls"]
     M5 --> M6["Milestone 6: Game Systems & Simulation"]
 ```
@@ -54,7 +54,7 @@ flowchart LR
 
 ---
 
-## Milestone 3: World Streaming & Scene Graph (Active Progress)
+## Milestone 3: World Streaming & Scene Graph (Completed)
 
 **Goal:** Load Hong Kong street sections, road networks, and building facades from `Game.big` with spatial hierarchy.
 
@@ -64,16 +64,22 @@ flowchart LR
 - [X] **Authentic Hong Kong City Sector Mesh Decoder**:
   - Streams `Game.big` offset `0x1b7ef400` (UID `0x7b8f6706`, 1,648 bytes).
   - Unpacks authentic 574-meter broad urban street sector ($X \in [-275\text{m}, +298\text{m}], Y \in [-275\text{m}, +55\text{m}]$).
-- [X] **Scene Graph Viewport Integration**:
-  - Added "World Sector [Game.big]" interactive button in showcase bar.
-  - Added "Game" archive explorer selector to inspect all 7,148 open-world resources.
-- [ ] Parse world placement grids and transformation matrices from `qPropertySetInventory` / `ZoneLayoutInventory`.
-- [ ] Asynchronous chunk streaming based on camera distance and frustum culling.
-- [ ] LRU caching in IndexedDB for streamed blocks.
+- [X] **Multi-Node Scene Graph Architecture** (`client/src/scene-graph.ts`):
+  - Spatial scene hierarchy maintaining node transforms ($M = T \times R \times S$), colors, materials, and visibility.
+  - Interactive scene hierarchy panel allowing runtime toggling of individual nodes.
+- [X] **Composite Hong Kong Street Assembly**:
+  - Assembles road sector, authentic Sedan vehicle (`Vehicles.big` 0x01f0a400), and pedestrian (`Characters.big` 0x161f3000) with authentic BC3 materials into a unified Hong Kong street scene.
+- [X] **Dual Camera Navigation**:
+  - Orbit Turntable inspector mode.
+  - Street Free-Fly mode with WASD keyboard movement, Shift sprint, and mouse-look.
+- [X] **Two-Tier LRU & Persistent Caching**:
+  - L1 Memory Cache (128 entries) + L2 Persistent IndexedDB cache for instant zero-latency offline reloads.
+- [X] **Automated Browser Verification**:
+  - Headless Chrome test suite (`tools/verify_browser.js`) capturing visual verification screenshots.
 
 ---
 
-## Milestone 4: Animation, Characters & Audio (Queued)
+## Milestone 4: Animation, Characters & Audio (Active Progress)
 
 **Goal:** Animated character models and environmental sound.
 

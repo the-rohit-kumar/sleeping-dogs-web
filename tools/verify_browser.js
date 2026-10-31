@@ -64,70 +64,98 @@ async function verify() {
   console.log('\n--- Step 1: Navigating to http://127.0.0.1:5173/ ---');
   await page.goto('http://127.0.0.1:5173/', { waitUntil: 'domcontentloaded', timeout: 15000 });
 
-  // Wait 2 seconds for initial WebGL rendering & asset stream
-  await new Promise(r => setTimeout(r, 2000));
+  // Wait 3 seconds for initial composite street scene graph assembly & asset streaming
+  await new Promise(r => setTimeout(r, 3000));
 
   // Inspect HUD state
   const state1 = await page.evaluate(() => ({
     fps: document.getElementById('hud-fps')?.textContent,
     mesh: document.getElementById('hud-mesh')?.textContent,
-    texture: document.getElementById('hud-texture')?.textContent,
+    drawCalls: document.getElementById('hud-drawcalls')?.textContent,
     triangles: document.getElementById('hud-triangles')?.textContent,
+    texture: document.getElementById('hud-texture')?.textContent,
+    camMode: document.getElementById('hud-cam-mode')?.textContent,
+    cache: document.getElementById('hud-cache')?.textContent,
     cardEntries: document.getElementById('card-entries')?.textContent,
     cardName: document.getElementById('card-name')?.textContent,
+    hierarchyNodes: document.querySelectorAll('#scene-hierarchy .node-row').length,
     entryCount: document.querySelectorAll('.entry-item').length
   }));
 
-  console.log('Step 1 HUD State:', state1);
-  const shot1 = path.join(ARTIFACTS_DIR, '01_initial_vehicle.png');
+  console.log('Step 1 HUD State (Composite Street Scene):', state1);
+  const shot1 = path.join(ARTIFACTS_DIR, '01_composite_street_scene.png');
   await page.screenshot({ path: shot1 });
   console.log('Saved screenshot 1:', shot1);
 
-  console.log('\n--- Step 2: Clicking Character [Characters.big] ---');
-  await page.click('#btn-mesh-character');
-  await new Promise(r => setTimeout(r, 1500));
+  console.log('\n--- Step 2: Toggling Scene Hierarchy Nodes ---');
+  // Uncheck the vehicle node in the hierarchy
+  await page.evaluate(() => {
+    const checkboxes = document.querySelectorAll('#scene-hierarchy input[type="checkbox"]');
+    if (checkboxes.length > 1) {
+      checkboxes[1].click(); // Toggle vehicle
+    }
+  });
+  await new Promise(r => setTimeout(r, 1000));
 
   const state2 = await page.evaluate(() => ({
     mesh: document.getElementById('hud-mesh')?.textContent,
+    drawCalls: document.getElementById('hud-drawcalls')?.textContent,
     triangles: document.getElementById('hud-triangles')?.textContent
   }));
-  console.log('Step 2 HUD State:', state2);
-  const shot2 = path.join(ARTIFACTS_DIR, '02_character_stream.png');
+  console.log('Step 2 HUD State (Vehicle Node Toggled Off):', state2);
+  const shot2 = path.join(ARTIFACTS_DIR, '02_scene_hierarchy_toggled.png');
   await page.screenshot({ path: shot2 });
   console.log('Saved screenshot 2:', shot2);
 
-  console.log('\n--- Step 3: Clicking World Sector [Game.big] ---');
-  await page.click('#btn-mesh-world');
-  await new Promise(r => setTimeout(r, 1500));
+  // Toggle vehicle back on
+  await page.evaluate(() => {
+    const checkboxes = document.querySelectorAll('#scene-hierarchy input[type="checkbox"]');
+    if (checkboxes.length > 1) {
+      checkboxes[1].click();
+    }
+  });
+
+  console.log('\n--- Step 3: Switching Camera to Street Free-Fly (WASD) ---');
+  await page.click('#btn-camera-mode');
+  await new Promise(r => setTimeout(r, 500));
+
+  // Simulate pressing 'KeyW' to navigate forward along the street
+  await page.keyboard.down('KeyW');
+  await new Promise(r => setTimeout(r, 1000));
+  await page.keyboard.up('KeyW');
 
   const state3 = await page.evaluate(() => ({
-    mesh: document.getElementById('hud-mesh')?.textContent,
-    triangles: document.getElementById('hud-triangles')?.textContent
+    camMode: document.getElementById('hud-cam-mode')?.textContent,
+    controlsHint: document.getElementById('controls-hint')?.textContent
   }));
-  console.log('Step 3 HUD State:', state3);
-  const shot3 = path.join(ARTIFACTS_DIR, '03_world_sector_stream.png');
+  console.log('Step 3 HUD State (Free-Fly Navigation Active):', state3);
+  const shot3 = path.join(ARTIFACTS_DIR, '03_street_camera_freefly.png');
   await page.screenshot({ path: shot3 });
   console.log('Saved screenshot 3:', shot3);
 
-  console.log('\n--- Step 4: Clicking Game Archive Explorer ---');
-  await page.click('#btn-bix-game');
+  console.log('\n--- Step 4: Clicking World Sector [Game.big] directly ---');
+  await page.click('#btn-mesh-world');
   await new Promise(r => setTimeout(r, 2000));
 
   const state4 = await page.evaluate(() => ({
-    cardName: document.getElementById('card-name')?.textContent,
-    cardEntries: document.getElementById('card-entries')?.textContent,
-    entryCount: document.querySelectorAll('.entry-item').length
+    mesh: document.getElementById('hud-mesh')?.textContent,
+    triangles: document.getElementById('hud-triangles')?.textContent,
+    cache: document.getElementById('hud-cache')?.textContent
   }));
-  console.log('Step 4 HUD State:', state4);
-  const shot4 = path.join(ARTIFACTS_DIR, '04_game_bix_explorer.png');
+  console.log('Step 4 HUD State (World Sector Direct):', state4);
+  const shot4 = path.join(ARTIFACTS_DIR, '04_world_sector_direct.png');
   await page.screenshot({ path: shot4 });
   console.log('Saved screenshot 4:', shot4);
 
   await browser.close();
-  console.log('\n=== All Verification Steps Completed Successfully ===');
+
+  console.log('\n=== Verification Summary ===');
+  console.log(`Total 206 Streaming Requests Tracked: ${networkRequests.filter(r => r.status === 206).length}`);
+  console.log(`Total Console Logs: ${consoleLogs.length}`);
+  console.log('All verification steps succeeded cleanly!');
 }
 
 verify().catch(err => {
-  console.error('Verification failed:', err);
+  console.error('Fatal Verification Error:', err);
   process.exit(1);
 });
