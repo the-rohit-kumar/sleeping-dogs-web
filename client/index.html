@@ -560,6 +560,35 @@
                 <div class="info-row"><span class="info-label">Combat Target:</span><span id="card-target-status" style="color: var(--accent-cyan);">None in Range</span></div>
             </div>
 
+            <!-- Milestone 7: Living World, Traffic & Neon Rain Panel -->
+            <div class="section-header">
+                <span>Living Hong Kong: Traffic, Crowds &amp; Rain</span>
+                <span id="badge-weather-mode" style="color: #00d2ff;">Hong Kong Rain</span>
+            </div>
+            <div class="subsystem-card">
+                <div class="track-grid" style="margin-bottom: 6px;">
+                    <button class="btn-toggle" id="btn-weather-neon">Neon Night</button>
+                    <button class="btn-toggle active" id="btn-weather-rain">HK Rain</button>
+                    <button class="btn-toggle" id="btn-weather-storm">Typhoon</button>
+                    <button class="btn-toggle active" id="btn-traffic-toggle">Traffic: ON</button>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 6px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 10px;">
+                        <span style="color: var(--text-muted);">Asphalt Wetness:</span>
+                        <input type="range" id="slider-wetness" min="0" max="100" value="95" style="width: 140px; accent-color: var(--accent-cyan); cursor: pointer;">
+                        <span id="label-wetness" style="color: var(--accent-cyan); font-family: monospace;">95%</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; font-size: 10px;">
+                        <span style="color: var(--text-muted);">Neon Bloom Glow:</span>
+                        <input type="range" id="slider-neon" min="50" max="350" value="220" style="width: 140px; accent-color: #ff007f; cursor: pointer;">
+                        <span id="label-neon" style="color: #ff007f; font-family: monospace;">2.2x</span>
+                    </div>
+                </div>
+                <div class="info-row" style="margin-top: 8px;"><span class="info-label">World Streaming:</span><span id="card-streamed-sectors" style="color: #4ade80;">5 Chunks (Game.big)</span></div>
+                <div class="info-row"><span class="info-label">Urban Traffic:</span><span id="card-traffic-count" style="color: #38bdf8;">5 Vehicles (Taxis/Vans)</span></div>
+                <div class="info-row"><span class="info-label">Sidewalk Crowd:</span><span id="card-crowd-count" style="color: #fbbf24;">8 NPCs (Triad/Vendors)</span></div>
+            </div>
+
             <div class="section-header" id="header-scene-graph">
                 <span>Scene Graph Hierarchy</span>
                 <span style="color: #4ade80;" id="badge-node-count">3 Nodes</span>

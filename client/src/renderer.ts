@@ -11,6 +11,7 @@ import { DecodedTexture } from './texture-decoder';
 import { DecodedMesh } from './mesh-decoder';
 import { SceneGraph, SceneNode } from './scene-graph';
 import { CameraController } from './camera-controller';
+import { WeatherSystem } from './weather-system';
 
 export type CameraMode = 'follow' | 'orbit' | 'freefly';
 
@@ -32,6 +33,9 @@ export class Viewport3D {
 
     // Authentic Follow Camera Controller (Milestone 5)
     public cameraController: CameraController | null = null;
+
+    // Milestone 7C: Weather & Atmospheric System
+    public weatherSystem: WeatherSystem | null = null;
 
     // Camera Mode & State
     public cameraMode: CameraMode = 'follow';
@@ -119,24 +123,52 @@ export class Viewport3D {
             uniform sampler2D uTexture;
             uniform bool uHasTexture;
 
+            // Milestone 7C: Neon Nights & Wet Road Shading
+            uniform float uWetness;
+            uniform float uPuddleReflectivity;
+            uniform float uNeonFactor;
+            uniform bool uIsEmissive;
+            uniform vec3 uSkyAmbient;
+            uniform float uFogDensity;
+            uniform float uTime;
+            uniform float uLightningFlash;
+
             out vec4 fragColor;
 
             void main() {
-                // Ambient
-                float ambientStrength = 0.38;
-                vec3 ambient = ambientStrength * uLightColor;
+                // If node is an authentic glowing neon sign or lantern
+                if (uIsEmissive) {
+                    float flicker = 0.95 + 0.05 * sin(uTime * 14.0) * cos(uTime * 5.5);
+                    vec3 neonColor = uObjectColor * uNeonFactor * flicker;
+                    fragColor = vec4(neonColor, 1.0);
+                    return;
+                }
 
-                // Diffuse
+                // Night ambient with urban light pollution & lightning flashes
+                vec3 ambientColor = uSkyAmbient + vec3(uLightningFlash * 0.45, uLightningFlash * 0.48, uLightningFlash * 0.55);
+                float ambientStrength = 0.42;
+                vec3 ambient = ambientStrength * ambientColor;
+
+                // Streetlamp & Directional Diffuse
                 vec3 norm = normalize(vNormal);
                 vec3 lightDir = normalize(uLightPos - vFragPos);
                 float diff = max(dot(norm, lightDir), 0.0);
                 vec3 diffuse = diff * uLightColor;
 
-                // Specular (Blinn-Phong)
+                // View & Specular
                 vec3 viewDir = normalize(uViewPos - vFragPos);
                 vec3 halfwayDir = normalize(lightDir + viewDir);
-                float spec = pow(max(dot(norm, halfwayDir), 0.0), 32.0);
-                vec3 specular = 0.35 * spec * uLightColor;
+
+                // Wet asphalt specular calculation (Sleeping Dogs signature)
+                float isGround = clamp(norm.y, 0.0, 1.0); // Road and sidewalk upward normal
+                float specPower = mix(24.0, 72.0, uWetness);
+                float spec = pow(max(dot(norm, halfwayDir), 0.0), specPower);
+
+                // Fresnel reflectance (grazing angles reflect streetlamps and neon signs)
+                float nDotV = max(dot(norm, viewDir), 0.0);
+                float fresnel = 0.04 + (1.0 - 0.04) * pow(1.0 - nDotV, 5.0);
+                float wetSpecularStrength = mix(0.35, 1.8 * uPuddleReflectivity, uWetness * isGround);
+                vec3 specular = wetSpecularStrength * (spec + fresnel * 0.35) * uLightColor;
 
                 vec3 baseColor = uObjectColor;
                 if (uHasTexture) {
@@ -144,7 +176,18 @@ export class Viewport3D {
                     baseColor = mix(uObjectColor, texColor.rgb, 0.85);
                 }
 
+                // Wet asphalt darkens albedo when saturated with water
+                if (isGround > 0.5) {
+                    baseColor *= mix(1.0, 0.72, uWetness);
+                }
+
                 vec3 result = (ambient + diffuse + specular) * baseColor;
+
+                // Atmospheric Distance Fog (Hong Kong night haze)
+                float dist = length(vFragPos - uViewPos);
+                float fogFactor = clamp(exp(-pow(dist * uFogDensity, 1.3)), 0.0, 1.0);
+                result = mix(ambientColor * 0.85, result, fogFactor);
+
                 fragColor = vec4(result, 1.0);
             }
         `;
@@ -522,7 +565,14 @@ export class Viewport3D {
 
         this.drawCalls = 0;
 
-        gl.clearColor(0.04, 0.05, 0.07, 1.0);
+        const ambient = this.weatherSystem ? this.weatherSystem.settings.skyAmbient : [0.04, 0.05, 0.07];
+        const flash = this.weatherSystem ? this.weatherSystem.lightningFlash : 0.0;
+        gl.clearColor(
+            ambient[0] + flash * 0.45,
+            ambient[1] + flash * 0.48,
+            ambient[2] + flash * 0.55,
+            1.0
+        );
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
         gl.enable(gl.DEPTH_TEST);
@@ -578,6 +628,20 @@ export class Viewport3D {
         gl.uniform3f(gl.getUniformLocation(this.program, 'uLightColor'), 1.0, 0.96, 0.92);
         gl.uniform3f(gl.getUniformLocation(this.program, 'uViewPos'), eyePos[0], eyePos[1], eyePos[2]);
 
+        // Weather & Atmospheric parameters
+        const wetness = this.weatherSystem ? this.weatherSystem.settings.wetness : 0.0;
+        const puddleRefl = this.weatherSystem ? this.weatherSystem.settings.puddleReflectivity : 0.0;
+        const neonFactor = this.weatherSystem ? this.weatherSystem.settings.neonBloomFactor : 1.0;
+        const fogDensity = this.weatherSystem ? this.weatherSystem.settings.fogDensity : 0.005;
+
+        gl.uniform1f(gl.getUniformLocation(this.program, 'uWetness'), wetness);
+        gl.uniform1f(gl.getUniformLocation(this.program, 'uPuddleReflectivity'), puddleRefl);
+        gl.uniform1f(gl.getUniformLocation(this.program, 'uNeonFactor'), neonFactor);
+        gl.uniform1f(gl.getUniformLocation(this.program, 'uFogDensity'), fogDensity);
+        gl.uniform3f(gl.getUniformLocation(this.program, 'uSkyAmbient'), ambient[0], ambient[1], ambient[2]);
+        gl.uniform1f(gl.getUniformLocation(this.program, 'uTime'), now * 0.001);
+        gl.uniform1f(gl.getUniformLocation(this.program, 'uLightningFlash'), flash);
+
         gl.activeTexture(gl.TEXTURE0);
         if (this.hasTexture && this.texture) {
             gl.bindTexture(gl.TEXTURE_2D, this.texture);
@@ -598,6 +662,11 @@ export class Viewport3D {
                     this.initNodeGpu(node);
                 }
 
+                const isEmissive = node.id.includes('neon-sign') ||
+                                   node.name.toLowerCase().includes('neon') ||
+                                   node.name.toLowerCase().includes('lantern');
+                gl.uniform1i(gl.getUniformLocation(this.program, 'uIsEmissive'), isEmissive ? 1 : 0);
+
                 gl.uniformMatrix4fv(gl.getUniformLocation(this.program, 'uModel'), false, node.transform);
                 gl.uniform3f(gl.getUniformLocation(this.program, 'uObjectColor'), node.color[0], node.color[1], node.color[2]);
 
@@ -615,12 +684,21 @@ export class Viewport3D {
                 this.rotateY(model, spin);
             }
 
+            gl.uniform1i(gl.getUniformLocation(this.program, 'uIsEmissive'), 0);
             gl.uniformMatrix4fv(gl.getUniformLocation(this.program, 'uModel'), false, model);
             gl.uniform3f(gl.getUniformLocation(this.program, 'uObjectColor'), 0.88, 0.18, 0.22); // Crimson
 
             gl.bindVertexArray(this.singleVao);
             gl.drawElements(gl.TRIANGLES, this.triangleCount * 3, gl.UNSIGNED_SHORT, 0);
             this.drawCalls++;
+        }
+
+        // Render Dynamic 3D Falling Rain Particles
+        if (this.weatherSystem) {
+            if (!this.weatherSystem.rainProgram) {
+                this.weatherSystem.initGpu(this.gl);
+            }
+            this.weatherSystem.renderRain(this.gl, view, proj);
         }
     }
 

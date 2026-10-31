@@ -35,6 +35,10 @@ import { CharacterController } from './character-controller';
 import { VehicleController } from './vehicle-controller';
 import { PedestrianAIController } from './pedestrian-ai';
 import { CombatSystem } from './combat-system';
+import { WorldStreamer } from './world-streamer';
+import { TrafficSystem } from './traffic-system';
+import { CrowdSystem } from './crowd-system';
+import { WeatherSystem, WeatherMode } from './weather-system';
 
 window.addEventListener('DOMContentLoaded', async () => {
     const canvas = document.getElementById('viewport') as HTMLCanvasElement;
@@ -47,6 +51,13 @@ window.addEventListener('DOMContentLoaded', async () => {
     const vehicleController = new VehicleController();
     const pedestrianAI = new PedestrianAIController();
     const combatSystem = new CombatSystem();
+    const worldStreamer = new WorldStreamer();
+    const trafficSystem = new TrafficSystem();
+    const crowdSystem = new CrowdSystem();
+    const weatherSystem = new WeatherSystem();
+
+    // Link weather system to renderer
+    renderer.weatherSystem = weatherSystem;
 
     // Expose subsystems on window for verification & inspection
     (window as any).characterController = characterController;
@@ -54,6 +65,10 @@ window.addEventListener('DOMContentLoaded', async () => {
     (window as any).pedestrianAI = pedestrianAI;
     (window as any).combatSystem = combatSystem;
     (window as any).cameraController = cameraController;
+    (window as any).worldStreamer = worldStreamer;
+    (window as any).trafficSystem = trafficSystem;
+    (window as any).crowdSystem = crowdSystem;
+    (window as any).weatherSystem = weatherSystem;
 
     // Attach authentic third-person camera controller to renderer
     renderer.cameraController = cameraController;
@@ -96,6 +111,20 @@ window.addEventListener('DOMContentLoaded', async () => {
     const cardComboStep = document.getElementById('card-combo-step')!;
     const cardPedState = document.getElementById('card-ped-state')!;
     const cardTargetStatus = document.getElementById('card-target-status')!;
+
+    // Milestone 7: Living World, Traffic & Neon Rain Elements
+    const badgeWeatherMode = document.getElementById('badge-weather-mode')!;
+    const btnWeatherNeon = document.getElementById('btn-weather-neon')!;
+    const btnWeatherRain = document.getElementById('btn-weather-rain')!;
+    const btnWeatherStorm = document.getElementById('btn-weather-storm')!;
+    const btnTrafficToggle = document.getElementById('btn-traffic-toggle')!;
+    const sliderWetness = document.getElementById('slider-wetness') as HTMLInputElement;
+    const labelWetness = document.getElementById('label-wetness')!;
+    const sliderNeon = document.getElementById('slider-neon') as HTMLInputElement;
+    const labelNeon = document.getElementById('label-neon')!;
+    const cardStreamedSectors = document.getElementById('card-streamed-sectors')!;
+    const cardTrafficCount = document.getElementById('card-traffic-count')!;
+    const cardCrowdCount = document.getElementById('card-crowd-count')!;
 
     // Milestone 6: Sleeping Dogs Mission & In-Game HUD
     const missionObjective = document.getElementById('mission-objective')!;
@@ -321,7 +350,15 @@ window.addEventListener('DOMContentLoaded', async () => {
         const res = combatSystem.executeStrike(characterController.position, animPlayer, audioEngine);
         characterController.triggerAttack(animPlayer, audioEngine);
 
-        if (res.hitLanded) {
+        // Apply hit to nearby crowd NPCs or pedestrian AI
+        const closestCrowdTarget = crowdSystem.findClosestCombatTarget(characterController.position);
+        if (closestCrowdTarget) {
+            const kbX = Math.sin(characterController.rotationY);
+            const kbZ = Math.cos(characterController.rotationY);
+            crowdSystem.applyCombatHit(closestCrowdTarget.id, res.damage, [kbX, 0, kbZ], audioEngine);
+        }
+
+        if (res.hitLanded || closestCrowdTarget) {
             actionPrompt.style.display = 'block';
             actionPrompt.textContent = `COMBO HIT ${res.comboStep} (${res.damage} DMG)!`;
             actionPrompt.style.background = res.comboStep === 3 ? '#eab308' : '#d92638';
@@ -344,6 +381,50 @@ window.addEventListener('DOMContentLoaded', async () => {
         if (renderer.cameraMode === 'follow' && e.button === 0 && !vehicleController.isOccupied) {
             performCombatStrike();
         }
+    });
+
+    // Milestone 7: Weather & Traffic Wiring
+    function applyWeatherPreset(mode: WeatherMode) {
+        weatherSystem.setWeatherMode(mode);
+        badgeWeatherMode.textContent = weatherSystem.settings.name;
+        [btnWeatherNeon, btnWeatherRain, btnWeatherStorm].forEach(b => b.classList.remove('active'));
+        if (mode === 'neon_night') {
+            btnWeatherNeon.classList.add('active');
+            badgeWeatherMode.style.color = '#ff007f';
+        } else if (mode === 'hong_kong_rain') {
+            btnWeatherRain.classList.add('active');
+            badgeWeatherMode.style.color = '#00d2ff';
+        } else {
+            btnWeatherStorm.classList.add('active');
+            badgeWeatherMode.style.color = '#f59e0b';
+        }
+        sliderWetness.value = `${Math.round(weatherSystem.settings.wetness * 100)}`;
+        labelWetness.textContent = `${Math.round(weatherSystem.settings.wetness * 100)}%`;
+        sliderNeon.value = `${Math.round(weatherSystem.settings.neonBloomFactor * 100)}`;
+        labelNeon.textContent = `${weatherSystem.settings.neonBloomFactor.toFixed(1)}x`;
+    }
+
+    btnWeatherNeon.addEventListener('click', () => applyWeatherPreset('neon_night'));
+    btnWeatherRain.addEventListener('click', () => applyWeatherPreset('hong_kong_rain'));
+    btnWeatherStorm.addEventListener('click', () => applyWeatherPreset('typhoon_storm'));
+
+    btnTrafficToggle.addEventListener('click', () => {
+        trafficSystem.trafficEnabled = !trafficSystem.trafficEnabled;
+        btnTrafficToggle.classList.toggle('active', trafficSystem.trafficEnabled);
+        btnTrafficToggle.textContent = trafficSystem.trafficEnabled ? 'Traffic: ON' : 'Traffic: OFF';
+    });
+
+    sliderWetness.addEventListener('input', () => {
+        const val = parseInt(sliderWetness.value, 10) / 100;
+        weatherSystem.settings.wetness = val;
+        weatherSystem.settings.puddleReflectivity = val;
+        labelWetness.textContent = `${Math.round(val * 100)}%`;
+    });
+
+    sliderNeon.addEventListener('input', () => {
+        const val = parseInt(sliderNeon.value, 10) / 100;
+        weatherSystem.settings.neonBloomFactor = val;
+        labelNeon.textContent = `${val.toFixed(1)}x`;
     });
 
     // Populate Scene Hierarchy Panel
@@ -484,10 +565,18 @@ window.addEventListener('DOMContentLoaded', async () => {
         btnTexBc3.classList.add('active');
 
         try {
-            cardStatus.textContent = 'Streaming composite street entities...';
+            cardStatus.textContent = 'Streaming Hong Kong world sectors, traffic & crowd entities...';
             const { sceneGraph, texture } = await loadCompositeStreetScene();
             cachedTexture = texture;
             renderer.setTexture(texture);
+
+            // Milestone 7A: Stream multi-sector Hong Kong world & urban architecture
+            await worldStreamer.initPrimaryWorld(sceneGraph);
+
+            // Milestone 7B: Stream authentic traffic vehicles & sidewalk crowds
+            await trafficSystem.initTraffic(sceneGraph);
+            await crowdSystem.initCrowd(sceneGraph);
+
             renderer.setSceneGraph(sceneGraph);
             renderSceneHierarchy(sceneGraph);
 
@@ -774,6 +863,20 @@ window.addEventListener('DOMContentLoaded', async () => {
         radarCtx.fillRect(-4, -8, 8, 16);
         radarCtx.restore();
 
+        // Milestone 7B: Traffic Vehicles Blips
+        for (const tv of trafficSystem.vehicles) {
+            const tvRelX = (tv.position[0] - playerPos[0]) * scale;
+            const tvRelZ = (tv.position[2] - playerPos[2]) * scale;
+            if (Math.hypot(tvRelX, tvRelZ) < radius) {
+                radarCtx.save();
+                radarCtx.translate(cx + tvRelX, cy + tvRelZ);
+                radarCtx.rotate(-tv.rotationY);
+                radarCtx.fillStyle = tv.type.id === 'hk-taxi' ? '#ef4444' : '#38bdf8';
+                radarCtx.fillRect(-3, -6, 6, 12);
+                radarCtx.restore();
+            }
+        }
+
         // Pedestrian AI Blip
         const pedRelX = (pedestrianAI.position[0] - playerPos[0]) * scale;
         const pedRelZ = (pedestrianAI.position[2] - playerPos[2]) * scale;
@@ -781,6 +884,18 @@ window.addEventListener('DOMContentLoaded', async () => {
         radarCtx.arc(cx + pedRelX, cy + pedRelZ, 4, 0, Math.PI * 2);
         radarCtx.fillStyle = pedestrianAI.state === 'FLEE' ? '#ef4444' : '#eab308';
         radarCtx.fill();
+
+        // Milestone 7B: Crowd NPCs Blips
+        for (const npc of crowdSystem.npcs) {
+            const npcRelX = (npc.position[0] - playerPos[0]) * scale;
+            const npcRelZ = (npc.position[2] - playerPos[2]) * scale;
+            if (Math.hypot(npcRelX, npcRelZ) < radius) {
+                radarCtx.beginPath();
+                radarCtx.arc(cx + npcRelX, cy + npcRelZ, 3, 0, Math.PI * 2);
+                radarCtx.fillStyle = npc.type.role === 'triad' ? '#f87171' : '#fde047';
+                radarCtx.fill();
+            }
+        }
 
         // Player orientation needle at center
         radarCtx.save();
@@ -844,7 +959,7 @@ window.addEventListener('DOMContentLoaded', async () => {
 
             cameraController.update(deltaTimeSec, physicsEngine);
 
-            // 2. Advance Pedestrian AI Crowd Simulation
+            // 2. Advance Pedestrian AI & Living Crowd Simulation
             pedestrianAI.update(
                 deltaTimeSec,
                 activePos,
@@ -854,11 +969,33 @@ window.addEventListener('DOMContentLoaded', async () => {
                 renderer.sceneGraph
             );
 
-            // 3. Advance Melee Combat System
+            // Milestone 7A: World Streaming Update
+            worldStreamer.update(activePos, renderer.sceneGraph);
+
+            // Milestone 7B: Traffic & Crowd Simulation Update
+            trafficSystem.update(deltaTimeSec, renderer.sceneGraph, activePos, isDriving ? vehicleController.position : undefined);
+            crowdSystem.update(deltaTimeSec, renderer.sceneGraph, activePos, characterController.isAttacking);
+
+            // Milestone 7C: Dynamic Rain & Weather Update
+            weatherSystem.update(deltaTimeSec, activePos);
+
+            // 3. Advance Melee Combat System with Crowd Targets
             combatSystem.update(deltaTimeSec);
-            const targetInfo = combatSystem.updateTargeting(activePos, activeHeading, [pedestrianAI]);
+            let targetInfo = combatSystem.updateTargeting(activePos, activeHeading, [pedestrianAI]);
+            if (!targetInfo.hasTarget) {
+                const crowdTarget = crowdSystem.findClosestCombatTarget(activePos, combatSystem.targetReach);
+                if (crowdTarget) {
+                    targetInfo = {
+                        hasTarget: true,
+                        distance: Math.hypot(crowdTarget.position[0] - activePos[0], crowdTarget.position[2] - activePos[2]),
+                        targetHealth: crowdTarget.health,
+                        targetState: crowdTarget.state.toUpperCase()
+                    };
+                }
+            }
 
             // 4. Update Interactive Action Prompt
+            const nearbyTraffic = trafficSystem.findNearbyVehicle(activePos);
             if (isDriving) {
                 actionPrompt.style.display = 'block';
                 actionPrompt.textContent = '[E] EXIT SEDAN CHASSIS';
@@ -867,6 +1004,10 @@ window.addEventListener('DOMContentLoaded', async () => {
                 actionPrompt.style.display = 'block';
                 actionPrompt.textContent = '[E] ENTER SEDAN CHASSIS';
                 actionPrompt.style.background = 'rgba(0, 210, 255, 0.95)';
+            } else if (nearbyTraffic) {
+                actionPrompt.style.display = 'block';
+                actionPrompt.textContent = `[E] HIJACK ${nearbyTraffic.type.name.split('(')[0].trim().toUpperCase()}`;
+                actionPrompt.style.background = 'rgba(239, 68, 68, 0.95)';
             } else if (targetInfo.hasTarget && targetInfo.distance <= combatSystem.strikeReach) {
                 actionPrompt.style.display = 'block';
                 actionPrompt.textContent = `[L-CLICK] STRIKE TARGET (${targetInfo.targetHealth} HP)`;
@@ -891,6 +1032,11 @@ window.addEventListener('DOMContentLoaded', async () => {
             cardTargetStatus.textContent = targetInfo.hasTarget
                 ? `${targetInfo.distance.toFixed(1)}m [LOCK-ON]`
                 : 'None in Range';
+
+            // Milestone 7 Telemetry Cards
+            cardStreamedSectors.textContent = `${worldStreamer.loadedSectorCount} Chunks (${worldStreamer.totalWorldTriangles.toLocaleString()} Tris)`;
+            cardTrafficCount.textContent = `${trafficSystem.vehicles.length} Vehicles (${trafficSystem.trafficEnabled ? 'Running' : 'Paused'})`;
+            cardCrowdCount.textContent = `${crowdSystem.npcs.length} NPCs (${crowdSystem.crowdEnabled ? 'Walking' : 'Paused'})`;
 
             // 7. Render Mini-Map Radar
             renderMiniMapRadar(activePos, isDriving ? vehicleController.rotationY : cameraController.yaw);

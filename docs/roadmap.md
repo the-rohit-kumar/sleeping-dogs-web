@@ -14,6 +14,7 @@ flowchart LR
     M3 --> M4["Milestone 4: Skeletal Animation & Audio<br/>(Done)"]
     M4 --> M5["Milestone 5: Physics & Controls<br/>(Done)"]
     M5 --> M6["Milestone 6: Game Systems & Simulation<br/>(Done)"]
+    M6 --> M7["Milestone 7: Living World, Traffic & Neon Rain<br/>(Done)"]
 ```
 
 ---
@@ -150,3 +151,48 @@ flowchart LR
   - Floating action prompt (`[E] ENTER SEDAN CHASSIS` / `[L-CLICK] COMBO STRIKE`).
 - [X] **Automated Browser Test Suite Verified (`tools/verify_milestone6.js`)**:
   - Verified world HUD and radar initialization, interactive Sedan vehicle entry and driving up to 45.9 km/h, pedestrian crowd AI navigation & panic fleeing, and martial arts combo strikes.
+
+---
+
+## Milestone 7: Living Hong Kong World, Traffic, Crowds & Neon Rain (Completed)
+
+**Goal:** Transform the technical prototype into a living, authentic, cinematic game world — continuous multi-sector streaming, building facades, authentic traffic AI, sidewalk crowd variety, and Sleeping Dogs' signature neon nights & dynamic rain shading.
+
+- [X] **Milestone 7A: Full-Map Continuous World Streaming & Urban Architecture (`client/src/world-streamer.ts`)**:
+  - Streams 5 contiguous authentic city sectors from `Game.big` (Central Avenue `0x00229ff0`, Night Market Plaza `0x0060a73d`, Commercial Boulevard `0x00637350`, Alleyway `0x00702844`, East Waterfront `0x00cb0408`) totaling 15,896 authentic vertices.
+  - Generates multi-story Hong Kong architectural building facades lining both sides of the thoroughfare with overhanging traditional Cantonese neon signs (`金龍大茶樓`, `萬順押`, `新興海鮮酒家`, `夜總會 KARAOKE`).
+  - Sidewalk curb walkways and warm amber streetlamp posts casting illumination onto the pavement.
+  - Distant Hong Kong skyline backdrop ring (28 illuminated high-rise skyscraper towers along Victoria Harbour horizon).
+- [X] **Milestone 7B: Living Hong Kong Traffic AI & Pedestrian Crowd Variety (`client/src/traffic-system.ts` & `client/src/crowd-system.ts`)**:
+  - Multi-vehicle traffic simulation streaming authentic models from `Vehicles.big`:
+    - **Hong Kong Red Urban Taxi** (`0x0078fc9b`, 1,252 verts, crimson red body with silver top)
+    - **North Point Delivery Van** (`0x014d7ca0`, 1,229 verts, ivory white commercial van)
+    - **Executive Luxury SUV** (`0x01590eae`, 1,406 verts, metallic midnight black)
+    - **Compact Hatchback** (`0x04ad21d9`, 1,191 verts, vibrant cyan blue)
+    - **Wei Shen's Sedan Chassis** (`0x008c038c`, 321 verts)
+  - Left-hand driving rules (Hong Kong convention): Northbound lane ($x = -2.2$m) and Southbound lane ($x = +2.2$m) with cruise speeds (35-58 km/h), raycast obstacle braking, following distance maintenance, and boundary looping.
+  - Hijack / Enter interaction for all traffic vehicles via `[E]`.
+  - Sidewalk crowd variety streaming authentic characters from `Characters.big`:
+    - **18K Triad Enforcers** (`0x00882829`, 671 verts, dark leather jacket)
+    - **Night Market Food Vendors** (`0x01bf39f3`, 325 verts, market apron)
+    - **North Point Pedestrians** (`0x01ede6c8`, 606 verts, denim blue)
+    - **Sun On Yee Gangsters** (`0x020e44c8`, 624 verts, crimson triad colors)
+  - Dynamic 360° radar tracking of all traffic vehicles and pedestrian crowd agents.
+- [X] **Milestone 7C: Neon Nights & Dynamic Rain / Weather Shading (`client/src/weather-system.ts` & `client/src/renderer.ts`)**:
+  - Enhanced WebGL2 lighting pipeline with Sleeping Dogs' signature wet asphalt specular reflection shader:
+    - Microfacet Blinn-Phong specular ($p = 72$) with Fresnel grazing-angle reflectivity ($F_0 = 0.04$) reflecting streetlamps and headlights on puddles.
+    - Asphalt albedo darkening when water-saturated.
+    - Emissive neon signboard shader with high-frequency neon tube flicker and bloom glow factor ($1.8\times - 2.6\times$).
+    - Atmospheric Hong Kong midnight sky gradient and distance haze fog.
+  - 3D Falling Rain Simulation: 1,500 active falling rain streak particles with wind velocity ($32-42$ m/s downward, $3.2-9.5$ m/s wind shear) and ground impact ripple splashes.
+  - 3 Interactive Weather Presets:
+    1. *Clear Neon Night* (0% rain, 65% damp street wetness, $1.8\times$ neon bloom).
+    2. *Hong Kong Rain* (75% rain deluge, 95% asphalt wetness, $2.2\times$ neon bloom, atmospheric night fog).
+    3. *Typhoon Storm* (100% torrential rain, 42 m/s downpour, 100% wetness, $2.6\times$ neon bloom, random lightning flashes).
+- [X] **Automated Browser Test Suite Verified (`tools/verify_milestone7.js`)**:
+  - Headless Chrome test capturing 5 high-resolution verification screenshots:
+    1. `01_milestone7_living_world_init.png`: 75 scene nodes, 34,835 triangles, 5 streamed sectors, and initial living street atmosphere.
+    2. `02_milestone7_traffic_ai_simulation.png`: Autonomous traffic cruising along left-hand lanes (43-50 km/h).
+    3. `03_milestone7_sidewalk_crowd_variety.png`: 8 varied Triad enforcers, vendors, and citizens patrolling sidewalks.
+    4. `04_milestone7_typhoon_storm_weather.png`: Heavy typhoon downpour with maximum wetness and intense neon bloom.
+    5. `05_milestone7_clear_neon_night.png`: Clear neon night showing reflective damp pavement and colorful shop signage.
