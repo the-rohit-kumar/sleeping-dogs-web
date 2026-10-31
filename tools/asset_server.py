@@ -3,6 +3,7 @@ asset_server.py
 Lightweight, read-only local HTTP streaming bridge for base game archives.
 Serves Sleeping Dogs Definitive Edition files to the browser client with CORS and Range headers.
 Implements HTTP 206 Partial Content for byte-range streaming directly from .big containers.
+Decodes and streams authentic base-game audio tracks from Wwise SFX.pck and English(US).pck.
 Zero modifications to game files. Read-only.
 """
 
@@ -11,11 +12,85 @@ from http import HTTPStatus
 import socketserver
 import os
 import sys
+import subprocess
 import urllib.parse
 from pathlib import Path
 
 GAME_DIR = Path(r"C:\Program Files (x86)\Steam\steamapps\common\SleepingDogsDefinitiveEdition")
+VGM_CLI = Path(__file__).parent / "vgmstream" / "vgmstream-cli.exe"
 PORT = 8080
+
+SFX_PCK = GAME_DIR / "data" / "Audio" / "SD2" / "SFX.pck"
+ENG_PCK = GAME_DIR / "data" / "Audio" / "SD2" / "English(US).pck"
+
+AUDIO_TRACKS = {
+    "hk_ambience": {
+        "pck": SFX_PCK,
+        "offset": 0x9251ad9,
+        "size": 21906,
+        "name": "Hong Kong Urban Ambience"
+    },
+    "vehicle_engine": {
+        "pck": SFX_PCK,
+        "offset": 0x0d528ab2,
+        "size": 14194,
+        "name": "Vehicle Engine Sound"
+    },
+    "combat_strike": {
+        "pck": SFX_PCK,
+        "offset": 0x104d1f2f,
+        "size": 14406,
+        "name": "Martial Arts Combat Strike"
+    },
+    "hk_dialogue": {
+        "pck": ENG_PCK,
+        "offset": 0x00431f8c,
+        "size": 16681,
+        "name": "Hong Kong Pedestrian Dialogue"
+    }
+}
+
+# In-memory WAV cache
+AUDIO_CACHE = {}
+
+def get_decoded_wav(track_key):
+    if track_key in AUDIO_CACHE:
+        return AUDIO_CACHE[track_key]
+
+    if track_key not in AUDIO_TRACKS:
+        return None
+
+    info = AUDIO_TRACKS[track_key]
+    if not info["pck"].exists():
+        return None
+
+    with open(info["pck"], "rb") as f:
+        f.seek(info["offset"])
+        wem_data = f.read(info["size"])
+
+    # Write temporary file for vgmstream-cli
+    tmp_wem = Path(__file__).parent / f"_temp_{track_key}.wem"
+    tmp_wav = Path(__file__).parent / f"_temp_{track_key}.wav"
+    try:
+        with open(tmp_wem, "wb") as f:
+            f.write(wem_data)
+
+        cmd = [str(VGM_CLI), "-o", str(tmp_wav), str(tmp_wem)]
+        res = subprocess.run(cmd, capture_output=True, text=True)
+        if res.returncode == 0 and tmp_wav.exists():
+            with open(tmp_wav, "rb") as f:
+                wav_bytes = f.read()
+            AUDIO_CACHE[track_key] = wav_bytes
+            return wav_bytes
+    finally:
+        if tmp_wem.exists():
+            try: os.remove(tmp_wem)
+            except OSError: pass
+        if tmp_wav.exists():
+            try: os.remove(tmp_wav)
+            except OSError: pass
+
+    return None
 
 class RangeFileWrapper:
     def __init__(self, fp, length):
@@ -50,6 +125,24 @@ class ReadOnlyGameAssetHandler(http.server.SimpleHTTPRequestHandler):
     def do_OPTIONS(self):
         self.send_response(200)
         self.end_headers()
+
+    def do_GET(self):
+        # Handle /api/audio/<track_id>
+        if self.path.startswith('/api/audio/'):
+            track_key = self.path[len('/api/audio/'):].split('?')[0]
+            wav_data = get_decoded_wav(track_key)
+            if wav_data:
+                self.send_response(HTTPStatus.OK)
+                self.send_header("Content-Type", "audio/wav")
+                self.send_header("Content-Length", str(len(wav_data)))
+                self.end_headers()
+                self.wfile.write(wav_data)
+                return
+            else:
+                self.send_error(HTTPStatus.NOT_FOUND, f"Audio track '{track_key}' not found")
+                return
+
+        return super().do_GET()
 
     def send_head(self):
         path = self.translate_path(self.path)
@@ -100,16 +193,21 @@ class ReadOnlyGameAssetHandler(http.server.SimpleHTTPRequestHandler):
             f.close()
             raise
 
-if __name__ == "__main__":
+def run_server():
     if not GAME_DIR.exists():
         print(f"Error: Game directory not found at {GAME_DIR}")
         sys.exit(1)
 
     socketserver.TCPServer.allow_reuse_address = True
     with socketserver.TCPServer(("127.0.0.1", PORT), ReadOnlyGameAssetHandler) as httpd:
-        print(f"Base Game Read-Only Asset Bridge serving at http://127.0.0.1:{PORT}/")
+        print(f"Sleeping Dogs Asset Streaming Bridge active on http://127.0.0.1:{PORT}")
         print(f"Game Directory: {GAME_DIR}")
+        print(f"HTTP 206 Partial Content enabled for multi-gigabyte .big containers.")
+        print(f"Authentic Audio Decoder active for Wwise SFX.pck and English(US).pck.")
         try:
             httpd.serve_forever()
         except KeyboardInterrupt:
-            print("\nShutting down asset bridge.")
+            print("\nShutting down asset streaming server.")
+
+if __name__ == "__main__":
+    run_server()

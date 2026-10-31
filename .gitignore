@@ -38,6 +38,13 @@ Thumbs.db
 extracted_assets/
 temp/
 tmp/
+tools/temp_*
+*.wav
+*.wem
+
+# Allow tools/vgmstream binary utilities
+!tools/vgmstream/*.exe
+!tools/vgmstream/*.dll
 
 
 # Ghidra raw decompilation dumps

@@ -1,13 +1,13 @@
 /**
  * main.ts
  * Main entry point for the Sleeping Dogs Browser Reconstruction Engine.
- * Streams authentic vehicle, character, and Hong Kong world geometry and textures
- * directly from the local base-game read-only bridge (http://127.0.0.1:8080/).
+ * Streams authentic vehicle, character, and Hong Kong world geometry, textures,
+ * audio streams, and skeletal animation directly from the local base-game bridge.
  *
  * Implements:
- *  - Milestone 3: Hong Kong Street Scene Graph with spatial hierarchy & node transforms
- *  - Dual Camera Navigation: Orbit Turntable & Street Free-Fly (WASD + Mouse Look)
- *  - Two-tier LRU / IndexedDB caching
+ *  - Milestone 4: Wwise Audio Engine (48kHz spatial audio from SFX.pck and English.pck)
+ *  - Milestone 4: Skeletal Animation Player (combat, walk, breathing, vehicle dynamics)
+ *  - Milestone 3: Hong Kong Street Scene Graph & Free-Fly Camera
  *
  * ZERO synthetic assets: 100% extracted from Sleeping Dogs: Definitive Edition.
  */
@@ -27,10 +27,14 @@ import {
     cacheStats
 } from './asset-loader';
 import { SceneGraph } from './scene-graph';
+import { AudioEngine, AUTHENTIC_TRACKS } from './audio-engine';
+import { AnimationPlayer, AUTHENTIC_ANIMS, AnimStateName } from './anim-player';
 
 window.addEventListener('DOMContentLoaded', async () => {
     const canvas = document.getElementById('viewport') as HTMLCanvasElement;
     const renderer = new Viewport3D(canvas);
+    const audioEngine = new AudioEngine();
+    const animPlayer = new AnimationPlayer();
 
     // HUD Elements
     const hudFps = document.getElementById('hud-fps')!;
@@ -39,11 +43,30 @@ window.addEventListener('DOMContentLoaded', async () => {
     const hudTriangles = document.getElementById('hud-triangles')!;
     const hudMesh = document.getElementById('hud-mesh')!;
     const hudTexture = document.getElementById('hud-texture')!;
+    const hudAudio = document.getElementById('hud-audio')!;
+    const hudAnim = document.getElementById('hud-anim')!;
     const hudCamMode = document.getElementById('hud-cam-mode')!;
     const hudCache = document.getElementById('hud-cache')!;
     const controlsHint = document.getElementById('controls-hint')!;
 
-    // Sidebar Elements
+    // Audio Elements
+    const btnAudioToggle = document.getElementById('btn-audio-toggle')!;
+    const chkSpatialAudio = document.getElementById('chk-spatial-audio') as HTMLInputElement;
+    const badgeAudioStatus = document.getElementById('badge-audio-status')!;
+    const audioSpecCanvas = document.getElementById('audio-spec') as HTMLCanvasElement;
+    const specCtx = audioSpecCanvas.getContext('2d')!;
+    const freqData = new Uint8Array(32);
+
+    // Animation Elements
+    const badgeAnimState = document.getElementById('badge-anim-state')!;
+    const btnAnimPlay = document.getElementById('btn-anim-play')!;
+    const animTimeline = document.getElementById('anim-timeline') as HTMLInputElement;
+    const animTimeLabel = document.getElementById('anim-time-label')!;
+    const btnSpeed05 = document.getElementById('btn-speed-05')!;
+    const btnSpeed10 = document.getElementById('btn-speed-10')!;
+    const btnSpeed20 = document.getElementById('btn-speed-20')!;
+
+    // Sidebar & Explorer Elements
     const dropzone = document.getElementById('dropzone')!;
     const fileInput = document.getElementById('file-input') as HTMLInputElement;
     const cardName = document.getElementById('card-name')!;
@@ -73,6 +96,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     let currentArchive: BixArchive | null = null;
     let activeSceneGraph: SceneGraph | null = null;
     let cachedTexture: DecodedTexture | null = null;
+    let isScrubbingTimeline = false;
 
     // Helper: Format bytes
     function formatBytes(bytes: number): string {
@@ -83,7 +107,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     }
 
-    // Update Camera Mode UI & Hint
+    // Camera Mode UI
     function updateCameraModeUI(mode: CameraMode) {
         renderer.setCameraMode(mode);
         if (mode === 'orbit') {
@@ -197,7 +221,6 @@ window.addEventListener('DOMContentLoaded', async () => {
                             });
                         }
                     } catch {
-                        // Not a standard 32-byte mesh buffer; inspected metadata logged
                         console.log(`Inspected entry #${e.index} (${e.uidHex})`);
                     }
                 } catch (err: any) {
@@ -252,7 +275,6 @@ window.addEventListener('DOMContentLoaded', async () => {
             renderer.setSceneGraph(sceneGraph);
             renderSceneHierarchy(sceneGraph);
 
-            // Frame camera nicely on the composite scene
             renderer.target = [0, 0.4, 0];
             renderer.distance = 12.0;
             renderer.yaw = 0.8;
@@ -269,7 +291,6 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     btnCompositeStreet.addEventListener('click', activateCompositeStreet);
 
-    // Showcase Action: Stream Vehicle Mesh
     btnMeshVehicle.addEventListener('click', async () => {
         document.querySelectorAll('.showcase-bar button').forEach(b => {
             if (b.id !== 'btn-camera-mode' && b.id !== 'btn-tex-bc3') b.classList.remove('active');
@@ -289,7 +310,6 @@ window.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // Showcase Action: Stream Character Mesh
     btnMeshCharacter.addEventListener('click', async () => {
         document.querySelectorAll('.showcase-bar button').forEach(b => {
             if (b.id !== 'btn-camera-mode' && b.id !== 'btn-tex-bc3') b.classList.remove('active');
@@ -309,7 +329,6 @@ window.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // Showcase Action: Stream Hong Kong World Sector
     btnMeshWorld.addEventListener('click', async () => {
         document.querySelectorAll('.showcase-bar button').forEach(b => {
             if (b.id !== 'btn-camera-mode' && b.id !== 'btn-tex-bc3') b.classList.remove('active');
@@ -329,7 +348,6 @@ window.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // Showcase Action: Toggle Authentic Texture
     btnTexBc3.addEventListener('click', async () => {
         if (btnTexBc3.classList.contains('active')) {
             btnTexBc3.classList.remove('active');
@@ -342,6 +360,119 @@ window.addEventListener('DOMContentLoaded', async () => {
             renderer.setTexture(cachedTexture);
         }
     });
+
+    // -------------------------------------------------------------
+    // Milestone 4: Audio Subsystem Event Wiring
+    // -------------------------------------------------------------
+    async function playSelectedTrack(trackId: string) {
+        try {
+            document.querySelectorAll('[data-track]').forEach(b => b.classList.remove('active'));
+            const activeBtn = document.querySelector(`[data-track="${trackId}"]`);
+            if (activeBtn) activeBtn.classList.add('active');
+
+            await audioEngine.playTrack(trackId);
+            const info = AUTHENTIC_TRACKS[trackId];
+            btnAudioToggle.textContent = '⏸ Pause Audio';
+            btnAudioToggle.classList.add('active');
+            badgeAudioStatus.textContent = 'Playing';
+            badgeAudioStatus.style.color = '#4ade80';
+            hudAudio.textContent = `${info.name} [${info.sampleRate/1000} kHz]`;
+        } catch (err: any) {
+            console.error('Audio playback error:', err);
+            hudAudio.textContent = `Audio Error: ${err.message}`;
+        }
+    }
+
+    btnAudioToggle.addEventListener('click', async () => {
+        if (audioEngine.isPlaying) {
+            audioEngine.stopAll();
+            btnAudioToggle.textContent = '▶ Play Audio';
+            btnAudioToggle.classList.remove('active');
+            badgeAudioStatus.textContent = 'Stopped';
+            badgeAudioStatus.style.color = 'var(--text-muted)';
+            hudAudio.textContent = 'Audio Stopped';
+        } else {
+            await playSelectedTrack(audioEngine.currentTrackId);
+        }
+    });
+
+    document.querySelectorAll('[data-track]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const trackId = btn.getAttribute('data-track')!;
+            playSelectedTrack(trackId);
+        });
+    });
+
+    chkSpatialAudio.addEventListener('change', () => {
+        audioEngine.spatialAudioEnabled = chkSpatialAudio.checked;
+        if (audioEngine.isPlaying) {
+            playSelectedTrack(audioEngine.currentTrackId);
+        }
+    });
+
+    // -------------------------------------------------------------
+    // Milestone 4: Skeletal Animation Event Wiring
+    // -------------------------------------------------------------
+    function switchAnimation(state: AnimStateName) {
+        animPlayer.setState(state);
+        document.querySelectorAll('[data-anim]').forEach(b => b.classList.remove('active'));
+        const activeBtn = document.querySelector(`[data-anim="${state}"]`);
+        if (activeBtn) activeBtn.classList.add('active');
+
+        const clip = animPlayer.getActiveClip();
+        badgeAnimState.textContent = clip.id.replace('FSR_', '').replace('CP_', '').replace('Wei_', '');
+        hudAnim.textContent = `${clip.name}`;
+    }
+
+    document.querySelectorAll('[data-anim]').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const anim = btn.getAttribute('data-anim') as AnimStateName;
+            switchAnimation(anim);
+        });
+    });
+
+    btnAnimPlay.addEventListener('click', () => {
+        const playing = animPlayer.togglePlay();
+        btnAnimPlay.textContent = playing ? '⏸ Pause' : '▶ Play';
+    });
+
+    animTimeline.addEventListener('mousedown', () => { isScrubbingTimeline = true; });
+    window.addEventListener('mouseup', () => { isScrubbingTimeline = false; });
+    animTimeline.addEventListener('input', () => {
+        const clip = animPlayer.getActiveClip();
+        const scrubTime = (parseFloat(animTimeline.value) / 100) * clip.duration;
+        animPlayer.setTime(scrubTime);
+    });
+
+    function setAnimSpeedUI(speed: number) {
+        animPlayer.setSpeed(speed);
+        [btnSpeed05, btnSpeed10, btnSpeed20].forEach(b => b.classList.remove('active'));
+        if (speed === 0.5) btnSpeed05.classList.add('active');
+        if (speed === 1.0) btnSpeed10.classList.add('active');
+        if (speed === 2.0) btnSpeed20.classList.add('active');
+    }
+    btnSpeed05.addEventListener('click', () => setAnimSpeedUI(0.5));
+    btnSpeed10.addEventListener('click', () => setAnimSpeedUI(1.0));
+    btnSpeed20.addEventListener('click', () => setAnimSpeedUI(2.0));
+
+    // Render Audio Frequency Visualizer Canvas
+    function renderAudioSpectrum() {
+        audioEngine.getFrequencyData(freqData);
+        specCtx.clearRect(0, 0, audioSpecCanvas.width, audioSpecCanvas.height);
+
+        const barWidth = (audioSpecCanvas.width / freqData.length) - 1;
+        for (let i = 0; i < freqData.length; i++) {
+            const val = freqData[i] / 255.0;
+            const barHeight = val * audioSpecCanvas.height;
+
+            const r = Math.round(56 + val * 199);
+            const g = Math.round(189 - val * 70);
+            const b = Math.round(248 - val * 150);
+
+            specCtx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+            specCtx.fillRect(i * (barWidth + 1), audioSpecCanvas.height - barHeight, barWidth, barHeight);
+        }
+    }
 
     // Drag-and-drop local archive file
     dropzone.addEventListener('click', () => fileInput.click());
@@ -356,10 +487,29 @@ window.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    // Render Loop & HUD Update
+    // Main Engine Render & Animation Loop
+    let lastLoopTime = performance.now();
     function loop() {
+        const now = performance.now();
+        const deltaTimeSec = Math.min((now - lastLoopTime) / 1000.0, 0.1);
+        lastLoopTime = now;
+
+        // 1. Advance Skeletal Motion & Update Node Transforms
+        animPlayer.update(deltaTimeSec, renderer.sceneGraph);
+
+        // 2. Render 3D Viewport
         renderer.render();
 
+        // 3. Update Audio Listener from Camera
+        const camPos: [number, number, number] = renderer.cameraMode === 'freefly'
+            ? [renderer.freeflyPos[0], renderer.freeflyPos[1], renderer.freeflyPos[2]]
+            : [renderer.target[0], renderer.target[1] + 1.6, renderer.target[2] + 4.0];
+        audioEngine.updateListener(camPos, [0, 0, -1]);
+
+        // 4. Render Audio Visualizer
+        renderAudioSpectrum();
+
+        // 5. Update HUD and Animation Timeline
         hudFps.textContent = `${renderer.fps}`;
         hudFrameTime.textContent = `${renderer.frameTimeMs.toFixed(1)} ms`;
         hudDrawCalls.textContent = `${renderer.drawCalls}`;
@@ -368,14 +518,24 @@ window.addEventListener('DOMContentLoaded', async () => {
         hudTexture.textContent = renderer.currentTextureFormat;
         hudCache.textContent = `L1: ${cacheStats.l1Hits} | L2: ${cacheStats.l2Hits} | Miss: ${cacheStats.misses} | ${formatBytes(cacheStats.bytesLoaded)}`;
 
+        if (!isScrubbingTimeline) {
+            const clip = animPlayer.getActiveClip();
+            animTimeline.value = `${(animPlayer.currentTime / clip.duration) * 100}`;
+            animTimeLabel.textContent = `${animPlayer.currentTime.toFixed(1)}s/${clip.duration.toFixed(1)}s`;
+        }
+
         requestAnimationFrame(loop);
     }
     requestAnimationFrame(loop);
 
-    // Initial Load: Activate Milestone 3 Composite Street Scene Graph
+    // Initial Load: Activate Composite Street Scene & Start Ambience
     try {
         await activateCompositeStreet();
         await switchArchive('Game');
+        // Initial audio start (will play once user interacts or via automated suite)
+        audioEngine.playTrack('hk_ambience').catch(() => {
+            hudAudio.textContent = 'Click "Play Audio" to unmute';
+        });
     } catch (err) {
         console.warn('Initial autoload deferred:', err);
     }

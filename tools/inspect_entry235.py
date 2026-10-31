@@ -12,3 +12,4 @@ with open(os.path.join(GAME_DIR, "Game.big"), "rb") as f:
         hex_str = chunk.hex(" ")
         ascii_str = "".join(chr(b) if 32 <= b <= 126 else "." for b in chunk)
         print(f"0x{i:03x}: {hex_str:48s} | {ascii_str}")
+

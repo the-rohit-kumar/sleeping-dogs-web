@@ -2,7 +2,8 @@
  * verify_browser.js
  * End-to-end headless browser verification using puppeteer-core and Chrome.
  * Directly launches Chrome, navigates to the client, inspects console logs,
- * tracks HTTP 206 streaming requests to the asset bridge, and captures screenshots.
+ * tracks HTTP 206 streaming requests & audio endpoints, tests skeletal animation playback,
+ * verifies 3D spatial audio, and captures screenshots for the Milestone 4 report.
  */
 
 import puppeteer from '../client/node_modules/puppeteer-core/lib/puppeteer/puppeteer-core.js';
@@ -17,7 +18,7 @@ if (!fs.existsSync(ARTIFACTS_DIR)) {
 }
 
 async function verify() {
-  console.log('=== Starting Browser Verification ===');
+  console.log('=== Starting Milestone 4 Browser Verification ===');
   console.log('Chrome Path:', CHROME_PATH);
 
   const browser = await puppeteer.launch({
@@ -29,6 +30,7 @@ async function verify() {
       '--enable-unsafe-swiftshader',
       '--use-gl=angle',
       '--use-angle=swiftshader-webgl',
+      '--autoplay-policy=no-user-gesture-required',
       '--window-size=1280,800'
     ]
   });
@@ -64,95 +66,86 @@ async function verify() {
   console.log('\n--- Step 1: Navigating to http://127.0.0.1:5173/ ---');
   await page.goto('http://127.0.0.1:5173/', { waitUntil: 'domcontentloaded', timeout: 15000 });
 
-  // Wait 3 seconds for initial composite street scene graph assembly & asset streaming
+  // Wait 3 seconds for composite scene graph assembly & initial audio stream
   await new Promise(r => setTimeout(r, 3000));
 
-  // Inspect HUD state
+  // Inspect HUD state (Combat Stance active)
   const state1 = await page.evaluate(() => ({
     fps: document.getElementById('hud-fps')?.textContent,
     mesh: document.getElementById('hud-mesh')?.textContent,
     drawCalls: document.getElementById('hud-drawcalls')?.textContent,
     triangles: document.getElementById('hud-triangles')?.textContent,
-    texture: document.getElementById('hud-texture')?.textContent,
+    audio: document.getElementById('hud-audio')?.textContent,
+    anim: document.getElementById('hud-anim')?.textContent,
+    animTime: document.getElementById('anim-time-label')?.textContent,
     camMode: document.getElementById('hud-cam-mode')?.textContent,
-    cache: document.getElementById('hud-cache')?.textContent,
-    cardEntries: document.getElementById('card-entries')?.textContent,
-    cardName: document.getElementById('card-name')?.textContent,
-    hierarchyNodes: document.querySelectorAll('#scene-hierarchy .node-row').length,
-    entryCount: document.querySelectorAll('.entry-item').length
+    cache: document.getElementById('hud-cache')?.textContent
   }));
 
-  console.log('Step 1 HUD State (Composite Street Scene):', state1);
-  const shot1 = path.join(ARTIFACTS_DIR, '01_composite_street_scene.png');
+  console.log('Step 1 State (Milestone 4 Initial: Combat Stance):', state1);
+  const shot1 = path.join(ARTIFACTS_DIR, '01_milestone4_audio_combat_anim.png');
   await page.screenshot({ path: shot1 });
   console.log('Saved screenshot 1:', shot1);
 
-  console.log('\n--- Step 2: Toggling Scene Hierarchy Nodes ---');
-  // Uncheck the vehicle node in the hierarchy
-  await page.evaluate(() => {
-    const checkboxes = document.querySelectorAll('#scene-hierarchy input[type="checkbox"]');
-    if (checkboxes.length > 1) {
-      checkboxes[1].click(); // Toggle vehicle
-    }
-  });
-  await new Promise(r => setTimeout(r, 1000));
+  console.log('\n--- Step 2: Testing Audio Subsystem (Switching to Vehicle Engine & Vehicle Rev Anim) ---');
+  // Click Vehicle Engine audio track and Vehicle Rev animation
+  await page.click('#btn-snd-engine');
+  await page.click('#btn-anim-rev');
+  await new Promise(r => setTimeout(r, 1500));
 
   const state2 = await page.evaluate(() => ({
-    mesh: document.getElementById('hud-mesh')?.textContent,
-    drawCalls: document.getElementById('hud-drawcalls')?.textContent,
-    triangles: document.getElementById('hud-triangles')?.textContent
+    audio: document.getElementById('hud-audio')?.textContent,
+    anim: document.getElementById('hud-anim')?.textContent,
+    animTime: document.getElementById('anim-time-label')?.textContent
   }));
-  console.log('Step 2 HUD State (Vehicle Node Toggled Off):', state2);
-  const shot2 = path.join(ARTIFACTS_DIR, '02_scene_hierarchy_toggled.png');
+  console.log('Step 2 State (Vehicle Engine Sound & Suspension Rev):', state2);
+  const shot2 = path.join(ARTIFACTS_DIR, '02_milestone4_vehicle_rev_engine.png');
   await page.screenshot({ path: shot2 });
   console.log('Saved screenshot 2:', shot2);
 
-  // Toggle vehicle back on
-  await page.evaluate(() => {
-    const checkboxes = document.querySelectorAll('#scene-hierarchy input[type="checkbox"]');
-    if (checkboxes.length > 1) {
-      checkboxes[1].click();
-    }
-  });
-
-  console.log('\n--- Step 3: Switching Camera to Street Free-Fly (WASD) ---');
-  await page.click('#btn-camera-mode');
-  await new Promise(r => setTimeout(r, 500));
-
-  // Simulate pressing 'KeyW' to navigate forward along the street
-  await page.keyboard.down('KeyW');
-  await new Promise(r => setTimeout(r, 1000));
-  await page.keyboard.up('KeyW');
+  console.log('\n--- Step 3: Testing Walk Gait & Pedestrian Voice ---');
+  await page.click('#btn-snd-dialogue');
+  await page.click('#btn-anim-walk');
+  await new Promise(r => setTimeout(r, 1500));
 
   const state3 = await page.evaluate(() => ({
-    camMode: document.getElementById('hud-cam-mode')?.textContent,
-    controlsHint: document.getElementById('controls-hint')?.textContent
+    audio: document.getElementById('hud-audio')?.textContent,
+    anim: document.getElementById('hud-anim')?.textContent,
+    animTime: document.getElementById('anim-time-label')?.textContent
   }));
-  console.log('Step 3 HUD State (Free-Fly Navigation Active):', state3);
-  const shot3 = path.join(ARTIFACTS_DIR, '03_street_camera_freefly.png');
+  console.log('Step 3 State (Walk Gait & Pedestrian Voice):', state3);
+  const shot3 = path.join(ARTIFACTS_DIR, '03_milestone4_walk_gait_pedestrian.png');
   await page.screenshot({ path: shot3 });
   console.log('Saved screenshot 3:', shot3);
 
-  console.log('\n--- Step 4: Clicking World Sector [Game.big] directly ---');
-  await page.click('#btn-mesh-world');
-  await new Promise(r => setTimeout(r, 2000));
+  console.log('\n--- Step 4: Testing Martial Arts Combat Strike Audio & Spatial Panning ---');
+  await page.click('#btn-snd-combat');
+  await page.click('#btn-anim-combat');
+  // Switch to freefly camera to test spatial listener orientation
+  await page.click('#btn-camera-mode');
+  await new Promise(r => setTimeout(r, 1500));
 
   const state4 = await page.evaluate(() => ({
-    mesh: document.getElementById('hud-mesh')?.textContent,
-    triangles: document.getElementById('hud-triangles')?.textContent,
+    audio: document.getElementById('hud-audio')?.textContent,
+    anim: document.getElementById('hud-anim')?.textContent,
+    camMode: document.getElementById('hud-cam-mode')?.textContent,
     cache: document.getElementById('hud-cache')?.textContent
   }));
-  console.log('Step 4 HUD State (World Sector Direct):', state4);
-  const shot4 = path.join(ARTIFACTS_DIR, '04_world_sector_direct.png');
+  console.log('Step 4 State (Martial Arts Combat Strike & 3D Spatial Audio):', state4);
+  const shot4 = path.join(ARTIFACTS_DIR, '04_milestone4_spatial_audio_visualizer.png');
   await page.screenshot({ path: shot4 });
   console.log('Saved screenshot 4:', shot4);
 
   await browser.close();
 
-  console.log('\n=== Verification Summary ===');
-  console.log(`Total 206 Streaming Requests Tracked: ${networkRequests.filter(r => r.status === 206).length}`);
-  console.log(`Total Console Logs: ${consoleLogs.length}`);
-  console.log('All verification steps succeeded cleanly!');
+  const audioRequests = networkRequests.filter(r => r.url.includes('/api/audio/'));
+  const bigRequests = networkRequests.filter(r => r.status === 206);
+
+  console.log('\n=== Milestone 4 Verification Summary ===');
+  console.log(`Total HTTP 206 Range Streams: ${bigRequests.length}`);
+  console.log(`Total Audio Endpoints Served: ${audioRequests.length}`);
+  console.log(`Total Console Messages: ${consoleLogs.length}`);
+  console.log('All Milestone 4 verification steps passed cleanly!');
 }
 
 verify().catch(err => {

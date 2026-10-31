@@ -83,7 +83,7 @@
         .container {
             flex: 1;
             display: grid;
-            grid-template-columns: 400px 1fr;
+            grid-template-columns: 410px 1fr;
             height: calc(100vh - 48px);
         }
 
@@ -93,7 +93,7 @@
             border-right: 1px solid var(--panel-border);
             display: flex;
             flex-direction: column;
-            overflow: hidden;
+            overflow-y: auto;
         }
 
         .section-header {
@@ -117,6 +117,14 @@
             padding: 10px 16px;
             background: rgba(0,0,0,0.25);
             border-bottom: 1px solid var(--panel-border);
+        }
+
+        .subsystem-card {
+            padding: 10px 16px;
+            background: rgba(0,0,0,0.20);
+            border-bottom: 1px solid var(--panel-border);
+            font-family: monospace;
+            font-size: 11px;
         }
 
         .btn-toggle {
@@ -161,6 +169,18 @@
             color: #ffffff;
         }
 
+        .btn-green {
+            background: rgba(74, 222, 128, 0.15);
+            border-color: #4ade80;
+            color: #4ade80;
+            font-weight: 700;
+        }
+
+        .btn-green.active {
+            background: #22c55e;
+            color: #000;
+        }
+
         .archive-stream-bar {
             display: flex;
             gap: 6px;
@@ -171,7 +191,7 @@
 
         .dropzone {
             margin: 10px 16px;
-            padding: 12px;
+            padding: 10px;
             border: 2px dashed var(--panel-border);
             border-radius: 6px;
             text-align: center;
@@ -189,7 +209,7 @@
 
         .archive-info-card {
             margin: 0 16px 10px 16px;
-            padding: 10px 12px;
+            padding: 8px 12px;
             background: var(--code-bg);
             border: 1px solid var(--panel-border);
             border-radius: 6px;
@@ -229,13 +249,13 @@
         }
 
         .entry-list {
-            flex: 1;
+            max-height: 200px;
             overflow-y: auto;
             border-top: 1px solid var(--panel-border);
         }
 
         .entry-item {
-            padding: 6px 16px;
+            padding: 5px 16px;
             font-family: monospace;
             font-size: 11px;
             display: flex;
@@ -261,7 +281,7 @@
             background: #000;
         }
 
-        canvas {
+        canvas#viewport {
             width: 100%;
             height: 100%;
             display: block;
@@ -308,6 +328,13 @@
             color: var(--accent-cyan);
             font-weight: 700;
         }
+
+        .track-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px;
+            margin-top: 6px;
+        }
     </style>
 </head>
 <body>
@@ -338,12 +365,60 @@
                 <button class="btn-toggle" id="btn-camera-mode" style="border-color: #a78bfa; color: #a78bfa;">Camera: Orbit</button>
             </div>
 
+            <!-- Milestone 4: Audio Subsystem Panel -->
+            <div class="section-header">
+                <span>Wwise Audio Pipeline (SFX.pck)</span>
+                <span id="badge-audio-status" style="color: #4ade80;">Active</span>
+            </div>
+            <div class="subsystem-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+                    <button class="btn-toggle btn-green active" id="btn-audio-toggle">▶ Play Audio</button>
+                    <label style="display: flex; align-items: center; gap: 4px; font-size: 10px; cursor: pointer;">
+                        <input type="checkbox" id="chk-spatial-audio" checked>
+                        <span>3D Spatial Audio</span>
+                    </label>
+                </div>
+                <div class="track-grid">
+                    <button class="btn-toggle active" id="btn-snd-ambience" data-track="hk_ambience">HK Ambience</button>
+                    <button class="btn-toggle" id="btn-snd-engine" data-track="vehicle_engine">Vehicle Engine</button>
+                    <button class="btn-toggle" id="btn-snd-combat" data-track="combat_strike">Combat Strike</button>
+                    <button class="btn-toggle" id="btn-snd-dialogue" data-track="hk_dialogue">Pedestrian Voice</button>
+                </div>
+                <div style="margin-top: 8px;">
+                    <canvas id="audio-spec" width="378" height="32" style="width: 100%; height: 32px; background: rgba(0,0,0,0.6); border-radius: 4px; border: 1px solid var(--panel-border);"></canvas>
+                </div>
+            </div>
+
+            <!-- Milestone 4: Skeletal Animation Panel -->
+            <div class="section-header">
+                <span>Skeletal Motion Player (Animation.big)</span>
+                <span id="badge-anim-state" style="color: #fbbf24;">Combat Stance</span>
+            </div>
+            <div class="subsystem-card">
+                <div class="track-grid" style="margin-bottom: 6px;">
+                    <button class="btn-toggle active" id="btn-anim-combat" data-anim="FSR_CombatStance">Combat Guard</button>
+                    <button class="btn-toggle" id="btn-anim-walk" data-anim="CP_StateWalk">Walk Gait</button>
+                    <button class="btn-toggle" id="btn-anim-idle" data-anim="Wei_IdleBreathing">Idle Breath</button>
+                    <button class="btn-toggle" id="btn-anim-rev" data-anim="Vehicle_EngineRev">Vehicle Rev</button>
+                </div>
+                <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+                    <button class="btn-toggle" id="btn-anim-play" style="min-width: 60px;">⏸ Pause</button>
+                    <input type="range" id="anim-timeline" min="0" max="100" value="0" style="flex: 1; accent-color: var(--accent-cyan); cursor: pointer;">
+                    <span id="anim-time-label" style="color: var(--text-muted); font-size: 10px; min-width: 65px; text-align: right;">0.0s/1.8s</span>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 4px; margin-top: 6px;">
+                    <button class="btn-toggle" id="btn-speed-05" style="padding: 2px 6px; font-size: 10px;">0.5x</button>
+                    <button class="btn-toggle active" id="btn-speed-10" style="padding: 2px 6px; font-size: 10px;">1.0x</button>
+                    <button class="btn-toggle" id="btn-speed-20" style="padding: 2px 6px; font-size: 10px;">2.0x</button>
+                </div>
+            </div>
+
             <div class="section-header" id="header-scene-graph">
                 <span>Scene Graph Hierarchy</span>
                 <span style="color: #4ade80;" id="badge-node-count">3 Nodes</span>
             </div>
 
-            <div id="scene-hierarchy" style="padding: 8px 16px; background: rgba(0,0,0,0.25); border-bottom: 1px solid var(--panel-border);">
+            <div id="scene-hierarchy" style="padding: 6px 16px; background: rgba(0,0,0,0.25); border-bottom: 1px solid var(--panel-border);">
                 <!-- Populated dynamically when composite graph is active -->
             </div>
 
@@ -393,6 +468,8 @@
                 <div class="info-row"><span class="info-label">Triangles:</span><span id="hud-triangles">--</span></div>
                 <div class="info-row"><span class="info-label">3D Geometry:</span><span id="hud-mesh" style="color: var(--accent-cyan); font-size: 11px;">--</span></div>
                 <div class="info-row"><span class="info-label">Texture Mapped:</span><span id="hud-texture" style="color: #f59e0b; font-size: 11px;">--</span></div>
+                <div class="info-row"><span class="info-label">Audio Stream:</span><span id="hud-audio" style="color: #34d399; font-size: 11px;">Hong Kong Ambience [48 kHz]</span></div>
+                <div class="info-row"><span class="info-label">Animation:</span><span id="hud-anim" style="color: #fbbf24; font-size: 11px;">FSR_LightAttack (Combat Stance)</span></div>
                 <div class="info-row"><span class="info-label">Camera Mode:</span><span id="hud-cam-mode" style="color: #a78bfa; font-size: 11px;">Orbit Turntable</span></div>
                 <div class="info-row"><span class="info-label">Stream Cache:</span><span id="hud-cache" style="color: #38bdf8; font-size: 11px;">L1: 0 | L2: 0 | 0 KB</span></div>
                 <div class="info-row"><span class="info-label">Data Origin:</span><span style="color: var(--accent-crimson);">Sleeping Dogs (Definitive Edition)</span></div>

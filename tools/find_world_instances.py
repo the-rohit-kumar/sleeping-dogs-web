@@ -41,3 +41,4 @@ def scan_world_instances():
 
 if __name__ == "__main__":
     scan_world_instances()
+

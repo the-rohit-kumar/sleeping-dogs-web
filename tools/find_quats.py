@@ -36,3 +36,4 @@ for inst in valid_instances[:15]:
     q = inst["quat"]
     p = inst["pos"]
     print(f"  Quat @ 0x{inst['quat_off']:04x}: ({q[0]:6.3f}, {q[1]:6.3f}, {q[2]:6.3f}, {q[3]:6.3f}) | Pos @ 0x{inst['pos_off']:04x} (delta={inst['delta']:+d}): ({p[0]:8.2f}, {p[1]:8.2f}, {p[2]:8.2f})")
+
