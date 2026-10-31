@@ -335,6 +335,107 @@
             gap: 4px;
             margin-top: 6px;
         }
+
+        /* Milestone 6: Gameplay HUD Styles */
+        .mission-banner {
+            position: absolute;
+            top: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(11, 13, 17, 0.92);
+            border: 1px solid var(--panel-border);
+            border-left: 4px solid var(--accent-crimson);
+            border-radius: 4px;
+            padding: 8px 18px;
+            font-family: monospace;
+            text-align: center;
+            pointer-events: none;
+            backdrop-filter: blur(6px);
+            z-index: 10;
+        }
+
+        .mission-title {
+            color: #ff8591;
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .mission-text {
+            color: var(--text-main);
+            font-size: 12px;
+            margin-top: 2px;
+        }
+
+        .game-meters {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: rgba(11, 13, 17, 0.90);
+            border: 1px solid var(--panel-border);
+            border-radius: 6px;
+            padding: 10px 14px;
+            font-family: monospace;
+            font-size: 11px;
+            pointer-events: none;
+            backdrop-filter: blur(8px);
+            min-width: 220px;
+            z-index: 10;
+        }
+
+        .meter-bar-container {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 2px;
+            margin-bottom: 6px;
+        }
+
+        .meter-bar-fill {
+            height: 100%;
+            transition: width 0.2s ease-out;
+        }
+
+        .radar-box {
+            position: absolute;
+            bottom: 16px;
+            left: 16px;
+            width: 116px;
+            height: 116px;
+            background: rgba(11, 13, 17, 0.92);
+            border: 1px solid var(--panel-border);
+            border-radius: 50%;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.6);
+            z-index: 10;
+        }
+
+        .action-prompt {
+            position: absolute;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(217, 38, 56, 0.95);
+            color: #ffffff;
+            font-family: monospace;
+            font-size: 12px;
+            font-weight: 800;
+            padding: 6px 18px;
+            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            pointer-events: none;
+            box-shadow: 0 4px 14px rgba(217, 38, 56, 0.5);
+            display: none;
+            z-index: 10;
+            letter-spacing: 0.5px;
+        }
     </style>
 </head>
 <body>
@@ -441,6 +542,24 @@
                 </div>
             </div>
 
+            <!-- Milestone 6: Gameplay, NPCs & Vehicle Simulation Panel -->
+            <div class="section-header">
+                <span>Gameplay, Vehicles &amp; NPCs (Simulation)</span>
+                <span id="badge-gameplay-mode" style="color: #38bdf8;">On Foot</span>
+            </div>
+            <div class="subsystem-card">
+                <div class="track-grid" style="margin-bottom: 6px;">
+                    <button class="btn-toggle btn-special" id="btn-enter-car">Enter Car [E]</button>
+                    <button class="btn-toggle active" id="btn-combo-strike">Combo Strike</button>
+                    <button class="btn-toggle" id="btn-ped-panic">Panic Pedestrian</button>
+                    <button class="btn-toggle" id="btn-next-mission">Next Objective</button>
+                </div>
+                <div class="info-row" style="margin-top: 6px;"><span class="info-label">Driving Speed:</span><span id="card-vehicle-speed" style="color: #4ade80;">0.0 km/h</span></div>
+                <div class="info-row"><span class="info-label">Combat Combo:</span><span id="card-combo-step" style="color: #f59e0b;">Ready [Hit 1/3]</span></div>
+                <div class="info-row"><span class="info-label">Pedestrian AI:</span><span id="card-ped-state" style="color: #a78bfa;">IDLE (Sidewalk)</span></div>
+                <div class="info-row"><span class="info-label">Combat Target:</span><span id="card-target-status" style="color: var(--accent-cyan);">None in Range</span></div>
+            </div>
+
             <div class="section-header" id="header-scene-graph">
                 <span>Scene Graph Hierarchy</span>
                 <span style="color: #4ade80;" id="badge-node-count">3 Nodes</span>
@@ -487,6 +606,32 @@
 
         <main>
             <canvas id="viewport"></canvas>
+
+            <!-- Milestone 6: Mission Directive Banner -->
+            <div class="mission-banner" id="mission-banner">
+                <div class="mission-title">MISSION: NORTH POINT INVESTIGATION</div>
+                <div class="mission-text" id="mission-objective">Approach the Sedan chassis [E] or patrol Hong Kong market sidewalk</div>
+            </div>
+
+            <!-- Milestone 6: Authentic Health & Face Meter HUD -->
+            <div class="game-meters">
+                <div class="info-row"><span class="info-label">HEALTH</span><span id="meter-health-text" style="color: #22c55e;">100%</span></div>
+                <div class="meter-bar-container"><div class="meter-bar-fill" id="meter-health-fill" style="width: 100%; background: #22c55e;"></div></div>
+                <div class="info-row"><span class="info-label">FACE METER</span><span id="meter-face-text" style="color: #eab308;">20%</span></div>
+                <div class="meter-bar-container"><div class="meter-bar-fill" id="meter-face-fill" style="width: 20%; background: #eab308;"></div></div>
+                <div class="info-row" style="margin-top: 4px;">
+                    <span style="color: #60a5fa;" id="meter-police">POLICE: 300</span>
+                    <span style="color: #f87171;" id="meter-triad">TRIAD: 150</span>
+                </div>
+            </div>
+
+            <!-- Milestone 6: Hong Kong Mini-Map Radar -->
+            <div class="radar-box">
+                <canvas id="radar-canvas" width="116" height="116"></canvas>
+            </div>
+
+            <!-- Milestone 6: Interactive Action Prompt -->
+            <div class="action-prompt" id="action-prompt">[E] ENTER SEDAN CHASSIS</div>
 
             <div class="hud-overlay">
                 <div class="hud-title">AUTHENTIC ENGINE PIPELINE HUD</div>

@@ -38,3 +38,4 @@ def inspect_animations():
 
 if __name__ == "__main__":
     inspect_animations()
+

@@ -35,3 +35,4 @@ def scan_all_streams(pck_name):
 if __name__ == "__main__":
     scan_all_streams("SFX.pck")
     scan_all_streams("English(US).pck")
+

@@ -11,3 +11,4 @@ anim_set = sorted(list(set(s.decode('ascii', errors='ignore') for s in anim_stri
 print(f"Animation names found in sdhdship.exe: {len(anim_set)}")
 for name in anim_set[:30]:
     print(" ", name)
+

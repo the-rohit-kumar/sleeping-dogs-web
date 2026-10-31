@@ -199,3 +199,4 @@ export class AnimationPlayer {
     return AUTHENTIC_ANIMS[this.currentState];
   }
 }
+

@@ -10,3 +10,4 @@ unique_strings = sorted(list(set(s.decode('ascii', errors='ignore') for s in str
 print(f"Total matching combat & animation states: {len(unique_strings)}")
 for s in unique_strings[:40]:
     print(" ", s)
+

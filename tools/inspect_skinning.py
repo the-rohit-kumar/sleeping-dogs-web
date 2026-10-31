@@ -21,3 +21,4 @@ for i in range(0, min(len(data), 192), 48):
         w = struct.unpack("<BBBB", chunk[12:16])
         bi = struct.unpack("<BBBB", chunk[16:20])
         print(f"Vertex {i//48:2d}: Pos=({p[0]:6.3f}, {p[1]:6.3f}, {p[2]:6.3f}) | Weights={w} | Bones={bi}")
+

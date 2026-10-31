@@ -15,3 +15,4 @@ print(f"  Tag: 0x{fmt_tag:04x}, Channels: {n_chan}, Rate: {rate}, cbSize: {cb_si
 extra = fmt_bytes[18:]
 print(f"  Extra bytes length: {len(extra)}")
 print(f"  Extra hex: {extra.hex(' ')}")
+

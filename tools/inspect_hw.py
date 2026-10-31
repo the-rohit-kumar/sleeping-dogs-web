@@ -22,3 +22,4 @@ for i in range(15):
     z = float16_to_float32(h2)
     w = float16_to_float32(h3)
     print(f"Vertex {i:2d}: ({x:7.3f}, {y:7.3f}, {z:7.3f}) | h3=0x{h3:04x} ({h3}) float={w:7.3f}")
+

@@ -22,6 +22,12 @@ export class CameraController {
   public targetPos: [number, number, number] = [-2.2, 0.0, 1.2]; // Follows character position
   private smoothedTarget: [number, number, number] = [-2.2, 0.0, 1.2];
 
+  // Mode & Vehicle Tracking
+  public isDriving = false;
+  public vehicleHeading = 0.0;
+  public vehicleSpeed = 0.0;
+  public fov = Math.PI / 4.0; // 45 deg vertical / 65 deg horizontal
+
   // Spherical Coordinates
   public distance = 3.2; // meters
   public yaw = -0.6;     // radians
@@ -77,29 +83,49 @@ export class CameraController {
   public update(deltaTimeSec: number, physicsEngine: PhysicsEngine) {
     const dtFactor = Math.min(deltaTimeSec * 60.0, 3.0);
 
-    // 1. Smoothly interpolate look target position
+    // 1. Vehicle Chase Mode vs On-Foot Follow Mode
+    let targetDist = this.distance;
+    let targetOffset: [number, number, number] = this.lookOffset;
+
+    if (this.isDriving) {
+      targetDist = 5.6; // Longer follow distance for vehicles
+      targetOffset = [0.0, 0.95, 0.0]; // Centered look point above car chassis
+
+      // Dynamically auto-align camera yaw behind vehicle direction of travel
+      let diffYaw = this.vehicleHeading - this.yaw;
+      while (diffYaw < -Math.PI) diffYaw += Math.PI * 2;
+      while (diffYaw > Math.PI) diffYaw -= Math.PI * 2;
+      this.yaw += diffYaw * Math.min(1.0, 3.0 * deltaTimeSec);
+
+      // Speed-dependent dynamic FOV widening
+      const speedRatio = Math.min(1.0, Math.abs(this.vehicleSpeed) / 26.0);
+      this.fov = (Math.PI / 4.0) + speedRatio * (Math.PI / 14.0);
+    } else {
+      this.fov = Math.PI / 4.0;
+    }
+
+    // 2. Smoothly interpolate look target position
     const posAlpha = 1.0 - Math.pow(1.0 - this.smoothRatePos, dtFactor);
     this.smoothedTarget[0] += (this.targetPos[0] - this.smoothedTarget[0]) * posAlpha;
     this.smoothedTarget[1] += (this.targetPos[1] - this.smoothedTarget[1]) * posAlpha;
     this.smoothedTarget[2] += (this.targetPos[2] - this.smoothedTarget[2]) * posAlpha;
 
-    // 2. Smoothly interpolate yaw & pitch angles
+    // 3. Smoothly interpolate yaw & pitch angles & distance
     const rotAlpha = 1.0 - Math.pow(1.0 - this.smoothRateRot, dtFactor);
     this.smoothedYaw += (this.yaw - this.smoothedYaw) * rotAlpha;
     this.smoothedPitch += (this.pitch - this.smoothedPitch) * rotAlpha;
-    this.smoothedDistance += (this.distance - this.smoothedDistance) * posAlpha;
+    this.smoothedDistance += (targetDist - this.smoothedDistance) * posAlpha;
 
-    // 3. Compute Look-At focus point (Wei Shen's head/chest with over-the-shoulder offset)
+    // 4. Compute Look-At focus point
     const cosYaw = Math.cos(this.smoothedYaw);
     const sinYaw = Math.sin(this.smoothedYaw);
 
-    // Over-the-shoulder offset rotated by camera yaw
-    const shoulderX = cosYaw * this.lookOffset[0];
-    const shoulderZ = -sinYaw * this.lookOffset[0];
+    const shoulderX = cosYaw * targetOffset[0];
+    const shoulderZ = -sinYaw * targetOffset[0];
 
     this.lookAtTarget = [
       this.smoothedTarget[0] + shoulderX,
-      this.smoothedTarget[1] + this.lookOffset[1],
+      this.smoothedTarget[1] + targetOffset[1],
       this.smoothedTarget[2] + shoulderZ
     ];
 
@@ -188,3 +214,4 @@ export class CameraController {
     ]);
   }
 }
+

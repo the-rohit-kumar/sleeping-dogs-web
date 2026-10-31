@@ -27,3 +27,4 @@ print(f"Animation.big Chunk Types:")
 for c_uid, cnt in chunk_types.most_common(15):
     ex = examples[c_uid]
     print(f"  Chunk UID: 0x{c_uid:08x} count={cnt:4d} (example: UID 0x{ex[0]:08x} @ 0x{ex[1]:08x} span={ex[2]} p1={ex[3]} p2={ex[4]})")
+

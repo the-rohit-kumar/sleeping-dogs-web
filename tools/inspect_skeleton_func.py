@@ -8,3 +8,4 @@ print("Code bytes around 0x14146e004:")
 for i in range(0, len(code), 16):
     chunk = code[i:i+16]
     print(f"+0x{i:02x}: {chunk.hex(' ')}")
+

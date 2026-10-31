@@ -210,6 +210,17 @@ export class AudioEngine {
   }
 
   /**
+   * Modulates playback pitch / speed (e.g. vehicle engine RPM)
+   */
+  public setPlaybackRate(rate: number, trackId?: string): void {
+    const id = trackId || this.currentTrackId;
+    const active = this.activeSources.get(id);
+    if (active && active.source && active.source.playbackRate) {
+      active.source.playbackRate.value = Math.max(0.2, Math.min(3.0, rate));
+    }
+  }
+
+  /**
    * Updates listener position from 3D camera
    */
   public updateListener(camPos: [number, number, number], forward: [number, number, number]): void {

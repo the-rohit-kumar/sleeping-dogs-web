@@ -32,6 +32,9 @@ import { AnimationPlayer, AUTHENTIC_ANIMS, AnimStateName } from './anim-player';
 import { PhysicsEngine } from './physics-engine';
 import { CameraController } from './camera-controller';
 import { CharacterController } from './character-controller';
+import { VehicleController } from './vehicle-controller';
+import { PedestrianAIController } from './pedestrian-ai';
+import { CombatSystem } from './combat-system';
 
 window.addEventListener('DOMContentLoaded', async () => {
     const canvas = document.getElementById('viewport') as HTMLCanvasElement;
@@ -41,6 +44,16 @@ window.addEventListener('DOMContentLoaded', async () => {
     const physicsEngine = new PhysicsEngine();
     const cameraController = new CameraController();
     const characterController = new CharacterController();
+    const vehicleController = new VehicleController();
+    const pedestrianAI = new PedestrianAIController();
+    const combatSystem = new CombatSystem();
+
+    // Expose subsystems on window for verification & inspection
+    (window as any).characterController = characterController;
+    (window as any).vehicleController = vehicleController;
+    (window as any).pedestrianAI = pedestrianAI;
+    (window as any).combatSystem = combatSystem;
+    (window as any).cameraController = cameraController;
 
     // Attach authentic third-person camera controller to renderer
     renderer.cameraController = cameraController;
@@ -72,6 +85,29 @@ window.addEventListener('DOMContentLoaded', async () => {
     const chkGroundClamp = document.getElementById('chk-ground-clamp') as HTMLInputElement;
     const chkObstacleColl = document.getElementById('chk-obstacle-coll') as HTMLInputElement;
     const chkCameraOcclusion = document.getElementById('chk-camera-occlusion') as HTMLInputElement;
+
+    // Milestone 6: Gameplay, NPCs & Vehicle Simulation Elements
+    const badgeGameplayMode = document.getElementById('badge-gameplay-mode')!;
+    const btnEnterCar = document.getElementById('btn-enter-car')!;
+    const btnComboStrike = document.getElementById('btn-combo-strike')!;
+    const btnPedPanic = document.getElementById('btn-ped-panic')!;
+    const btnNextMission = document.getElementById('btn-next-mission')!;
+    const cardVehicleSpeed = document.getElementById('card-vehicle-speed')!;
+    const cardComboStep = document.getElementById('card-combo-step')!;
+    const cardPedState = document.getElementById('card-ped-state')!;
+    const cardTargetStatus = document.getElementById('card-target-status')!;
+
+    // Milestone 6: Sleeping Dogs Mission & In-Game HUD
+    const missionObjective = document.getElementById('mission-objective')!;
+    const meterHealthText = document.getElementById('meter-health-text')!;
+    const meterHealthFill = document.getElementById('meter-health-fill')!;
+    const meterFaceText = document.getElementById('meter-face-text')!;
+    const meterFaceFill = document.getElementById('meter-face-fill')!;
+    const meterPolice = document.getElementById('meter-police')!;
+    const meterTriad = document.getElementById('meter-triad')!;
+    const actionPrompt = document.getElementById('action-prompt')!;
+    const radarCanvas = document.getElementById('radar-canvas') as HTMLCanvasElement;
+    const radarCtx = radarCanvas.getContext('2d')!;
 
     // Audio Elements
     const btnAudioToggle = document.getElementById('btn-audio-toggle')!;
@@ -195,10 +231,118 @@ window.addEventListener('DOMContentLoaded', async () => {
         physicsEngine.cameraOcclusionEnabled = chkCameraOcclusion.checked;
     });
 
-    // Viewport click triggers combat strike in follow camera mode
+    // -------------------------------------------------------------
+    // Milestone 6: Gameplay, NPCs & Vehicle Simulation Wiring
+    // -------------------------------------------------------------
+    const MISSION_OBJECTIVES = [
+        "Approach the Sedan chassis [E] or patrol Hong Kong market sidewalk",
+        "Drive Sedan through North Point sector [W/A/S/D] and test suspension dynamics",
+        "Confront Triad pedestrian suspects on the sidewalk [L-Click Combo Strike]",
+        "Perform a 3-hit martial arts combo to max out Face Meter and gain Triad Respect"
+    ];
+    let currentMissionIndex = 0;
+
+    function setMissionObjective(index: number) {
+        currentMissionIndex = index % MISSION_OBJECTIVES.length;
+        missionObjective.textContent = MISSION_OBJECTIVES[currentMissionIndex];
+    }
+
+    btnNextMission.addEventListener('click', () => {
+        setMissionObjective(currentMissionIndex + 1);
+    });
+
+    function toggleVehicleEntry(force = false) {
+        if (!vehicleController.isOccupied) {
+            // Attempt to enter vehicle
+            if (force && !vehicleController.canInteract(characterController.position)) {
+                // Teleport Wei Shen to driver door for direct UI invocation
+                characterController.position = [
+                    vehicleController.position[0] - 1.2,
+                    vehicleController.position[1],
+                    vehicleController.position[2]
+                ];
+            }
+            const entered = vehicleController.toggleEntry(characterController.position, audioEngine, force);
+            if (entered) {
+                cameraController.isDriving = true;
+                badgeGameplayMode.textContent = 'Driving Sedan';
+                badgeGameplayMode.style.color = '#e11d48';
+                btnEnterCar.textContent = 'Exit Car [E]';
+                btnEnterCar.classList.add('active');
+
+                // Hide on-foot character mesh while inside car cabin
+                const charNode = renderer.sceneGraph?.getNode('node-character');
+                if (charNode) charNode.visible = false;
+
+                setMissionObjective(1);
+            }
+        } else {
+            // Exit vehicle
+            vehicleController.toggleEntry(characterController.position, audioEngine);
+            cameraController.isDriving = false;
+
+            // Place Wei Shen beside the driver door
+            const sideX = -Math.cos(vehicleController.rotationY) * 1.6;
+            const sideZ = Math.sin(vehicleController.rotationY) * 1.6;
+            characterController.position = [
+                vehicleController.position[0] + sideX,
+                vehicleController.position[1],
+                vehicleController.position[2] + sideZ
+            ];
+            characterController.velocity = [0, 0, 0];
+            characterController.rotationY = vehicleController.rotationY;
+
+            // Restore character mesh visibility
+            const charNode = renderer.sceneGraph?.getNode('node-character');
+            if (charNode) charNode.visible = true;
+
+            badgeGameplayMode.textContent = 'On Foot';
+            badgeGameplayMode.style.color = '#38bdf8';
+            btnEnterCar.textContent = 'Enter Car [E]';
+            btnEnterCar.classList.remove('active');
+
+            // Switch audio back to city ambience
+            audioEngine.playTrack('hk_ambience').catch(() => {});
+            setMissionObjective(0);
+        }
+    }
+
+    btnEnterCar.addEventListener('click', () => toggleVehicleEntry(true));
+
+    window.addEventListener('keydown', (e) => {
+        if (e.code === 'KeyE' || e.code === 'KeyF') {
+            toggleVehicleEntry();
+        }
+    });
+
+    function performCombatStrike() {
+        if (vehicleController.isOccupied) return;
+
+        const res = combatSystem.executeStrike(characterController.position, animPlayer, audioEngine);
+        characterController.triggerAttack(animPlayer, audioEngine);
+
+        if (res.hitLanded) {
+            actionPrompt.style.display = 'block';
+            actionPrompt.textContent = `COMBO HIT ${res.comboStep} (${res.damage} DMG)!`;
+            actionPrompt.style.background = res.comboStep === 3 ? '#eab308' : '#d92638';
+            setTimeout(() => {
+                actionPrompt.style.display = 'none';
+            }, 800);
+        }
+    }
+
+    btnComboStrike.addEventListener('click', performCombatStrike);
+
+    btnPedPanic.addEventListener('click', () => {
+        pedestrianAI.state = 'FLEE';
+        pedestrianAI.stateTimer = 5.0;
+        audioEngine.playTrack('hk_dialogue').catch(() => {});
+    });
+
+    // Viewport click triggers combat strike in follow camera mode when on foot
     canvas.addEventListener('click', (e) => {
-        if (renderer.cameraMode === 'follow' && e.button === 0) {
-            characterController.triggerAttack(animPlayer, audioEngine);
+        if (renderer.cameraMode === 'follow' && e.button === 0 && !vehicleController.isOccupied) {
+            performCombatStrike();
         }
     });
 
@@ -352,14 +496,26 @@ window.addEventListener('DOMContentLoaded', async () => {
             const vehicleNode = sceneGraph.getNode('node-vehicle');
             physicsEngine.initFromSceneNodes(worldNode, vehicleNode);
 
-            // Position player character and lock follow camera
-            characterController.position = [-2.2, 0.0, 1.2];
+            // Initialize Vehicle and Pedestrian AI
+            vehicleController.position = [1.8, 0.35, 0.0];
+            vehicleController.rotationY = 0.4;
+            vehicleController.speed = 0.0;
+            vehicleController.isOccupied = false;
+
+            pedestrianAI.position = [-2.4, 0.0, -1.5];
+            pedestrianAI.health = 100;
+            pedestrianAI.state = 'IDLE';
+
+            // Position player Wei Shen and lock follow camera
+            characterController.position = [-2.2, 0.0, 1.8];
             characterController.velocity = [0, 0, 0];
             characterController.isGrounded = true;
+            cameraController.isDriving = false;
             cameraController.targetPos = [...characterController.position];
             updateCameraModeUI('follow');
+            setMissionObjective(0);
 
-            cardStatus.textContent = 'Assembled composite street scene with Havok physics & follow camera';
+            cardStatus.textContent = 'Assembled composite street scene with Havok physics, vehicles & pedestrian crowd';
             cardStatus.style.color = '#4ade80';
         } catch (err: any) {
             console.error('Failed to load composite street scene:', err);
@@ -566,6 +722,83 @@ window.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
+    // -------------------------------------------------------------
+    // Milestone 6: Hong Kong Mini-Map Radar Renderer
+    // -------------------------------------------------------------
+    function renderMiniMapRadar(playerPos: [number, number, number], playerYaw: number) {
+        radarCtx.clearRect(0, 0, radarCanvas.width, radarCanvas.height);
+        const cx = radarCanvas.width / 2;
+        const cy = radarCanvas.height / 2;
+        const radius = 54;
+        const scale = 2.4; // pixels per world meter
+
+        radarCtx.save();
+        radarCtx.beginPath();
+        radarCtx.arc(cx, cy, radius, 0, Math.PI * 2);
+        radarCtx.fillStyle = 'rgba(11, 14, 20, 0.95)';
+        radarCtx.fill();
+        radarCtx.strokeStyle = 'rgba(0, 210, 255, 0.4)';
+        radarCtx.lineWidth = 1.5;
+        radarCtx.stroke();
+        radarCtx.clip();
+
+        // Range rings
+        radarCtx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+        radarCtx.lineWidth = 1;
+        [5, 10, 15].forEach(r => {
+            radarCtx.beginPath();
+            radarCtx.arc(cx, cy, r * scale, 0, Math.PI * 2);
+            radarCtx.stroke();
+        });
+
+        // Crosshairs
+        radarCtx.beginPath();
+        radarCtx.moveTo(cx, cy - radius); radarCtx.lineTo(cx, cy + radius);
+        radarCtx.moveTo(cx - radius, cy); radarCtx.lineTo(cx + radius, cy);
+        radarCtx.stroke();
+
+        // Sidewalk border line
+        radarCtx.strokeStyle = 'rgba(56, 189, 248, 0.25)';
+        const sidewalkX = (-2.5 - playerPos[0]) * scale + cx;
+        radarCtx.beginPath();
+        radarCtx.moveTo(sidewalkX, 0); radarCtx.lineTo(sidewalkX, radarCanvas.height);
+        radarCtx.stroke();
+
+        // Sedan Vehicle Icon
+        const carRelX = (vehicleController.position[0] - playerPos[0]) * scale;
+        const carRelZ = (vehicleController.position[2] - playerPos[2]) * scale;
+        radarCtx.save();
+        radarCtx.translate(cx + carRelX, cy + carRelZ);
+        radarCtx.rotate(-vehicleController.rotationY);
+        radarCtx.fillStyle = '#e11d48';
+        radarCtx.fillRect(-4, -8, 8, 16);
+        radarCtx.restore();
+
+        // Pedestrian AI Blip
+        const pedRelX = (pedestrianAI.position[0] - playerPos[0]) * scale;
+        const pedRelZ = (pedestrianAI.position[2] - playerPos[2]) * scale;
+        radarCtx.beginPath();
+        radarCtx.arc(cx + pedRelX, cy + pedRelZ, 4, 0, Math.PI * 2);
+        radarCtx.fillStyle = pedestrianAI.state === 'FLEE' ? '#ef4444' : '#eab308';
+        radarCtx.fill();
+
+        // Player orientation needle at center
+        radarCtx.save();
+        radarCtx.translate(cx, cy);
+        radarCtx.rotate(-playerYaw);
+        radarCtx.beginPath();
+        radarCtx.moveTo(0, -9);
+        radarCtx.lineTo(6, 6);
+        radarCtx.lineTo(0, 3);
+        radarCtx.lineTo(-6, 6);
+        radarCtx.closePath();
+        radarCtx.fillStyle = '#00d2ff';
+        radarCtx.fill();
+        radarCtx.restore();
+
+        radarCtx.restore();
+    }
+
     // Main Engine Render & Animation Loop
     let lastLoopTime = performance.now();
     function loop() {
@@ -573,20 +806,94 @@ window.addEventListener('DOMContentLoaded', async () => {
         const deltaTimeSec = Math.min((now - lastLoopTime) / 1000.0, 0.1);
         lastLoopTime = now;
 
-        // 1. Advance Player Character Locomotion & Havok Physics (Milestone 5)
+        // 1. Advance Simulation & Kinematics (Milestone 6)
+        const isDriving = vehicleController.isOccupied;
+        let activePos: [number, number, number] = [0, 0, 0];
+        let activeHeading = 0.0;
+        let activeSpeed = 0.0;
+
         if (renderer.sceneGraph) {
-            characterController.update(
+            if (isDriving) {
+                // Vehicle Driving Mode
+                vehicleController.update(deltaTimeSec, physicsEngine, renderer.sceneGraph, audioEngine);
+                activePos = [...vehicleController.position];
+                activeHeading = vehicleController.rotationY;
+                activeSpeed = vehicleController.speed;
+
+                // FollowCameraEnterCar: Follows Sedan
+                cameraController.targetPos = [...vehicleController.position];
+                cameraController.vehicleHeading = vehicleController.rotationY;
+                cameraController.vehicleSpeed = vehicleController.speed;
+            } else {
+                // On Foot Mode (Wei Shen)
+                characterController.update(
+                    deltaTimeSec,
+                    cameraController.yaw,
+                    physicsEngine,
+                    renderer.sceneGraph,
+                    animPlayer,
+                    audioEngine
+                );
+                activePos = [...characterController.position];
+                activeHeading = characterController.rotationY;
+                activeSpeed = Math.hypot(characterController.velocity[0], characterController.velocity[2]);
+
+                // FollowCameraWalk: Follows Wei Shen
+                cameraController.targetPos = [...characterController.position];
+            }
+
+            cameraController.update(deltaTimeSec, physicsEngine);
+
+            // 2. Advance Pedestrian AI Crowd Simulation
+            pedestrianAI.update(
                 deltaTimeSec,
-                cameraController.yaw,
+                activePos,
+                activeSpeed,
+                isDriving,
                 physicsEngine,
-                renderer.sceneGraph,
-                animPlayer,
-                audioEngine
+                renderer.sceneGraph
             );
 
-            // Update authentic Sleeping Dogs follow camera target
-            cameraController.targetPos = [...characterController.position];
-            cameraController.update(deltaTimeSec, physicsEngine);
+            // 3. Advance Melee Combat System
+            combatSystem.update(deltaTimeSec);
+            const targetInfo = combatSystem.updateTargeting(activePos, activeHeading, [pedestrianAI]);
+
+            // 4. Update Interactive Action Prompt
+            if (isDriving) {
+                actionPrompt.style.display = 'block';
+                actionPrompt.textContent = '[E] EXIT SEDAN CHASSIS';
+                actionPrompt.style.background = 'rgba(217, 38, 56, 0.95)';
+            } else if (vehicleController.canInteract(activePos)) {
+                actionPrompt.style.display = 'block';
+                actionPrompt.textContent = '[E] ENTER SEDAN CHASSIS';
+                actionPrompt.style.background = 'rgba(0, 210, 255, 0.95)';
+            } else if (targetInfo.hasTarget && targetInfo.distance <= combatSystem.strikeReach) {
+                actionPrompt.style.display = 'block';
+                actionPrompt.textContent = `[L-CLICK] STRIKE TARGET (${targetInfo.targetHealth} HP)`;
+                actionPrompt.style.background = 'rgba(234, 179, 8, 0.95)';
+            } else {
+                actionPrompt.style.display = 'none';
+            }
+
+            // 5. Update Health, Face Meter & Scores
+            meterFaceFill.style.width = `${combatSystem.faceMeter}%`;
+            meterFaceText.textContent = `${Math.round(combatSystem.faceMeter)}%`;
+            meterTriad.textContent = `TRIAD: ${combatSystem.triadScore}`;
+            meterPolice.textContent = `POLICE: ${combatSystem.policeScore}`;
+
+            // 6. Update Sidebar Simulation Cards
+            const kmh = Math.abs(vehicleController.speed * 3.6).toFixed(1);
+            cardVehicleSpeed.textContent = `${kmh} km/h ${isDriving ? '[ACTIVE]' : '[PARKED]'}`;
+            cardComboStep.textContent = combatSystem.comboStep > 0
+                ? `Hit ${combatSystem.comboStep}/3 [Active]`
+                : 'Ready (Hit 1/3)';
+            cardPedState.textContent = `${pedestrianAI.state} (${pedestrianAI.health} HP)`;
+            cardTargetStatus.textContent = targetInfo.hasTarget
+                ? `${targetInfo.distance.toFixed(1)}m [LOCK-ON]`
+                : 'None in Range';
+
+            // 7. Render Mini-Map Radar
+            renderMiniMapRadar(activePos, isDriving ? vehicleController.rotationY : cameraController.yaw);
         }
 
         // 2. Advance Skeletal Motion & Update Joint Transforms
@@ -618,29 +925,37 @@ window.addEventListener('DOMContentLoaded', async () => {
         hudTexture.textContent = renderer.currentTextureFormat;
         hudCache.textContent = `L1: ${cacheStats.l1Hits} | L2: ${cacheStats.l2Hits} | Miss: ${cacheStats.misses} | ${formatBytes(cacheStats.bytesLoaded)}`;
 
-        // Milestone 5: Physics & Locomotion Telemetry
-        hudPlayerPos.textContent = `X: ${characterController.position[0].toFixed(2)} Y: ${characterController.position[1].toFixed(2)} Z: ${characterController.position[2].toFixed(2)}`;
-        const horizSpeed = Math.hypot(characterController.velocity[0], characterController.velocity[2]);
-        const stateTag = characterController.isAttacking
-            ? 'STRIKE'
-            : (characterController.isGrounded
-                ? (characterController.isSprinting ? 'SPRINT' : (horizSpeed > 0.15 ? 'WALK' : 'IDLE'))
-                : 'AIRBORNE');
-        hudLocomotion.textContent = `${horizSpeed.toFixed(1)} m/s [${stateTag}]`;
-        hudGroundElev.textContent = `Y: ${characterController.groundY.toFixed(2)}m [${characterController.surfaceNormal[0].toFixed(1)}, ${characterController.surfaceNormal[1].toFixed(1)}, ${characterController.surfaceNormal[2].toFixed(1)}] ${characterController.slopeDegrees.toFixed(0)}°`;
+        // Physics & Locomotion Telemetry
+        if (isDriving) {
+            hudPlayerPos.textContent = `CAR X: ${vehicleController.position[0].toFixed(2)} Y: ${vehicleController.position[1].toFixed(2)} Z: ${vehicleController.position[2].toFixed(2)}`;
+            hudLocomotion.textContent = `${(vehicleController.speed * 3.6).toFixed(1)} km/h [DRIVING]`;
+            hudGroundElev.textContent = `Y: ${vehicleController.groundY.toFixed(2)}m [${vehicleController.surfaceNormal[0].toFixed(1)}, ${vehicleController.surfaceNormal[1].toFixed(1)}, ${vehicleController.surfaceNormal[2].toFixed(1)}]`;
+            badgePhysicsState.textContent = 'Driving Sedan';
+            badgePhysicsState.style.color = '#e11d48';
+        } else {
+            hudPlayerPos.textContent = `X: ${characterController.position[0].toFixed(2)} Y: ${characterController.position[1].toFixed(2)} Z: ${characterController.position[2].toFixed(2)}`;
+            const horizSpeed = Math.hypot(characterController.velocity[0], characterController.velocity[2]);
+            const stateTag = characterController.isAttacking
+                ? 'STRIKE'
+                : (characterController.isGrounded
+                    ? (characterController.isSprinting ? 'SPRINT' : (horizSpeed > 0.15 ? 'WALK' : 'IDLE'))
+                    : 'AIRBORNE');
+            hudLocomotion.textContent = `${horizSpeed.toFixed(1)} m/s [${stateTag}]`;
+            hudGroundElev.textContent = `Y: ${characterController.groundY.toFixed(2)}m [${characterController.surfaceNormal[0].toFixed(1)}, ${characterController.surfaceNormal[1].toFixed(1)}, ${characterController.surfaceNormal[2].toFixed(1)}] ${characterController.slopeDegrees.toFixed(0)}°`;
+
+            badgePhysicsState.textContent = characterController.isAttacking
+                ? 'Combat Strike'
+                : (characterController.isGrounded
+                    ? (characterController.isColliding ? 'Obstacle Contact' : 'Grounded')
+                    : 'Airborne');
+            badgePhysicsState.style.color = characterController.isColliding
+                ? '#f59e0b'
+                : (characterController.isGrounded ? '#4ade80' : '#38bdf8');
+        }
 
         const obsStatus = characterController.isColliding ? 'VEHICLE CONTACT' : 'CLEAR';
         const camOcclStatus = cameraController.inCollision ? `PUSH: ${cameraController.collisionPush.toFixed(2)}m` : 'UNBLOCKED';
         hudCollisionStatus.textContent = `${obsStatus} | ${camOcclStatus}`;
-
-        badgePhysicsState.textContent = characterController.isAttacking
-            ? 'Combat Strike'
-            : (characterController.isGrounded
-                ? (characterController.isColliding ? 'Obstacle Contact' : 'Grounded')
-                : 'Airborne');
-        badgePhysicsState.style.color = characterController.isColliding
-            ? '#f59e0b'
-            : (characterController.isGrounded ? '#4ade80' : '#38bdf8');
 
         if (!isScrubbingTimeline) {
             const clip = animPlayer.getActiveClip();

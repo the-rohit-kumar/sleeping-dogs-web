@@ -530,7 +530,8 @@ export class Viewport3D {
 
         // Perspective Camera
         const aspect = this.canvas.width / this.canvas.height;
-        const proj = this.perspective(Math.PI / 4, aspect, 0.1, 500.0);
+        const fov = (this.cameraMode === 'follow' && this.cameraController) ? this.cameraController.fov : Math.PI / 4;
+        const proj = this.perspective(fov, aspect, 0.1, 500.0);
 
         let eyePos: [number, number, number];
         let view: Float32Array;

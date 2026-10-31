@@ -11,3 +11,4 @@ with open(SFX_PCK, "rb") as f:
         off = bank_offset + 4 + i * 24
         f0, f1, f2, f3, f4, f5 = struct.unpack("<IIIIII", hdr[off:off+24])
         print(f"[{i:3d}] f0={f0:10d} (0x{f0:08x}) f1={f1} f2={f2:8d} (0x{f2:08x}) f3={f3} f4={f4:10d} (0x{f4:08x}) f5={f5}")
+

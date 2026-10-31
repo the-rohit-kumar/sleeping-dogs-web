@@ -45,3 +45,4 @@ if fmt_data and data_payload:
     for i, (off, sz) in enumerate(packets[:10]):
         first_byte = data_payload[off+2]
         print(f"  Packet {i}: offset={off} sz={sz} (first byte=0x{first_byte:02x}, packet_type={first_byte & 1})")
+

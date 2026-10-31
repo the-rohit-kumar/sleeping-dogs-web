@@ -38,3 +38,4 @@ with open(SFX_PCK, "rb") as f:
                 print(f"   ID=0x{r[0]:08x} ({r[0]}), Block={r[1]}, Size={r[2]:8d}, Offset=0x{r[3]:08x}")
         except Exception as e:
             print(f"Stride {stride} failed: {e}")
+

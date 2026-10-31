@@ -12,3 +12,4 @@ for i in range(0, min(len(data), 256), 16):
     hex_str = chunk.hex(" ")
     ascii_str = "".join(chr(b) if 32 <= b <= 126 else "." for b in chunk)
     print(f"0x{i:03x}: {hex_str:48s} | {ascii_str}")
+
