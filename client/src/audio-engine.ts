@@ -248,6 +248,51 @@ export const AUTHENTIC_TRACKS: Record<string, AudioTrackInfo> = {
     sampleRate: 48000,
     channels: 1,
     isLoop: false
+  },
+  bambam_club_music: {
+    id: 'bambam_club_music',
+    name: 'Club Bam Bam Electronic Dance Floor',
+    source: 'SFX.pck (Stream 11795260 @ 0x0a2d3663)',
+    description: 'Authentic Club Bam Bam nightclub electronic dance and bass atmosphere',
+    sampleRate: 48000,
+    channels: 2,
+    isLoop: true
+  },
+  glass_shatter: {
+    id: 'glass_shatter',
+    name: 'Club VIP Glass & Bottle Shatter',
+    source: 'SFX.pck (Stream 3860279 @ 0x0f626504)',
+    description: 'Club VIP lounge table, glass bottle, and mirror shattering impact',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  winston_bambam_order: {
+    id: 'winston_bambam_order',
+    name: 'Winston Chu Golden Koi Briefing',
+    source: 'English(US).pck (Stream 140002db @ 0x140002db)',
+    description: 'Winston orders Wei Shen to shake down Benny at Club Bam Bam',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  benny_threat: {
+    id: 'benny_threat',
+    name: 'Benny VIP Lounge Confrontation',
+    source: 'English(US).pck (Stream 1408ec37 @ 0x1408ec37)',
+    description: 'Benny panics and threatens Wei Shen before fleeing to the VIP restroom',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  urinal_smash: {
+    id: 'urinal_smash',
+    name: 'Restroom Urinal Environmental Takedown',
+    source: 'SFX.pck (Stream 4784603 @ 0x09e7f465)',
+    description: 'Wei Shen smashes 18K thug into porcelain urinal and restroom fixtures',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
   }
 };
 

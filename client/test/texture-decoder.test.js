@@ -105,3 +105,4 @@ test('Texture Decoder: BC1 decompressor handles 1-bit transparency (c0 <= c1)', 
   const pixels = decompressBC1Block(block);
   assert.deepStrictEqual(pixels[3], [0, 0, 0, 0]); // Transparent black
 });
+

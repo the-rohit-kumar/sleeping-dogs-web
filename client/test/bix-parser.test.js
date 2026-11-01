@@ -111,3 +111,4 @@ test('BIX Parser: detects corrupted multipart invariant', () => {
 
   assert.throws(() => parseBixBuffer(buf), /Integrity violation/);
 });
+

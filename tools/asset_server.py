@@ -167,6 +167,36 @@ AUDIO_TRACKS = {
         "offset": 0x09e891e2,
         "size": 9634,
         "name": "Triad Knife Disarm and Counter Reversal"
+    },
+    "bambam_club_music": {
+        "pck": SFX_PCK,
+        "offset": 0x0a2d3663,
+        "size": 1001822,
+        "name": "Club Bam Bam Electronic Dance Floor Atmosphere"
+    },
+    "glass_shatter": {
+        "pck": SFX_PCK,
+        "offset": 0x0f626504,
+        "size": 11485,
+        "name": "Club Bam Bam VIP Glass and Bottle Shatter"
+    },
+    "winston_bambam_order": {
+        "pck": ENG_PCK,
+        "offset": 0x140002db,
+        "size": 34447,
+        "name": "Winston Chu Golden Koi Briefing for Club Bam Bam"
+    },
+    "benny_threat": {
+        "pck": ENG_PCK,
+        "offset": 0x1408ec37,
+        "size": 42468,
+        "name": "Benny VIP Lounge Confrontation and Panic"
+    },
+    "urinal_smash": {
+        "pck": SFX_PCK,
+        "offset": 0x09e7f465,
+        "size": 28466,
+        "name": "Bathroom Porcelain Urinal Environmental Slam"
     }
 }
 

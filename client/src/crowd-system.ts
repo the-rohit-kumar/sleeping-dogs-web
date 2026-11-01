@@ -397,6 +397,19 @@ export class CrowdSystem {
     ]);
   }
 
+  public spawnClubBamBamCast(sceneGraph: SceneGraph): void {
+    this.clearStoryNPCs(sceneGraph);
+    this.spawnStoryBatch(sceneGraph, [
+      { id: 'winston-chu', typeId: 'sun-on-yee', x: -2.2, z: 24.0, hp: 500, name: 'Winston Chu (Red Pole Leader)', hostile: false, state: 'talking', color: [0.85, 0.2, 0.2] },
+      { id: 'bambam-bouncer-1', typeId: 'triad-enforcer', x: 12.0, z: -35.0, hp: 110, name: 'Club Bam Bam Bouncer', hostile: true, state: 'circling', color: [0.15, 0.15, 0.18] },
+      { id: 'bambam-bouncer-2', typeId: 'triad-enforcer', x: 13.5, z: -36.5, hp: 110, name: '18K Velvet Rope Guard', hostile: true, state: 'circling', color: [0.18, 0.15, 0.15] },
+      { id: 'bambam-vip-thug-1', typeId: 'sun-on-yee', x: 16.5, z: -39.0, hp: 125, name: '18K VIP Bodyguard', hostile: true, state: 'circling', color: [0.75, 0.15, 0.2] },
+      { id: 'bambam-vip-thug-2', typeId: 'triad-enforcer', x: 18.0, z: -40.5, hp: 125, name: '18K VIP Enforcer', hostile: true, state: 'circling', color: [0.75, 0.18, 0.22] },
+      { id: 'bambam-benny', typeId: 'triad-enforcer', x: 19.5, z: -42.0, hp: 150, name: 'Benny (Dogeyes Associate)', hostile: true, state: 'panicked', color: [0.95, 0.8, 0.2] },
+      { id: 'bambam-hostess', typeId: 'pedestrian', x: 11.5, z: -33.5, hp: 80, name: 'Club VIP Hostess', hostile: false, state: 'talking', color: [0.95, 0.4, 0.7] }
+    ]);
+  }
+
   /**
    * Updates crowd locomotion, active brawler combat AI, red-flash windups, and ragdoll knockouts
    */

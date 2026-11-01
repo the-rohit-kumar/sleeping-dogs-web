@@ -366,8 +366,16 @@ window.addEventListener('DOMContentLoaded', async () => {
             campaignStory.startAmandaTour(renderer.sceneGraph, crowdSystem, cameraController, audioEngine);
         } else if (campaignStory.stage === 'ch1_amanda_drive_dojo') {
             campaignStory.startDojoTraining(cameraController, audioEngine);
-        } else if (campaignStory.stage === 'ch1_amanda_dojo_training') {
-            campaignStory.completeAmandaTour(cameraController, audioEngine);
+        } else if (campaignStory.stage === 'ch1_amanda_dojo_training' || campaignStory.stage === 'ch1_amanda_completed') {
+            campaignStory.startMission5ClubBamBam(renderer.sceneGraph, crowdSystem, cameraController, audioEngine);
+        } else if (campaignStory.stage === 'ch1_bambam_drive') {
+            campaignStory.arriveAtClubBamBam(cameraController, audioEngine, renderer.sceneGraph, crowdSystem);
+        } else if (campaignStory.stage === 'ch1_bambam_entrance_cinematic' || campaignStory.stage === 'ch1_bambam_dancefloor_brawl') {
+            campaignStory.advanceToVIPLounge(cameraController, audioEngine, renderer.sceneGraph, crowdSystem);
+        } else if (campaignStory.stage === 'ch1_bambam_vip_lounge_brawl') {
+            campaignStory.triggerBathroomRestroomShowdown(cameraController, audioEngine, renderer.sceneGraph, crowdSystem);
+        } else if (campaignStory.stage === 'ch1_bambam_bathroom_climax') {
+            campaignStory.completeClubBamBam(cameraController, audioEngine);
         } else {
             campaignStory.startPrologueCinematic(renderer.sceneGraph, crowdSystem, cameraController, audioEngine);
         }

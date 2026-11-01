@@ -30,7 +30,12 @@ AUDIO_TRACKS = {
     "wei_pursuit": {"pck": ENG_PCK, "offset": 0x10c4870f, "size": 30059},
     "ming_rooftop_threat": {"pck": ENG_PCK, "offset": 0x09fdad97, "size": 43553},
     "blade_slash": {"pck": SFX_PCK, "offset": 0x09e86397, "size": 11851},
-    "knife_stab": {"pck": SFX_PCK, "offset": 0x09e891e2, "size": 9634}
+    "knife_stab": {"pck": SFX_PCK, "offset": 0x09e891e2, "size": 9634},
+    "bambam_club_music": {"pck": SFX_PCK, "offset": 0x0a2d3663, "size": 1001822},
+    "glass_shatter": {"pck": SFX_PCK, "offset": 0x0f626504, "size": 11485},
+    "winston_bambam_order": {"pck": ENG_PCK, "offset": 0x140002db, "size": 34447},
+    "benny_threat": {"pck": ENG_PCK, "offset": 0x1408ec37, "size": 42468},
+    "urinal_smash": {"pck": SFX_PCK, "offset": 0x09e7f465, "size": 28466}
 }
 
 for key, info in AUDIO_TRACKS.items():

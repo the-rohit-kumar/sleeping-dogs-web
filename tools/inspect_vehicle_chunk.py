@@ -23,3 +23,4 @@ for i in range(len(entries)):
             diff = next_off - e['offset'] if next_off != 'EOF' else 'N/A'
             print(f"Idx {e['index']:4d} | UID 0x{e['uid']:08x} | Off 0x{e['offset']:08x} | Span {e['span']:8d} | NextDiff {str(diff):8s} | p1={e['p1']:7d} | p2={e['p2']:7d}")
         break
+

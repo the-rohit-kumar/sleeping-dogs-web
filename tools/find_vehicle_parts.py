@@ -23,3 +23,4 @@ print(f"Found {len(strings)} strings in first 64KB of Vehicles.big:")
 for off, s in strings:
     if any(k in s for k in ['Body', 'Door', 'Wheel', 'NAR', 'Chassis', 'Bumper', 'Glass', 'Mesh', 'ExtendedMesh', 'Convex']):
         print(f"  0x{off:06x}: {s}")
+

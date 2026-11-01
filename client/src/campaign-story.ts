@@ -48,6 +48,13 @@ export type StoryStage =
   | 'ch1_amanda_drive_dojo'
   | 'ch1_amanda_dojo_training'
   | 'ch1_amanda_completed'
+  | 'ch1_bambam_briefing_cinematic'
+  | 'ch1_bambam_drive'
+  | 'ch1_bambam_entrance_cinematic'
+  | 'ch1_bambam_dancefloor_brawl'
+  | 'ch1_bambam_vip_lounge_brawl'
+  | 'ch1_bambam_bathroom_climax'
+  | 'ch1_bambam_completed'
   | 'free_roam';
 
 export interface DialogueLine {
@@ -795,6 +802,259 @@ export class CampaignStoryEngine {
   }
 
   /**
+   * Mission 5: "Club Bam Bam" — Winston Chu Golden Koi Briefing
+   */
+  public startMission5ClubBamBam(
+    sceneGraph: SceneGraph,
+    crowdSystem: CrowdSystem,
+    cameraController: CameraController,
+    audioEngine: AudioEngine
+  ): void {
+    this.stage = 'ch1_bambam_briefing_cinematic';
+    crowdSystem.spawnClubBamBamCast(sceneGraph);
+
+    const script: DialogueLine[] = [
+      {
+        speaker: 'WINSTON CHU (RED POLE LEADER)',
+        speakerColor: '#ef4444',
+        text: "Wei! Dogeyes' boy Benny is throwing money around at Club Bam Bam like he owns North Point. Take some boys, head over there, and show him who really controls this district!",
+        audioKey: 'winston_bambam_order',
+        durationSec: 5.5,
+        cameraEye: [-1.2, 1.8, 25.5],
+        cameraTarget: [-2.2, 1.4, 24.0]
+      },
+      {
+        speaker: 'WEI SHEN',
+        speakerColor: '#38bdf8',
+        text: "Consider it done, Winston. Benny won't be running his mouth after tonight.",
+        durationSec: 3.5,
+        cameraEye: [-3.0, 1.7, 23.0],
+        cameraTarget: [-2.2, 1.4, 24.0]
+      }
+    ];
+
+    this.playCutscene(script, cameraController, audioEngine, () => {
+      this.stage = 'ch1_bambam_drive';
+      this.endCutscene(cameraController);
+
+      this.updateHUD(
+        'MISSION 5: CLUB BAM BAM',
+        '🚗 Drive across North Point to Club Bam Bam to track down Benny!'
+      );
+
+      if (this.actionPrompt) {
+        this.actionPrompt.style.display = 'block';
+        this.actionPrompt.textContent = '🚗 DRIVE TO CLUB BAM BAM [WAYPOINT: 12.0, -35.0] 🚗';
+        this.actionPrompt.style.background = 'rgba(56, 189, 248, 0.95)';
+        setTimeout(() => {
+          if (this.actionPrompt) this.actionPrompt.style.display = 'none';
+        }, 4500);
+      }
+    });
+  }
+
+  /**
+   * Mission 5 Stage 2: Arrival at Club Bam Bam & Bouncer Confrontation
+   */
+  public arriveAtClubBamBam(
+    cameraController: CameraController,
+    audioEngine: AudioEngine,
+    sceneGraph: SceneGraph,
+    crowdSystem: CrowdSystem
+  ): void {
+    this.stage = 'ch1_bambam_entrance_cinematic';
+
+    const script: DialogueLine[] = [
+      {
+        speaker: 'CLUB BAM BAM BOUNCER',
+        speakerColor: '#eab308',
+        text: "Hold it right there! Private VIP event tonight. Turn around, punk.",
+        durationSec: 3.5,
+        cameraEye: [11.0, 1.9, -33.5],
+        cameraTarget: [12.0, 1.6, -35.0]
+      },
+      {
+        speaker: 'WEI SHEN',
+        speakerColor: '#38bdf8',
+        text: "I'm here for Benny. Step aside before you get hurt.",
+        durationSec: 3.0,
+        cameraEye: [12.5, 1.8, -36.0],
+        cameraTarget: [11.5, 1.5, -34.5]
+      }
+    ];
+
+    this.playCutscene(script, cameraController, audioEngine, () => {
+      this.startClubDanceFloorBrawl(cameraController, audioEngine, sceneGraph, crowdSystem);
+    });
+  }
+
+  /**
+   * Mission 5 Stage 3: Dance Floor Bouncer Melee
+   */
+  public startClubDanceFloorBrawl(
+    cameraController: CameraController,
+    audioEngine: AudioEngine,
+    sceneGraph: SceneGraph,
+    crowdSystem: CrowdSystem
+  ): void {
+    this.stage = 'ch1_bambam_dancefloor_brawl';
+    this.thugsDefeated = 0;
+    this.thugsTotal = 2; // 2 Club Bouncers
+    this.endCutscene(cameraController);
+
+    // Start authentic electronic club dance music
+    audioEngine.playTrack('bambam_club_music').catch(() => {});
+
+    this.updateHUD(
+      'MISSION 5: CLUB BAM BAM — DANCE FLOOR BRAWL',
+      `👊 Eliminate Club Bam Bam Bouncers & Clear the Floor (${this.thugsDefeated}/${this.thugsTotal})! [Counters Active: R-Click / E]`
+    );
+
+    if (this.actionPrompt) {
+      this.actionPrompt.style.display = 'block';
+      this.actionPrompt.textContent = '🔊 CLUB BAM BAM DANCE FLOOR BRAWL • DEFEAT BOUNCERS 🔊';
+      this.actionPrompt.style.background = 'rgba(239, 68, 68, 0.95)';
+      setTimeout(() => {
+        if (this.actionPrompt) this.actionPrompt.style.display = 'none';
+      }, 4000);
+    }
+  }
+
+  /**
+   * Mission 5 Stage 4: VIP Lounge & Bottle/Table Smash
+   */
+  public advanceToVIPLounge(
+    cameraController: CameraController,
+    audioEngine: AudioEngine,
+    sceneGraph: SceneGraph,
+    crowdSystem: CrowdSystem
+  ): void {
+    this.stage = 'ch1_bambam_vip_lounge_brawl';
+    this.thugsDefeated = 0;
+    this.thugsTotal = 2; // 2 VIP Bodyguards
+
+    const script: DialogueLine[] = [
+      {
+        speaker: 'BENNY (DOGEYES ASSOCIATE)',
+        speakerColor: '#f97316',
+        text: "Wei Shen?! How did you get up here?! Kill this bastard, now!",
+        audioKey: 'benny_threat',
+        durationSec: 4.5,
+        cameraEye: [15.5, 2.2, -37.5],
+        cameraTarget: [18.0, 1.6, -41.0]
+      }
+    ];
+
+    this.playCutscene(script, cameraController, audioEngine, () => {
+      this.endCutscene(cameraController);
+      audioEngine.playTrack('glass_shatter').catch(() => {});
+
+      this.updateHUD(
+        'MISSION 5: CLUB BAM BAM — VIP LOUNGE',
+        `🍾 Defeat Elite VIP Bodyguards (${this.thugsDefeated}/${this.thugsTotal})! [Smash Bottles & VIP Tables!]`
+      );
+
+      if (this.actionPrompt) {
+        this.actionPrompt.style.display = 'block';
+        this.actionPrompt.textContent = '🍾 VIP LOUNGE SHOWDOWN • SMASH BOTTLES & TABLES 🍾';
+        this.actionPrompt.style.background = 'rgba(234, 179, 8, 0.95)';
+        setTimeout(() => {
+          if (this.actionPrompt) this.actionPrompt.style.display = 'none';
+        }, 4000);
+      }
+    });
+  }
+
+  /**
+   * Mission 5 Stage 5: Bathroom Restroom Showdown & Urinal Finisher
+   */
+  public triggerBathroomRestroomShowdown(
+    cameraController: CameraController,
+    audioEngine: AudioEngine,
+    sceneGraph: SceneGraph,
+    crowdSystem: CrowdSystem
+  ): void {
+    this.stage = 'ch1_bambam_bathroom_climax';
+    this.thugsDefeated = 0;
+    this.thugsTotal = 1; // Benny himself
+
+    const script: DialogueLine[] = [
+      {
+        speaker: 'BENNY',
+        speakerColor: '#f97316',
+        text: "Stay back, Wei! Dogeyes will skin you alive for this!",
+        durationSec: 3.5,
+        cameraEye: [18.0, 1.9, -40.5],
+        cameraTarget: [19.5, 1.5, -42.0]
+      }
+    ];
+
+    this.playCutscene(script, cameraController, audioEngine, () => {
+      this.endCutscene(cameraController);
+
+      this.updateHUD(
+        'MISSION 5: CLUB BAM BAM — RESTROOM SHOWDOWN',
+        '🚽 Corner Benny! Execute Porcelain Urinal Environmental Finisher [F]!'
+      );
+
+      if (this.actionPrompt) {
+        this.actionPrompt.style.display = 'block';
+        this.actionPrompt.textContent = '🚽 [F] PORCELAIN URINAL & MIRROR ENVIRONMENTAL TAKEDOWN 🚽';
+        this.actionPrompt.style.background = 'rgba(239, 68, 68, 0.95)';
+      }
+    });
+  }
+
+  /**
+   * Mission 5 Completion: Benny Interrogation & Intel Secured
+   */
+  public completeClubBamBam(cameraController: CameraController, audioEngine: AudioEngine): void {
+    this.stage = 'ch1_bambam_completed';
+    audioEngine.playTrack('urinal_smash').catch(() => {});
+    audioEngine.playTrack('mission_fanfare').catch(() => {});
+
+    if (this.actionPrompt) this.actionPrompt.style.display = 'none';
+
+    const script: DialogueLine[] = [
+      {
+        speaker: 'BENNY',
+        speakerColor: '#f97316',
+        text: "Wait! Don't! I'll tell you whatever you want! Dogeyes is meeting the jade smugglers at Aberdeen Docks tomorrow night!",
+        durationSec: 4.5,
+        cameraEye: [18.8, 1.6, -41.2],
+        cameraTarget: [19.5, 1.2, -42.0]
+      },
+      {
+        speaker: 'WEI SHEN',
+        speakerColor: '#38bdf8',
+        text: "If you're lying to me, Benny, I won't just break your club. I'll break your legs.",
+        durationSec: 3.8,
+        cameraEye: [20.2, 1.7, -42.5],
+        cameraTarget: [19.5, 1.2, -42.0]
+      }
+    ];
+
+    this.playCutscene(script, cameraController, audioEngine, () => {
+      this.stage = 'free_roam';
+      this.endCutscene(cameraController);
+
+      this.updateHUD(
+        'MISSION 5 COMPLETED: CLUB BAM BAM',
+        '🏆 BENNY INTERROGATED • JADE SMUGGLING INTEL SECURED • TRIAD SCORE +450 • POLICE SCORE +300'
+      );
+
+      if (this.actionPrompt) {
+        this.actionPrompt.style.display = 'block';
+        this.actionPrompt.textContent = '🏆 MISSION 5 COMPLETED • CASE LEAD: POPSTAR UNLOCKED 🏆';
+        this.actionPrompt.style.background = 'rgba(34, 197, 94, 0.95)';
+        setTimeout(() => {
+          if (this.actionPrompt) this.actionPrompt.style.display = 'none';
+        }, 5500);
+      }
+    });
+  }
+
+  /**
    * Cutscene Player & Timeline Engine
    */
   public playCutscene(
@@ -941,6 +1201,11 @@ export class CampaignStoryEngine {
       if (distToDojo <= 7.0) {
         this.startDojoTraining(cameraController, audioEngine);
       }
+    } else if (this.stage === 'ch1_bambam_drive') {
+      const distToClub = Math.hypot(playerPos[0] - 12.0, playerPos[2] - (-35.0));
+      if (distToClub <= 6.5) {
+        this.arriveAtClubBamBam(cameraController, audioEngine, sceneGraph, crowdSystem);
+      }
     }
   }
 
@@ -1020,6 +1285,46 @@ export class CampaignStoryEngine {
           this.completeAmandaTour(cameraController, audioEngine);
         }, 1200);
       }
+    } else if (this.stage === 'ch1_bambam_dancefloor_brawl') {
+      this.thugsDefeated++;
+      combatSystem.triadScore += 300;
+      this.updateHUD(
+        'MISSION 5: CLUB BAM BAM — DANCE FLOOR BRAWL',
+        `👊 Eliminate 18K Bouncers & Clear the Floor (${this.thugsDefeated}/${this.thugsTotal})!`
+      );
+
+      if (this.thugsDefeated >= this.thugsTotal) {
+        setTimeout(() => {
+          this.advanceToVIPLounge(cameraController, audioEngine, sceneGraph, crowdSystem);
+        }, 1200);
+      }
+    } else if (this.stage === 'ch1_bambam_vip_lounge_brawl') {
+      this.thugsDefeated++;
+      combatSystem.triadScore += 350;
+      this.updateHUD(
+        'MISSION 5: CLUB BAM BAM — VIP LOUNGE',
+        `🍾 Defeat Elite Bodyguards (${this.thugsDefeated}/${this.thugsTotal})! [Smash Bottles & Tables]`
+      );
+
+      if (this.thugsDefeated >= this.thugsTotal) {
+        setTimeout(() => {
+          this.triggerBathroomRestroomShowdown(cameraController, audioEngine, sceneGraph, crowdSystem);
+        }, 1200);
+      }
+    } else if (this.stage === 'ch1_bambam_bathroom_climax') {
+      this.thugsDefeated++;
+      combatSystem.policeScore += 400;
+      combatSystem.triadScore += 400;
+      this.updateHUD(
+        'MISSION 5: CLUB BAM BAM — RESTROOM TAKEDOWN',
+        `🚽 Interrogate Benny & Secure Intel (${this.thugsDefeated}/${this.thugsTotal})!`
+      );
+
+      if (this.thugsDefeated >= this.thugsTotal) {
+        setTimeout(() => {
+          this.completeClubBamBam(cameraController, audioEngine);
+        }, 1200);
+      }
     }
   }
 
@@ -1039,6 +1344,10 @@ export class CampaignStoryEngine {
     if (this.stage === 'ch1_nmc_rooftop_knife_brawl') return [14.5, -22.0];
     if (this.stage === 'ch1_amanda_drive_dojo') return [-18.0, 32.0];
     if (this.stage === 'ch1_amanda_dojo_training') return [-18.0, 32.0];
+    if (this.stage === 'ch1_bambam_drive') return [12.0, -35.0];
+    if (this.stage === 'ch1_bambam_dancefloor_brawl') return [12.0, -35.0];
+    if (this.stage === 'ch1_bambam_vip_lounge_brawl') return [16.5, -39.0];
+    if (this.stage === 'ch1_bambam_bathroom_climax') return [19.5, -42.0];
     return null;
   }
 

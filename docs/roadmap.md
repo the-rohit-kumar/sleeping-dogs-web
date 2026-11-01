@@ -273,13 +273,14 @@ flowchart LR
   - **Mission 2 ("Dockside Warehouse Shakedown")**: Urgent police radio dispatch $\to$ Drive to Aberdeen Fish Warehouse $\to$ Eliminate 4 armed dock enforcers $\to$ Defeat 18K Lieutenant Boss $\to$ Orchestral victory fanfare (`Stream 2530870`).
   - **Mission 3 ("Night Market Chase")**: Confront food stall contact $\to$ Pursue Dirty Ming across night market rooftops $\to$ Balcony knife combat with blade disarm counter reversals.
   - **Mission 4 ("Amanda Tour & Dojo Sparring")**: Escort driving tour with Amanda Cartwright across North Point $\to$ Temple dojo kung fu sparring with Master Kwok's disciples.
+  - **Mission 5 ("Club Bam Bam")**: Winston Chu Golden Koi briefing $\to$ Drive across North Point to Club Bam Bam $\to$ Bouncer confrontation $\to$ Electronic dance floor melee brawl $\to$ VIP lounge table & bottle smash $\to$ Restroom porcelain urinal environmental finisher $\to$ Interrogate Benny for jade smuggling intel.
 
 ---
 
-## Upcoming Milestone: Authentic Index Buffers & BufferLoader Extraction
+## Upcoming Milestone: Chapter 1 Mission 6 ("Popstar Lead 1 / Drug Bust") & Vehicle Gunplay
 
-**Goal:** Eliminate synthetic triangle strip generation by parsing authentic index buffers directly from `Illusion::BufferLoader` descriptors.
+**Goal:** Implement police investigation case mechanics, security camera hacking minigame, and drive-by shooting.
 
-- [ ] **Parse BufferLoader Descriptors**: Decompile descriptor offsets (`-0x38`, `-0x34`) to identify buffer types and sizes.
-- [ ] **Decode Sedan Index Buffer (`Vehicles.big` 0x008c038c)**: Stream and decode authentic 16-bit index buffers for vehicle chassis.
-- [ ] **Unit Test Suite**: Assertion-based unit tests for `mesh-decoder.ts`, `texture-decoder.ts`, and `bix-parser.ts` using mock byte buffers.
+- [ ] **Police Case Lead: Popstar Part 1**: Inspector Jane Teng police radio contact, surveillance camera tracking, and street supplier bust.
+- [ ] **Interactive Camera Hacking Minigame**: 4-digit code sequence deciphering on HKPD security terminals.
+- [ ] **Drive-By Vehicular Shooting**: Firing pistols/SMGs from the Sedan driver seat with bullet trajectory raycasting.
