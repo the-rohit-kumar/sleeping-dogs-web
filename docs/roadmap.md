@@ -682,3 +682,16 @@ ode-wei-shoe-l/r).
   - [x] Real-time 3D character mesh limb recoloring upon equipping garments
   - [x] Option 3 edge cases audited (broke buy denial, face level lock, independent timer decay, modal spam resilience, combat multiplier integration)
   - [x] Automated browser verification suite (`tools/verify_street_economy.js`, 12/12 passed, 0 page errors, 0 failed requests, 5 visual proof screenshots)
+
+- [x] **Option 4: Health Shrines & Lockbox Tumbler Minigames** (Completed)
+  - [x] Collectibles and Shrines system (`client/src/collectibles-system.ts`)
+  - [x] 50 Health Shrines across Hong Kong with sacred incense burning and temple bell audio
+  - [x] Deep Taoist prayer sequence permanently boosting Max HP (+10 HP per shrine: 100 -> 110 -> 120 HP)
+  - [x] Instant full health restoration upon shrine prayer
+  - [x] Triad Lockboxes scattered in secluded alleys and rooftops
+  - [x] Interactive 3-dial mechanical brass tumbler lockpicking minigame
+  - [x] Dial rotation with audible notch clicks (`ui_hack_tick`) and Red -> Amber -> Green proximity glow
+  - [x] Spring pin alignment latches (`ui_hack_correct`) advancing Dial 1 -> Dial 2 -> Dial 3
+  - [x] Vault latch opening chime (`ui_chime_granted`) and massive cash rewards ($+8,000 to $+15,000 HKD)
+  - [x] Option 4 edge cases audited (duplicate prayer denial, max HP bounds, abort [ESC] cleanup, pin alignment accuracy, re-looting prevention)
+  - [x] Automated browser verification suite (`tools/verify_health_shrines_and_lockboxes.js`, 11/11 passed, 0 page errors, 0 failed requests, 5 visual proof screenshots)

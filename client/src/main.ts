@@ -53,6 +53,7 @@ import { OpenWorldActivitiesManager, ACTIVITY_HOTSPOTS, STREET_RACE_CHECKPOINTS 
 import { SafehouseSystem, OUTFIT_CATALOG } from './safehouse-system';
 import { ActionHijackSystem } from './action-hijack-system';
 import { StreetEconomySystem, FOOD_MENU, CLOTHING_CATALOG } from './street-economy-system';
+import { CollectiblesSystem } from './collectibles-system';
 
 window.addEventListener('DOMContentLoaded', async () => {
     const canvas = document.getElementById('viewport') as HTMLCanvasElement;
@@ -79,6 +80,15 @@ window.addEventListener('DOMContentLoaded', async () => {
     (window as any).actionHijackSystem = actionHijackSystem;
     const streetEconomySystem = new StreetEconomySystem();
     (window as any).streetEconomySystem = streetEconomySystem;
+    const collectiblesSystem = new CollectiblesSystem();
+    (window as any).collectiblesSystem = collectiblesSystem;
+    (window as any).getPlayerMaxHealth = () => playerMaxHealth;
+    (window as any).setPlayerMaxHealth = (maxHp: number) => {
+        playerMaxHealth = maxHp;
+        playerHealth = maxHp;
+        meterHealthFill.style.width = `${(playerHealth / playerMaxHealth) * 100}%`;
+        meterHealthText.textContent = `${Math.round(playerHealth)}%`;
+    };
     (window as any).restorePlayerHealth = (hp: number = 100) => { playerHealth = hp; };
     (window as any).performSave = performSave;
     Object.defineProperty(window, 'sceneGraph', {
@@ -351,7 +361,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     // Sleeping Dogs Campaign Mission Engine (Missions 1 & 2)
     // -------------------------------------------------------------
     let playerHealth = 100.0;
-    const playerMaxHealth = 100.0;
+    let playerMaxHealth = 100.0;
     let slowMoTimer = 0.0;
 
     // Save & Load State Persistence Manager
@@ -989,6 +999,15 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     // Keyboard controls
     window.addEventListener('keydown', (e) => {
+        if (collectiblesSystem.isTumblerOpen) {
+            if (e.code === 'KeyA' || e.code === 'ArrowLeft') {
+                collectiblesSystem.stepDial(collectiblesSystem.currentDialIndex, -1, audioEngine, openWorldActivities);
+                return;
+            } else if (e.code === 'KeyD' || e.code === 'ArrowRight') {
+                collectiblesSystem.stepDial(collectiblesSystem.currentDialIndex, 1, audioEngine, openWorldActivities);
+                return;
+            }
+        }
         // Toggle developer metrics HUD and editor grid with [~] or [F1]
         if (e.code === 'Backquote' || e.code === 'F1' || e.key === '' || e.key === '~') {
             const hud = document.querySelector('.hud-overlay');
@@ -1174,7 +1193,14 @@ window.addEventListener('DOMContentLoaded', async () => {
                     renderer.sceneGraph!
                 );
                 if (!economyHandled) {
-                    performCombatCounter();
+                    const collectiblesHandled = collectiblesSystem.handleInteraction(
+                        'e',
+                        audioEngine,
+                        openWorldActivities
+                    );
+                    if (!collectiblesHandled) {
+                        performCombatCounter();
+                    }
                 }
             }
         } else if (e.code === 'KeyX' || e.key.toLowerCase() === 'x') {
@@ -1245,7 +1271,9 @@ window.addEventListener('DOMContentLoaded', async () => {
         } else if (e.code === 'Digit3' || e.key === '3') {
             applyWeatherPreset('typhoon_storm');
         } else if (e.code === 'Escape' || e.key === 'Escape') {
-            if (streetEconomySystem.isFoodModalOpen || streetEconomySystem.isBoutiqueModalOpen) {
+            if (collectiblesSystem.isTumblerOpen) {
+                collectiblesSystem.closeTumblerModal();
+            } else if (streetEconomySystem.isFoodModalOpen || streetEconomySystem.isBoutiqueModalOpen) {
                 streetEconomySystem.closeModals();
             } else if (frequencyTuner.isRunning()) {
                 frequencyTuner.cancelTuner();
@@ -2360,6 +2388,13 @@ window.addEventListener('DOMContentLoaded', async () => {
                 activePos,
                 isDriving,
                 combatSystem
+            );
+
+            // Option 4: Health Shrines & Lockbox Tumbler Minigame Update
+            collectiblesSystem.update(
+                deltaTimeSec,
+                activePos,
+                isDriving
             );
 
             // Canonical Sleeping Dogs Story Mission & Cutscene Pipeline Update

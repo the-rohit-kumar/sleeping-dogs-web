@@ -159,3 +159,8 @@ With the 18 main campaign story missions fully functional and verified, the rema
 - **Street Food Vendors:** Uncle Chow Pork Buns ("Whole Man" +25% Melee DMG), Grandma Lin Herbal Tea ("Chi Resilience" 50% DEF), Dim Sum (3x Face Adrenaline), Dragon Kick.
 - **Clothing Boutiques:** Hang + Deng (Level 1), J. Jigger (Level 2), Aspirazole (Level 3) with real-time 3D character mesh limb recoloring and stat perks.
 - **Automated Verification:** `tools/verify_street_economy.js` passed all 12 steps with 0 errors.
+
+### Option 4: Health Shrines & Lockbox Minigames (100% Operational)
+- **Health Shrines:** `client/src/collectibles-system.ts` implementing incense prayers, ceremonial blessings, and permanent Max HP upgrades (100 -> 110 -> 120 HP).
+- **Lockbox Tumblers:** Interactive 3-dial mechanical brass lockpicking minigame with notch ticks, proximity color glow, pin latches, and cash payouts.
+- **Automated Verification:** `tools/verify_health_shrines_and_lockboxes.js` passed all 11 steps with 0 errors.
