@@ -431,6 +431,120 @@ AUDIO_TRACKS = {
         "offset": 0x1987c01a,
         "size": 25072,
         "name": "Dogeyes Defeat & Plea for Mercy"
+    },
+    "big_smile_lee_climax_music": {
+        "pck": SFX_PCK,
+        "offset": 0x16512a7b,
+        "size": 12688610,
+        "name": "Big Smile Lee Climax Battle Orchestral Theme"
+    },
+    "funeral_cemetery_bell": {
+        "pck": SFX_PCK,
+        "offset": 0x0985d257,
+        "size": 57305,
+        "name": "Mount Davis Cemetery Funeral Bell & Ambience"
+    },
+    "hospital_icu_alarm": {
+        "pck": SFX_PCK,
+        "offset": 0x0986b230,
+        "size": 109113,
+        "name": "Queen Mary Hospital ICU Distress Alarm"
+    },
+    "rifle_assault_fire": {
+        "pck": SFX_PCK,
+        "offset": 0x19325c91,
+        "size": 4902,
+        "name": "Automatic Assault Rifle Corridor Firefight"
+    },
+    "sniper_rifle_shot": {
+        "pck": SFX_PCK,
+        "offset": 0x3c031219,
+        "size": 5200,
+        "name": "Cemetery Sniper Rifle Crack & Bullet Whine"
+    },
+    "slaughterhouse_hook_rattle": {
+        "pck": SFX_PCK,
+        "offset": 0x4dd4cd3f,
+        "size": 5936,
+        "name": "Kennedy Town Slaughterhouse Meat Hooks & Chains"
+    },
+    "cleaver_steel_clash": {
+        "pck": SFX_PCK,
+        "offset": 0x7ae2a4ea,
+        "size": 5488,
+        "name": "Mr. Tong Meat Cleaver Duel Blade Clash"
+    },
+    "harbor_crane_roar": {
+        "pck": SFX_PCK,
+        "offset": 0x0d528ab2,
+        "size": 14194,
+        "name": "Aberdeen Harbor Container Crane Mechanical Roar"
+    },
+    "industrial_crusher_smash": {
+        "pck": SFX_PCK,
+        "offset": 0x55454af6,
+        "size": 6595,
+        "name": "Harbor Industrial Compaction Crusher Crunch"
+    },
+    "campaign_grand_victory": {
+        "pck": SFX_PCK,
+        "offset": 0x0984a0ab,
+        "size": 78252,
+        "name": "Sleeping Dogs Grand Campaign Victory Fanfare"
+    },
+    "uncle_po_hospital_plea": {
+        "pck": ENG_PCK,
+        "offset": 0x19904a03,
+        "size": 40354,
+        "name": "Uncle Po Hospital Bed Succession Words"
+    },
+    "pendrew_hospital_arrival": {
+        "pck": ENG_PCK,
+        "offset": 0x1990e7a5,
+        "size": 49858,
+        "name": "Superintendent Pendrew Hospital Arrival & Warning"
+    },
+    "jiang_funeral_speech": {
+        "pck": ENG_PCK,
+        "offset": 0x1991aa67,
+        "size": 41428,
+        "name": "Broken Nose Jiang Cemetery Funeral Eulogy"
+    },
+    "jackie_funeral_warning": {
+        "pck": ENG_PCK,
+        "offset": 0x19924c3b,
+        "size": 25875,
+        "name": "Jackie Ma Cemetery Ambush Warning Shout"
+    },
+    "mr_tong_torture_threat": {
+        "pck": ENG_PCK,
+        "offset": 0x19943bdc,
+        "size": 29408,
+        "name": "Mr. Tong Slaughterhouse Torture Threat"
+    },
+    "jackie_dying_whisper": {
+        "pck": ENG_PCK,
+        "offset": 0x1994aebc,
+        "size": 33115,
+        "name": "Jackie Ma Tragic Final Words in Meat Locker"
+    },
+    "big_smile_lee_dock_taunt": {
+        "pck": ENG_PCK,
+        "offset": 0x19964442,
+        "size": 28671,
+        "name": "Big Smile Lee Waterfront Compound Boss Confrontation"
+    },
+    "big_smile_lee_final_words": {
+        "pck": ENG_PCK,
+        "offset": 0x1997a244,
+        "size": 24338,
+        "name": "Big Smile Lee Defeat & Crane Showdown Climax"
+    },
+    "pendrew_teng_epilogue": {
+        "pck": ENG_PCK,
+        "offset": 0x19980156,
+        "size": 26242,
+        "name": "Jane Teng & Pendrew Epilogue: Case Closed"
     }
 }
 

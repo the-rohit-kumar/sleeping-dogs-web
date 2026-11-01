@@ -83,3 +83,4 @@ if __name__ == "__main__":
         sz = decode_and_test(SFX_PCK, s["offset"], s["size"], name)
         if sz:
             print(f"  Decoded SFX {name}: {sz} bytes (offset 0x{s['offset']:08x})")
+

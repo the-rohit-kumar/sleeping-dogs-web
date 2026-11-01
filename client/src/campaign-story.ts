@@ -92,6 +92,20 @@ export type StoryStage =
   | 'ch2_election_dogeyes_boss_fight'
   | 'ch2_election_dogeyes_defeated'
   | 'ch2_chapter2_completed'
+  | 'ch3_hospital_icu_briefing'
+  | 'ch3_hospital_defense_firefight'
+  | 'ch3_hospital_completed'
+  | 'ch3_funeral_cemetery_eulogy'
+  | 'ch3_funeral_ambush_firefight'
+  | 'ch3_funeral_completed'
+  | 'ch3_slaughterhouse_infiltrate'
+  | 'ch3_slaughterhouse_cleaver_brawl'
+  | 'ch3_slaughterhouse_jackie_tragedy'
+  | 'ch3_slaughterhouse_completed'
+  | 'ch3_grand_finale_compound_breach'
+  | 'ch3_grand_finale_crane_boss_fight'
+  | 'ch3_grand_finale_victory_cinematic'
+  | 'campaign_grand_victory_completed'
   | 'free_roam';
 
 export interface DialogueLine {
@@ -2169,6 +2183,448 @@ export class CampaignStoryEngine {
     }
   }
 
+  // =========================================================================
+  // CHAPTER 3: KENNEDY TOWN / TRIAD WAR & GRAND FINALE (MISSIONS 15 - 18)
+  // =========================================================================
+
+  /**
+   * Chapter 3 Mission 15: "Civil War / Hospital Defense"
+   * Protect Uncle Po in Queen Mary Hospital from Big Smile Lee's Assassins
+   */
+  public startMission15CivilWarHospital(
+    sceneGraph: SceneGraph,
+    crowdSystem: CrowdSystem,
+    cameraController: CameraController,
+    audioEngine: AudioEngine
+  ): void {
+    this.stage = 'ch3_hospital_icu_briefing';
+    this.thugsDefeated = 0;
+    this.thugsTotal = 3;
+
+    crowdSystem.spawnHospitalDefenseCast(sceneGraph);
+    audioEngine.playTrack('hospital_icu_alarm').catch(() => {});
+
+    const script: DialogueLine[] = [
+      {
+        speaker: 'UNCLE PO (DRAGON HEAD IN ICU)',
+        speakerColor: '#38bdf8',
+        text: "Wei Shen... Winston is dead, Dogeyes is gone... but Big Smile Lee wants it all. If I die, the Sun On Yee burns. Protect the dragon seat.",
+        audioKey: 'uncle_po_hospital_plea',
+        durationSec: 6.5,
+        cameraEye: [-9.5, 1.8, 16.5],
+        cameraTarget: [-8.0, 1.3, 15.0]
+      },
+      {
+        speaker: 'SUPERINTENDENT PENDREW',
+        speakerColor: '#facc15',
+        text: "Shen, Lee's hit squads have infiltrated the hospital disguised as medical staff. If Uncle Po dies today, an all-out gang war will tear Hong Kong apart. Put them down.",
+        audioKey: 'pendrew_hospital_arrival',
+        durationSec: 6.0,
+        cameraEye: [-7.8, 1.9, 17.5],
+        cameraTarget: [-6.5, 1.5, 16.5]
+      },
+      {
+        speaker: 'WEI SHEN',
+        speakerColor: '#facc15',
+        text: "Nobody touches Uncle Po while I'm breathing. Stand back.",
+        durationSec: 3.5,
+        cameraEye: [-6.2, 1.7, 14.5],
+        cameraTarget: [-8.0, 1.4, 15.0]
+      }
+    ];
+
+    this.playCutscene(script, cameraController, audioEngine, () => {
+      this.triggerHospitalICUDefense(cameraController, audioEngine, sceneGraph, crowdSystem);
+    });
+  }
+
+  public triggerHospitalICUDefense(
+    cameraController: CameraController,
+    audioEngine: AudioEngine,
+    sceneGraph: SceneGraph,
+    crowdSystem: CrowdSystem
+  ): void {
+    this.stage = 'ch3_hospital_defense_firefight';
+    this.endCutscene(cameraController);
+
+    audioEngine.playTrack('hospital_icu_alarm').catch(() => {});
+    audioEngine.playTrack('rifle_assault_fire').catch(() => {});
+
+    this.updateHUD(
+      'MISSION 15: CIVIL WAR — HOSPITAL DEFENSE',
+      `⚔️ Protect Uncle Po in ICU! Eliminate Big Smile Lee Assassins (${this.thugsDefeated}/${this.thugsTotal})! [Press G for Handgun / Counters: E]`
+    );
+
+    if (this.actionPrompt) {
+      this.actionPrompt.style.display = 'block';
+      this.actionPrompt.textContent = '🏥 HOSPITAL DEFENSE! PROTECT UNCLE PO IN ICU • ELIMINATE ASSASSINS 🏥';
+      this.actionPrompt.style.background = 'rgba(239, 68, 68, 0.95)';
+      setTimeout(() => {
+        if (this.actionPrompt) this.actionPrompt.style.display = 'none';
+      }, 4000);
+    }
+  }
+
+  public completeHospitalDefense(cameraController: CameraController, audioEngine: AudioEngine): void {
+    this.stage = 'ch3_hospital_completed';
+    this.endCutscene(cameraController);
+
+    audioEngine.playTrack('mission_fanfare').catch(() => {});
+
+    this.updateHUD(
+      'MISSION 15 COMPLETED: CIVIL WAR / HOSPITAL DEFENSE',
+      '🏆 UNCLE PO SECURED • BIG SMILE LEE HIT SQUAD DEFEATED • COP SCORE +600 • TRIAD SCORE +600'
+    );
+
+    if (this.actionPrompt) {
+      this.actionPrompt.style.display = 'block';
+      this.actionPrompt.textContent = '🏆 MISSION 15 COMPLETED • PROCEED TO MOUNT DAVIS CEMETERY: THE FUNERAL 🏆';
+      this.actionPrompt.style.background = 'rgba(34, 197, 94, 0.95)';
+      setTimeout(() => {
+        if (this.actionPrompt) this.actionPrompt.style.display = 'none';
+      }, 5000);
+    }
+  }
+
+  /**
+   * Chapter 3 Mission 16: "The Funeral"
+   * Mount Davis Cemetery Ambush
+   */
+  public startMission16TheFuneral(
+    sceneGraph: SceneGraph,
+    crowdSystem: CrowdSystem,
+    cameraController: CameraController,
+    audioEngine: AudioEngine
+  ): void {
+    this.stage = 'ch3_funeral_cemetery_eulogy';
+    this.thugsDefeated = 0;
+    this.thugsTotal = 3;
+
+    crowdSystem.spawnCemeteryFuneralCast(sceneGraph);
+    audioEngine.playTrack('funeral_cemetery_bell').catch(() => {});
+
+    const script: DialogueLine[] = [
+      {
+        speaker: 'BROKEN NOSE JIANG',
+        speakerColor: '#38bdf8',
+        text: "We bury our brothers with honor. Uncle Po held the Sun On Yee together for thirty years. May his spirit find peace in the ancestors' halls.",
+        audioKey: 'jiang_funeral_speech',
+        durationSec: 6.0,
+        cameraEye: [26.5, 1.8, -33.5],
+        cameraTarget: [25.0, 1.5, -35.0]
+      },
+      {
+        speaker: 'JACKIE MA',
+        speakerColor: '#fbbf24',
+        text: "Wei! On the ridge! Gunmen in the trees! It's Big Smile Lee's crew! Take cover!!",
+        audioKey: 'jackie_funeral_warning',
+        durationSec: 4.5,
+        cameraEye: [24.8, 1.8, -34.8],
+        cameraTarget: [23.5, 1.4, -36.2]
+      }
+    ];
+
+    this.playCutscene(script, cameraController, audioEngine, () => {
+      this.triggerCemeteryAmbushFirefight(cameraController, audioEngine, sceneGraph, crowdSystem);
+    });
+  }
+
+  public triggerCemeteryAmbushFirefight(
+    cameraController: CameraController,
+    audioEngine: AudioEngine,
+    sceneGraph: SceneGraph,
+    crowdSystem: CrowdSystem
+  ): void {
+    this.stage = 'ch3_funeral_ambush_firefight';
+    this.endCutscene(cameraController);
+
+    audioEngine.playTrack('sniper_rifle_shot').catch(() => {});
+    audioEngine.playTrack('rifle_assault_fire').catch(() => {});
+
+    this.updateHUD(
+      'MISSION 16: THE FUNERAL — CEMETERY AMBUSH',
+      `⚔️ Repel Ambush & Protect Broken Nose Jiang (${this.thugsDefeated}/${this.thugsTotal})! [Press G for Handgun / Counters: E]`
+    );
+
+    if (this.actionPrompt) {
+      this.actionPrompt.style.display = 'block';
+      this.actionPrompt.textContent = '⚰️ CEMETERY AMBUSH! PROTECT JIANG • ELIMINATE SNIPERS & GUNMEN ⚰️';
+      this.actionPrompt.style.background = 'rgba(239, 68, 68, 0.95)';
+      setTimeout(() => {
+        if (this.actionPrompt) this.actionPrompt.style.display = 'none';
+      }, 4000);
+    }
+  }
+
+  public completeFuneralAmbush(cameraController: CameraController, audioEngine: AudioEngine): void {
+    this.stage = 'ch3_funeral_completed';
+    this.endCutscene(cameraController);
+
+    audioEngine.playTrack('mission_fanfare').catch(() => {});
+
+    this.updateHUD(
+      'MISSION 16 COMPLETED: THE FUNERAL',
+      '🏆 CEMETERY AMBUSH REPELLED • JACKIE MA ABDUCTED • TRIAD SCORE +650 • COP SCORE +600'
+    );
+
+    if (this.actionPrompt) {
+      this.actionPrompt.style.display = 'block';
+      this.actionPrompt.textContent = '⚠️ JACKIE MA ABDUCTED! TRACK HIM TO KENNEDY TOWN SLAUGHTERHOUSE ⚠️';
+      this.actionPrompt.style.background = 'rgba(239, 68, 68, 0.95)';
+      setTimeout(() => {
+        if (this.actionPrompt) this.actionPrompt.style.display = 'none';
+      }, 5000);
+    }
+  }
+
+  /**
+   * Chapter 3 Mission 17: "The Kidnapping of Jackie Ma"
+   * Kennedy Town Slaughterhouse Infiltration & Dual-Cleaver Mr. Tong Duel
+   */
+  public startMission17KidnappingJackieMa(
+    sceneGraph: SceneGraph,
+    crowdSystem: CrowdSystem,
+    cameraController: CameraController,
+    audioEngine: AudioEngine
+  ): void {
+    this.stage = 'ch3_slaughterhouse_infiltrate';
+    this.thugsDefeated = 0;
+    this.thugsTotal = 3;
+
+    crowdSystem.spawnSlaughterhouseCast(sceneGraph);
+    audioEngine.playTrack('slaughterhouse_hook_rattle').catch(() => {});
+
+    const script: DialogueLine[] = [
+      {
+        speaker: 'MR. TONG (SLAUGHTERHOUSE ENFORCER)',
+        speakerColor: '#ef4444',
+        text: "Well, well. Wei Shen, the legendary cop who thinks he's a dragon. Your little friend Jackie sang like a canary before we broke his fingers. You won't leave this meat locker alive.",
+        audioKey: 'mr_tong_torture_threat',
+        durationSec: 6.5,
+        cameraEye: [-19.2, 1.8, -24.5],
+        cameraTarget: [-20.5, 1.5, -26.0]
+      },
+      {
+        speaker: 'WEI SHEN',
+        speakerColor: '#facc15',
+        text: "Tong, you butcher. You touch one more hair on Jackie's head, and I'll hang you from your own meat hooks.",
+        durationSec: 4.5,
+        cameraEye: [-21.8, 1.7, -25.0],
+        cameraTarget: [-20.5, 1.5, -26.0]
+      }
+    ];
+
+    this.playCutscene(script, cameraController, audioEngine, () => {
+      this.triggerSlaughterhouseCleaverBrawl(cameraController, audioEngine, sceneGraph, crowdSystem);
+    });
+  }
+
+  public triggerSlaughterhouseCleaverBrawl(
+    cameraController: CameraController,
+    audioEngine: AudioEngine,
+    sceneGraph: SceneGraph,
+    crowdSystem: CrowdSystem
+  ): void {
+    this.stage = 'ch3_slaughterhouse_cleaver_brawl';
+    this.endCutscene(cameraController);
+
+    audioEngine.playTrack('cleaver_steel_clash').catch(() => {});
+    audioEngine.playTrack('machete_blade_slash').catch(() => {});
+
+    this.updateHUD(
+      'MISSION 17: SLAUGHTERHOUSE — CLEAVER DUEL',
+      `🥩 Defeat Butchers & Dual-Cleaver Mr. Tong (${this.thugsDefeated}/${this.thugsTotal})! [Press G for Handgun / Heavy Kick: Q]`
+    );
+
+    if (this.actionPrompt) {
+      this.actionPrompt.style.display = 'block';
+      this.actionPrompt.textContent = '🔪 BOSS FIGHT: MR. TONG DUAL-CLEAVER DUEL • MEAT LOCKER BRAWL 🔪';
+      this.actionPrompt.style.background = 'rgba(239, 68, 68, 0.95)';
+      setTimeout(() => {
+        if (this.actionPrompt) this.actionPrompt.style.display = 'none';
+      }, 4000);
+    }
+  }
+
+  public discoverJackieMaMeatLocker(cameraController: CameraController, audioEngine: AudioEngine): void {
+    this.stage = 'ch3_slaughterhouse_jackie_tragedy';
+
+    audioEngine.playTrack('slaughterhouse_hook_rattle').catch(() => {});
+
+    const script: DialogueLine[] = [
+      {
+        speaker: 'JACKIE MA (DYING)',
+        speakerColor: '#fbbf24',
+        text: "Wei... you came for me... I'm sorry, man... I tried to be strong... Big Smile Lee... he's at the Aberdeen harbor compound... Finish him... For North Point...",
+        audioKey: 'jackie_dying_whisper',
+        durationSec: 6.5,
+        cameraEye: [-23.2, 1.2, -27.0],
+        cameraTarget: [-22.0, 0.7, -28.0]
+      },
+      {
+        speaker: 'WEI SHEN',
+        speakerColor: '#facc15',
+        text: "Jackie! No, no, stay with me, brother! Rest now, Jackie. I swear to you, Big Smile Lee will pay for every drop of blood.",
+        durationSec: 5.0,
+        cameraEye: [-21.0, 1.4, -28.5],
+        cameraTarget: [-22.0, 0.7, -28.0]
+      }
+    ];
+
+    this.playCutscene(script, cameraController, audioEngine, () => {
+      this.stage = 'ch3_slaughterhouse_completed';
+      this.endCutscene(cameraController);
+
+      audioEngine.playTrack('mission_fanfare').catch(() => {});
+
+      this.updateHUD(
+        'MISSION 17 COMPLETED: THE KIDNAPPING OF JACKIE MA',
+        '🏆 MR. TONG ELIMINATED • JACKIE AVENGED • GRAND FINALE: BIG SMILE LEE COMPOUND UNLOCKED'
+      );
+
+      if (this.actionPrompt) {
+        this.actionPrompt.style.display = 'block';
+        this.actionPrompt.textContent = '🏆 MISSION 17 COMPLETED • STORM BIG SMILE LEE\'S WATERFRONT HARBOR COMPOUND 🏆';
+        this.actionPrompt.style.background = 'rgba(239, 68, 68, 0.95)';
+        setTimeout(() => {
+          if (this.actionPrompt) this.actionPrompt.style.display = 'none';
+        }, 5000);
+      }
+    });
+  }
+
+  /**
+   * Chapter 3 Grand Finale: Mission 18 ("Big Smile Lee")
+   * Compound Assault, Container Crane Duel & Grand Campaign Climax
+   */
+  public startMission18BigSmileLeeFinale(
+    sceneGraph: SceneGraph,
+    crowdSystem: CrowdSystem,
+    cameraController: CameraController,
+    audioEngine: AudioEngine
+  ): void {
+    this.stage = 'ch3_grand_finale_compound_breach';
+    this.thugsDefeated = 0;
+    this.thugsTotal = 3;
+
+    crowdSystem.spawnBigSmileLeeCompoundCast(sceneGraph);
+    audioEngine.playTrack('big_smile_lee_climax_music').catch(() => {});
+    audioEngine.playTrack('harbor_crane_roar').catch(() => {});
+
+    const script: DialogueLine[] = [
+      {
+        speaker: 'BIG SMILE LEE (TRIAD CONSPIRATOR)',
+        speakerColor: '#ef4444',
+        text: "Wei Shen! The rat who poisoned Uncle Po and buried Winston! You think you can stop me? I own the docks, I own the police, and tonight I take the entire Sun On Yee!",
+        audioKey: 'big_smile_lee_dock_taunt',
+        durationSec: 6.5,
+        cameraEye: [38.5, 2.0, 46.5],
+        cameraTarget: [40.0, 1.5, 48.0]
+      },
+      {
+        speaker: 'WEI SHEN',
+        speakerColor: '#facc15',
+        text: "Your empire burns with you, Lee. You killed Winston. You killed Peggy. You killed Jackie. This is for my brothers.",
+        durationSec: 5.0,
+        cameraEye: [41.5, 1.8, 49.5],
+        cameraTarget: [40.0, 1.5, 48.0]
+      }
+    ];
+
+    this.playCutscene(script, cameraController, audioEngine, () => {
+      this.triggerContainerCraneClimax(cameraController, audioEngine, sceneGraph, crowdSystem);
+    });
+  }
+
+  public triggerContainerCraneClimax(
+    cameraController: CameraController,
+    audioEngine: AudioEngine,
+    sceneGraph: SceneGraph,
+    crowdSystem: CrowdSystem
+  ): void {
+    this.stage = 'ch3_grand_finale_crane_boss_fight';
+    this.endCutscene(cameraController);
+
+    audioEngine.playTrack('big_smile_lee_climax_music').catch(() => {});
+    audioEngine.playTrack('industrial_crusher_smash').catch(() => {});
+
+    this.updateHUD(
+      'MISSION 18: GRAND FINALE — BIG SMILE LEE CRANE CLIMAX',
+      `⚓ FINAL CLIMAX: Defeat Big Smile Lee & Personal Guards (${this.thugsDefeated}/${this.thugsTotal})! [Press G for Handgun / Heavy Kick: Q]`
+    );
+
+    if (this.actionPrompt) {
+      this.actionPrompt.style.display = 'block';
+      this.actionPrompt.textContent = '⚓ GRAND FINALE: BIG SMILE LEE BOSS SHOWDOWN (500 HP) • HARBOR CRANE DUEL ⚓';
+      this.actionPrompt.style.background = 'rgba(239, 68, 68, 0.95)';
+      setTimeout(() => {
+        if (this.actionPrompt) this.actionPrompt.style.display = 'none';
+      }, 4000);
+    }
+  }
+
+  public completeBigSmileLeeCraneShowdown(cameraController: CameraController, audioEngine: AudioEngine): void {
+    this.stage = 'ch3_grand_finale_victory_cinematic';
+
+    audioEngine.playTrack('industrial_crusher_smash').catch(() => {});
+
+    const script: DialogueLine[] = [
+      {
+        speaker: 'BIG SMILE LEE (CRANE PLATFORM)',
+        speakerColor: '#ef4444',
+        text: "Wait... Shen! You're a cop... cops don't throw men into industrial crushers! You're breaking your oath!!",
+        audioKey: 'big_smile_lee_final_words',
+        durationSec: 6.0,
+        cameraEye: [39.0, 1.4, 47.0],
+        cameraTarget: [40.0, 0.8, 48.0]
+      },
+      {
+        speaker: 'WEI SHEN',
+        speakerColor: '#facc15',
+        text: "I am a Sun On Yee Dragon Head. And your reign ends now.",
+        durationSec: 4.5,
+        cameraEye: [41.2, 1.7, 49.0],
+        cameraTarget: [40.0, 0.8, 48.0]
+      },
+      {
+        speaker: 'INSPECTOR JANE TENG',
+        speakerColor: '#38bdf8',
+        text: "Wei Shen. Big Smile Lee's faction has surrendered across Hong Kong. Pendrew and the Commissioner have signed your full pardon. Your undercover record is permanently sealed. You're free.",
+        audioKey: 'pendrew_teng_epilogue',
+        durationSec: 7.0,
+        cameraEye: [38.2, 1.8, 50.2],
+        cameraTarget: [37.0, 1.5, 51.5]
+      }
+    ];
+
+    this.playCutscene(script, cameraController, audioEngine, () => {
+      this.completeGrandCampaignVictory(cameraController, audioEngine);
+    });
+  }
+
+  public completeGrandCampaignVictory(cameraController: CameraController, audioEngine: AudioEngine): void {
+    this.stage = 'campaign_grand_victory_completed';
+    this.endCutscene(cameraController);
+
+    audioEngine.playTrack('campaign_grand_victory').catch(() => {});
+
+    this.updateHUD(
+      '🏆 SLEEPING DOGS: DEFINITIVE EDITION — 100% CAMPAIGN COMPLETED 🏆',
+      '👑 SUN ON YEE DRAGON HEAD RESTORED • UNDERCOVER IDENTITY SEALED • HONG KONG PEACE PRESERVED 👑'
+    );
+
+    if (this.actionPrompt) {
+      this.actionPrompt.style.display = 'block';
+      this.actionPrompt.textContent = '🌟 CAMPAIGN 100% COMPLETED • ALL 18 CANONICAL MISSIONS TRIUMPHANTLY VERIFIED 🌟';
+      this.actionPrompt.style.background = 'linear-gradient(90deg, #eab308, #3b82f6, #22c55e)';
+      this.actionPrompt.style.color = '#000';
+      this.actionPrompt.style.fontWeight = '800';
+      setTimeout(() => {
+        if (this.actionPrompt) this.actionPrompt.style.display = 'none';
+      }, 10000);
+    }
+  }
+
   /**
    * Cutscene Player & Timeline Engine
    */
@@ -2547,6 +3003,62 @@ export class CampaignStoryEngine {
           this.completeDogeyesYachtShowdown(cameraController, audioEngine);
         }, 1200);
       }
+    } else if (this.stage === 'ch3_hospital_defense_firefight') {
+      this.thugsDefeated++;
+      combatSystem.triadScore += 400;
+      combatSystem.policeScore += 400;
+      this.updateHUD(
+        'MISSION 15: CIVIL WAR — HOSPITAL DEFENSE',
+        `⚔️ Protect Uncle Po in ICU! Eliminate Big Smile Lee Assassins (${this.thugsDefeated}/${this.thugsTotal})!`
+      );
+
+      if (this.thugsDefeated >= this.thugsTotal) {
+        setTimeout(() => {
+          this.completeHospitalDefense(cameraController, audioEngine);
+        }, 1200);
+      }
+    } else if (this.stage === 'ch3_funeral_ambush_firefight') {
+      this.thugsDefeated++;
+      combatSystem.triadScore += 450;
+      combatSystem.policeScore += 400;
+      this.updateHUD(
+        'MISSION 16: THE FUNERAL — CEMETERY AMBUSH',
+        `⚔️ Repel Ambush & Protect Broken Nose Jiang (${this.thugsDefeated}/${this.thugsTotal})!`
+      );
+
+      if (this.thugsDefeated >= this.thugsTotal) {
+        setTimeout(() => {
+          this.completeFuneralAmbush(cameraController, audioEngine);
+        }, 1200);
+      }
+    } else if (this.stage === 'ch3_slaughterhouse_cleaver_brawl') {
+      this.thugsDefeated++;
+      combatSystem.triadScore += 500;
+      combatSystem.policeScore += 300;
+      this.updateHUD(
+        'MISSION 17: SLAUGHTERHOUSE — CLEAVER DUEL',
+        `🥩 Defeat Butchers & Dual-Cleaver Mr. Tong (${this.thugsDefeated}/${this.thugsTotal})!`
+      );
+
+      if (this.thugsDefeated >= this.thugsTotal) {
+        setTimeout(() => {
+          this.discoverJackieMaMeatLocker(cameraController, audioEngine);
+        }, 1200);
+      }
+    } else if (this.stage === 'ch3_grand_finale_crane_boss_fight') {
+      this.thugsDefeated++;
+      combatSystem.triadScore += 1000;
+      combatSystem.policeScore += 1000;
+      this.updateHUD(
+        'MISSION 18: GRAND FINALE — BIG SMILE LEE CRANE CLIMAX',
+        `⚓ FINAL CLIMAX: Defeat Big Smile Lee & Personal Guards (${this.thugsDefeated}/${this.thugsTotal})!`
+      );
+
+      if (this.thugsDefeated >= this.thugsTotal) {
+        setTimeout(() => {
+          this.completeBigSmileLeeCraneShowdown(cameraController, audioEngine);
+        }, 1200);
+      }
     }
   }
 
@@ -2585,6 +3097,10 @@ export class CampaignStoryEngine {
     if (this.stage === 'ch2_mrs_chu_hunt_ratface' || this.stage === 'ch2_mrs_chu_ratface_brawl') return [8.5, -16.0];
     if (this.stage === 'ch2_new_boss_central_drive' || this.stage === 'ch2_new_boss_council_meeting') return [-15.0, -8.0];
     if (this.stage === 'ch2_election_yacht_pursuit' || this.stage === 'ch2_election_dogeyes_boss_fight') return [32.0, 46.0];
+    if (this.stage === 'ch3_hospital_icu_briefing' || this.stage === 'ch3_hospital_defense_firefight') return [-8.0, 15.0];
+    if (this.stage === 'ch3_funeral_cemetery_eulogy' || this.stage === 'ch3_funeral_ambush_firefight') return [25.0, -35.0];
+    if (this.stage === 'ch3_slaughterhouse_infiltrate' || this.stage === 'ch3_slaughterhouse_cleaver_brawl') return [-22.0, -28.0];
+    if (this.stage === 'ch3_grand_finale_compound_breach' || this.stage === 'ch3_grand_finale_crane_boss_fight') return [40.0, 48.0];
     return null;
   }
 

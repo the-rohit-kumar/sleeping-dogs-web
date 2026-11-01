@@ -501,7 +501,33 @@ window.addEventListener('DOMContentLoaded', async () => {
         } else if (campaignStory.stage === 'ch2_election_dogeyes_defeated') {
             campaignStory.completeChapter2(cameraController, audioEngine);
         } else if (campaignStory.stage === 'ch2_chapter2_completed') {
-            campaignStory.startPrologueCinematic(renderer.sceneGraph, crowdSystem, cameraController, audioEngine);
+            campaignStory.startMission15CivilWarHospital(renderer.sceneGraph!, crowdSystem, cameraController, audioEngine);
+        } else if (campaignStory.stage === 'ch3_hospital_icu_briefing') {
+            campaignStory.triggerHospitalICUDefense(cameraController, audioEngine, renderer.sceneGraph!, crowdSystem);
+        } else if (campaignStory.stage === 'ch3_hospital_defense_firefight') {
+            campaignStory.completeHospitalDefense(cameraController, audioEngine);
+        } else if (campaignStory.stage === 'ch3_hospital_completed') {
+            campaignStory.startMission16TheFuneral(renderer.sceneGraph!, crowdSystem, cameraController, audioEngine);
+        } else if (campaignStory.stage === 'ch3_funeral_cemetery_eulogy') {
+            campaignStory.triggerCemeteryAmbushFirefight(cameraController, audioEngine, renderer.sceneGraph!, crowdSystem);
+        } else if (campaignStory.stage === 'ch3_funeral_ambush_firefight') {
+            campaignStory.completeFuneralAmbush(cameraController, audioEngine);
+        } else if (campaignStory.stage === 'ch3_funeral_completed') {
+            campaignStory.startMission17KidnappingJackieMa(renderer.sceneGraph!, crowdSystem, cameraController, audioEngine);
+        } else if (campaignStory.stage === 'ch3_slaughterhouse_infiltrate') {
+            campaignStory.triggerSlaughterhouseCleaverBrawl(cameraController, audioEngine, renderer.sceneGraph!, crowdSystem);
+        } else if (campaignStory.stage === 'ch3_slaughterhouse_cleaver_brawl') {
+            campaignStory.discoverJackieMaMeatLocker(cameraController, audioEngine);
+        } else if (campaignStory.stage === 'ch3_slaughterhouse_completed' || campaignStory.stage === 'ch3_slaughterhouse_jackie_tragedy') {
+            campaignStory.startMission18BigSmileLeeFinale(renderer.sceneGraph!, crowdSystem, cameraController, audioEngine);
+        } else if (campaignStory.stage === 'ch3_grand_finale_compound_breach') {
+            campaignStory.triggerContainerCraneClimax(cameraController, audioEngine, renderer.sceneGraph!, crowdSystem);
+        } else if (campaignStory.stage === 'ch3_grand_finale_crane_boss_fight') {
+            campaignStory.completeBigSmileLeeCraneShowdown(cameraController, audioEngine);
+        } else if (campaignStory.stage === 'ch3_grand_finale_victory_cinematic') {
+            campaignStory.completeGrandCampaignVictory(cameraController, audioEngine);
+        } else if (campaignStory.stage === 'campaign_grand_victory_completed') {
+            campaignStory.startPrologueCinematic(renderer.sceneGraph!, crowdSystem, cameraController, audioEngine);
         } else {
             campaignStory.startPrologueCinematic(renderer.sceneGraph, crowdSystem, cameraController, audioEngine);
         }
@@ -870,8 +896,17 @@ window.addEventListener('DOMContentLoaded', async () => {
                 campaignStory.startMission12MrsChusRevenge(renderer.sceneGraph!, crowdSystem, cameraController, audioEngine);
                 return;
             } else if (campaignStory.stage === 'ch2_mrs_chu_hunt_ratface') {
-                campaignStory.cornerJohnnyRatface(cameraController, audioEngine, renderer.sceneGraph!, crowdSystem);
-                return;
+                const distToAlley = Math.hypot(characterController.position[0] - 8.5, characterController.position[2] - (-16.0));
+                if (distToAlley <= 8.5) {
+                    campaignStory.cornerJohnnyRatface(cameraController, audioEngine, renderer.sceneGraph!, crowdSystem);
+                    return;
+                } else {
+                    actionPrompt.style.display = 'block';
+                    actionPrompt.textContent = `📍 HEAD TO TENEMENT ALLEY [8.5, -16.0] TO CORNER RATFACE (${distToAlley.toFixed(0)}m AWAY)`;
+                    actionPrompt.style.background = '#eab308';
+                    setTimeout(() => actionPrompt.style.display = 'none', 1500);
+                    return;
+                }
             } else if (campaignStory.stage === 'ch2_mrs_chu_completed') {
                 campaignStory.startMission13MeetTheNewBoss(renderer.sceneGraph!, crowdSystem, cameraController, audioEngine);
                 return;
@@ -880,6 +915,21 @@ window.addEventListener('DOMContentLoaded', async () => {
                 return;
             } else if (campaignStory.stage === 'ch2_election_dogeyes_defeated') {
                 campaignStory.completeChapter2(cameraController, audioEngine);
+                return;
+            } else if (campaignStory.stage === 'ch2_chapter2_completed') {
+                campaignStory.startMission15CivilWarHospital(renderer.sceneGraph!, crowdSystem, cameraController, audioEngine);
+                return;
+            } else if (campaignStory.stage === 'ch3_hospital_completed') {
+                campaignStory.startMission16TheFuneral(renderer.sceneGraph!, crowdSystem, cameraController, audioEngine);
+                return;
+            } else if (campaignStory.stage === 'ch3_funeral_completed') {
+                campaignStory.startMission17KidnappingJackieMa(renderer.sceneGraph!, crowdSystem, cameraController, audioEngine);
+                return;
+            } else if (campaignStory.stage === 'ch3_slaughterhouse_completed') {
+                campaignStory.startMission18BigSmileLeeFinale(renderer.sceneGraph!, crowdSystem, cameraController, audioEngine);
+                return;
+            } else if (campaignStory.stage === 'ch3_grand_finale_victory_cinematic') {
+                campaignStory.completeGrandCampaignVictory(cameraController, audioEngine);
                 return;
             }
             if (vehicleController.canInteract(characterController.position) || vehicleController.isOccupied) {

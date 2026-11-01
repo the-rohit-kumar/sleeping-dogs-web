@@ -644,6 +644,177 @@ export const AUTHENTIC_TRACKS: Record<string, AudioTrackInfo> = {
     sampleRate: 48000,
     channels: 1,
     isLoop: false
+  },
+  big_smile_lee_climax_music: {
+    id: 'big_smile_lee_climax_music',
+    name: 'Big Smile Lee Climax Battle Theme',
+    source: 'SFX.pck (Stream 16512a7b @ 0x16512a7b)',
+    description: 'Grand orchestral boss battle theme for final compound confrontation',
+    sampleRate: 48000,
+    channels: 2,
+    isLoop: false
+  },
+  funeral_cemetery_bell: {
+    id: 'funeral_cemetery_bell',
+    name: 'Mount Davis Cemetery Funeral Bell',
+    source: 'SFX.pck (Stream 0985d257 @ 0x0985d257)',
+    description: 'Somber cemetery tolling bell and funeral rain atmosphere',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  hospital_icu_alarm: {
+    id: 'hospital_icu_alarm',
+    name: 'Queen Mary Hospital ICU Distress Alarm',
+    source: 'SFX.pck (Stream 0986b230 @ 0x0986b230)',
+    description: 'Urgent medical telemetry distress alarm and klaxon in intensive care',
+    sampleRate: 48000,
+    channels: 2,
+    isLoop: false
+  },
+  rifle_assault_fire: {
+    id: 'rifle_assault_fire',
+    name: 'Automatic Assault Rifle Burst',
+    source: 'SFX.pck (Stream 19325c91 @ 0x19325c91)',
+    description: 'High-cyclic automatic rifle fire burst along hospital corridors',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  sniper_rifle_shot: {
+    id: 'sniper_rifle_shot',
+    name: 'Cemetery Sniper Rifle Shot & Echo',
+    source: 'SFX.pck (Stream 3c031219 @ 0x3c031219)',
+    description: 'High-caliber rifle crack and bullet ricochet across Mount Davis tombstones',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  slaughterhouse_hook_rattle: {
+    id: 'slaughterhouse_hook_rattle',
+    name: 'Slaughterhouse Meat Hooks & Chains',
+    source: 'SFX.pck (Stream 4dd4cd3f @ 0x4dd4cd3f)',
+    description: 'Chilling metal chain and meat hook resonance in Kennedy Town slaughterhouse',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  cleaver_steel_clash: {
+    id: 'cleaver_steel_clash',
+    name: 'Mr. Tong Cleaver Blade Clash',
+    source: 'SFX.pck (Stream 7ae2a4ea @ 0x7ae2a4ea)',
+    description: 'Hardened steel cleaver clash and sparks during icehouse duel',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  harbor_crane_roar: {
+    id: 'harbor_crane_roar',
+    name: 'Container Terminal Crane Mechanical Roar',
+    source: 'SFX.pck (Stream 0d528ab2 @ 0x0d528ab2)',
+    description: 'Heavy industrial harbor crane diesel winch and cable groans',
+    sampleRate: 48000,
+    channels: 2,
+    isLoop: false
+  },
+  industrial_crusher_smash: {
+    id: 'industrial_crusher_smash',
+    name: 'Industrial Compaction Crusher Smash',
+    source: 'SFX.pck (Stream 55454af6 @ 0x55454af6)',
+    description: 'Lethal compaction crusher impact crushing shipping containers',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  campaign_grand_victory: {
+    id: 'campaign_grand_victory',
+    name: 'Sleeping Dogs Grand Campaign Victory Fanfare',
+    source: 'SFX.pck (Stream 0984a0ab @ 0x0984a0ab)',
+    description: 'Triumphant symphonic brass finale celebrating Sun On Yee victory and case closed',
+    sampleRate: 48000,
+    channels: 2,
+    isLoop: false
+  },
+  uncle_po_hospital_plea: {
+    id: 'uncle_po_hospital_plea',
+    name: 'Uncle Po Hospital Bed Succession Words',
+    source: 'English(US).pck (Stream 19904a03 @ 0x19904a03)',
+    description: 'Uncle Po dying in Queen Mary hospital naming Wei Shen to protect the triad',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  pendrew_hospital_arrival: {
+    id: 'pendrew_hospital_arrival',
+    name: 'Superintendent Pendrew Hospital Warning',
+    source: 'English(US).pck (Stream 1990e7a5 @ 0x1990e7a5)',
+    description: 'Pendrew confronts Wei in the hospital corridor warning him of full-scale civil war',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  jiang_funeral_speech: {
+    id: 'jiang_funeral_speech',
+    name: 'Broken Nose Jiang Cemetery Eulogy',
+    source: 'English(US).pck (Stream 1991aa67 @ 0x1991aa67)',
+    description: 'Broken Nose Jiang delivers Uncle Po funeral address standing by the grave',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  jackie_funeral_warning: {
+    id: 'jackie_funeral_warning',
+    name: 'Jackie Ma Ambush Warning',
+    source: 'English(US).pck (Stream 19924c3b @ 0x19924c3b)',
+    description: 'Jackie Ma spots Big Smile Lee snipers on the ridge and alerts Wei Shen',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  mr_tong_torture_threat: {
+    id: 'mr_tong_torture_threat',
+    name: 'Mr. Tong Slaughterhouse Threat',
+    source: 'English(US).pck (Stream 19943bdc @ 0x19943bdc)',
+    description: 'Mr. Tong taunts Wei Shen inside the Kennedy Town slaughterhouse ice locker',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  jackie_dying_whisper: {
+    id: 'jackie_dying_whisper',
+    name: 'Jackie Ma Tragic Final Words',
+    source: 'English(US).pck (Stream 1994aebc @ 0x1994aebc)',
+    description: 'Jackie Ma dying in Wei Shen arms, whispering his gratitude and brotherly love',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  big_smile_lee_dock_taunt: {
+    id: 'big_smile_lee_dock_taunt',
+    name: 'Big Smile Lee Waterfront Confrontation',
+    source: 'English(US).pck (Stream 19964442 @ 0x19964442)',
+    description: 'Big Smile Lee at the burning container terminal challenging Wei Shen to final duel',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  big_smile_lee_final_words: {
+    id: 'big_smile_lee_final_words',
+    name: 'Big Smile Lee Crane Climax Defeat',
+    source: 'English(US).pck (Stream 1997a244 @ 0x1997a244)',
+    description: 'Big Smile Lee defeated on the harbor crane platform facing the industrial crusher',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  pendrew_teng_epilogue: {
+    id: 'pendrew_teng_epilogue',
+    name: 'Jane Teng & Pendrew Epilogue: Case Closed',
+    source: 'English(US).pck (Stream 19980156 @ 0x19980156)',
+    description: 'Inspector Jane Teng confirms Big Smile Lee syndicate dismantled and Wei record cleared',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
   }
 };
 

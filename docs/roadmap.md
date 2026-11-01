@@ -22,7 +22,8 @@ flowchart LR
     M9 --> M10["Milestone 10: Wet Asphalt Reflections<br/>(Done)"]
     M10 --> CH1["Chapter 1: North Point & Initiation<br/>Missions 0–10 (100% Done)"]
     CH1 --> CH2["Chapter 2: Central District & Politics<br/>Missions 11–14 (100% Done)"]
-    CH2 --> CH3["Upcoming: Chapter 3 Kennedy Town<br/>Missions 15–18 (Next)"]
+    CH2 --> CH3["Chapter 3: Kennedy Town & Triad War<br/>Missions 15–18 (100% Done)"]
+    CH3 --> FIN["Grand Campaign Finale<br/>100% Reconstructed!"]
 ```
 
 ---
@@ -430,6 +431,17 @@ flowchart LR
     - `03_mission12_mrs_chu_ratface_interrogation.png`
     - `04_mission13_central_council_meeting.png`
     - `05_mission14_dogeyes_yacht_showdown_victory.png`
+- [X] **Chapter 2 Edge-Case & Stress-Test Suite Verified (`tools/verify_chapter2_edge_cases.js`)**:
+  - Verified 8 mission and subsystem edge cases:
+    1. Banquet hitmen combat progression & friendly NPC immunity
+    2. Winston dying cutscene rapid skipping & letterbox teardown
+    3. Tenement alley distance validation for cornering Johnny Ratface (denied when >8.5m away, permitted within 8.5m)
+    4. Ratface interrogation dialogue & delivery to Mrs. Chu
+    5. Central council multi-party dialogue sequencing & alliance
+    6. Dogeyes boss (350 HP) damage absorption, stagger, and defeat
+    7. Player defeat & hospital recovery checkpoint respawn at Aberdeen Marina
+    8. Red Pole Boss ascension & Chapter 2 finale fanfare integrity
+  - Generated visual verification proof artifact: `06_chapter2_edge_cases_and_stress_verified.png`.
 
 ---
 
@@ -444,11 +456,101 @@ flowchart LR
 
 ---
 
-## Upcoming Chapter: CHAPTER 3 "KENNEDY TOWN / TRIAD WAR & GRAND FINALE"
+## Milestone 20: Chapter 3 Mission 15 ("Civil War / Hospital Defense") (Completed)
 
-### Chapter 3 Overview:
-The explosive climax of Sleeping Dogs: Big Smile Lee launches an all-out civil war to seize absolute power over the Sun On Yee following Uncle Po's hospitalization:
-- **Mission 15: "Civil War / Hospital Defense"** — Protect Uncle Po in Queen Mary Hospital against hit squads sent by Big Smile Lee.
-- **Mission 16: "The Funeral"** — Uncle Po's state funeral at the cemetery; massive 18K ambush and firefight amidst grave markers.
-- **Mission 17: "The Kidnapping of Jackie Ma"** — Desperate hunt through Kennedy Town to rescue Jackie from Mr. Tong's torture den.
-- **Mission 18: "Big Smile Lee (Grand Campaign Finale)"** — Infiltrate Big Smile Lee's compound, icehouse knife duel with Mr. Tong, and final harbor crane showdown with Big Smile Lee.
+- [X] **Queen Mary Hospital ICU Infiltration & Defense**:
+  - Uncle Po in intensive care bed welcoming Wei Shen with final succession plea (`English(US).pck` 0x19904a03).
+  - Superintendent Thomas Pendrew arriving and warning of full-scale civil war (`English(US).pck` 0x1990e7a5).
+  - ICU telemetry distress alarm (`SFX.pck` 0x0986b230) and automatic assault rifle corridor firefight (`SFX.pck` 0x19325c91).
+  - Defeating Big Smile Lee hitmen disguised as hospital orderlies (`crowdSystem.spawnHospitalDefenseCast`).
+
+---
+
+## Milestone 21: Chapter 3 Mission 16 ("The Funeral") (Completed)
+
+- [X] **Mount Davis Cemetery State Funeral & Ambush**:
+  - Somber cemetery funeral bell and rain atmosphere (`SFX.pck` 0x0985d257).
+  - Broken Nose Jiang eulogy at Uncle Po's tombstone (`English(US).pck` 0x1991aa67).
+  - Sudden 18K / Big Smile Lee sniper ridge ambush (`English(US).pck` 0x19924c3b).
+  - High-caliber sniper rifle shots (`SFX.pck` 0x3c031219) and cemetery gunplay defense (`crowdSystem.spawnCemeteryFuneralCast`).
+  - Jackie Ma abducted by Mr. Tong during the gunfire chaos.
+
+---
+
+## Milestone 22: Chapter 3 Mission 17 ("The Kidnapping of Jackie Ma") (Completed)
+
+- [X] **Kennedy Town Slaughterhouse Meat Locker Infiltration**:
+  - Chilling metal meat hooks and chains rattling (`SFX.pck` 0x4dd4cd3f).
+  - Confrontation with dual-cleaver mini-boss Mr. Tong (280 HP) (`English(US).pck` 0x19943bdc).
+  - Hardened steel cleaver duel blade clashes and spark SFX (`SFX.pck` 0x7ae2a4ea, 0x19325c91).
+  - Discovering captive Jackie Ma and his heartbreaking dying words to Wei Shen (`English(US).pck` 0x1994aebc).
+
+---
+
+## Milestone 23: Chapter 3 Grand Campaign Finale — Mission 18 ("Big Smile Lee") (Completed)
+
+- [X] **Waterfront Compound Breach & Harbor Crane Duel**:
+  - Big Smile Lee compound breach with authentic high-tempo battle theme (`SFX.pck` 0x16512a7b, 12.38 MB 48kHz stereo WAV).
+  - Heavy container terminal crane mechanical roar (`SFX.pck` 0x0d528ab2).
+  - Confrontation with Big Smile Lee (500 HP supreme boss) and dragon head guards (`crowdSystem.spawnBigSmileLeeCompoundCast`).
+  - Multi-phase crane deck boss combat with industrial compaction crusher crunch finisher (`SFX.pck` 0x55454af6).
+  - Big Smile Lee defeat dialogue (`English(US).pck` 0x1997a244).
+- [X] **Grand Campaign Epilogue & Victory**:
+  - Inspector Jane Teng epilogue sealing Wei Shen's undercover criminal record and confirming triad surrender (`English(US).pck` 0x19980156).
+  - Grand symphonic finale fanfare celebrating 100% campaign victory (`SFX.pck` 0x0984a0ab).
+  - Transition to `campaign_grand_victory_completed`.
+- [X] **Automated Browser Verification Suite Verified (`tools/verify_chapter3_full.js`)**:
+  - Verified Missions 15, 16, 17, and 18 in headless Chrome with **0 page errors and 0 network failures**.
+  - Generated visual verification proof artifacts:
+    - `01_mission15_hospital_icu_defense.png`
+    - `02_mission16_cemetery_funeral_ambush.png`
+    - `03_mission17_slaughterhouse_cleaver_duel.png`
+    - `04_mission18_big_smile_lee_crane_showdown.png`
+    - `05_campaign_grand_victory_completed.png`
+- [X] **Chapter 3 Edge-Case & Stress-Test Suite Verified (`tools/verify_chapter3_edge_cases.js`)**:
+  - Verified 7 mission and subsystem edge cases:
+    1. Hospital ICU hitmen defeat & Pendrew warning
+    2. Rapid dialogue skip in hospital ICU cutscene
+    3. Mount Davis cemetery funeral eulogy & sniper gunfire defense
+    4. Slaughterhouse dual-cleaver Mr. Tong (280 HP) combat & Jackie tragedy
+    5. Big Smile Lee boss (500 HP) damage absorption, stagger & industrial crusher
+    6. Player defeat & hospital recovery checkpoint respawn at harbor compound
+    7. Grand campaign victory integrity & fanfare
+  - Generated visual verification proof artifact: `07_chapter3_edge_cases_and_stress_verified.png`.
+
+---
+
+## Chapter Summary: CHAPTER 3 "KENNEDY TOWN / TRIAD WAR & GRAND FINALE" — 100% COMPLETE!
+
+| # | Mission Title | Key Mechanics / Assets | Status |
+|---|---|---|---|
+| **15** | **Civil War / Hospital Defense** | Queen Mary ICU, Uncle Po defense, hospital alarm & assault rifle firefight | **Completed** |
+| **16** | **The Funeral** | Mount Davis cemetery bell, Broken Nose Jiang eulogy, sniper counter-fire ambush | **Completed** |
+| **17** | **The Kidnapping of Jackie Ma** | Slaughterhouse meat hooks, dual-cleaver Mr. Tong duel (280 HP), Jackie tragic farewell | **Completed** |
+| **18** | **Big Smile Lee (Grand Finale)** | Harbor compound breach, 12MB climax theme, crane showdown (500 HP boss), industrial crusher, Jane Teng epilogue & grand victory fanfare | **Completed** |
+
+---
+
+## Complete Story Campaign Ledger (All 18 Canonical Missions — 100% Reconstructed)
+
+| # | Chapter & Title | Setting | Deliverables & Verification |
+|---|---|---|---|
+| **0** | **Prologue: Aberdeen Docks** | Aberdeen Docks | Foot chase, vaulting, alley brawling, HKPD arrest |
+| **1** | **Going Under** | HKPD Headquarters | Interrogation room, holding cell brawl with Jackie Ma |
+| **2** | **Vendor Extortion** | North Point Market | Watch/drink vendor shakedown, 18K alley ambush |
+| **3** | **Night Market Chase** | North Point Market | Dirty Ming sprint, rooftop parkour, balcony knife combat |
+| **4** | **Amanda** | North Point & Dojo | Sedan escort, Master Kwok temple martial arts sparring |
+| **5** | **Club Bam Bam** | Club Bam Bam | Dance floor brawl, VIP lounge table smash, urinal takedown |
+| **6** | **Popstar Lead 1 / Drug Bust** | Aberdeen Waterfront | 4-digit camera hacking, CCTV surveillance, 9mm gunplay |
+| **7** | **Listening In** | Golden Koi Scaffolding | Oscilloscope frequency tuner minigame, office bugging |
+| **8** | **Chain of Command** | Victoria Peak | Raymond Mak confrontation, undercover loyalty crisis |
+| **9** | **Payback** | Aberdeen Warehouse | Warehouse firefight, high-speed truck pursuit, tire takedowns |
+| **10** | **Uncle Po (Ch1 Finale)** | Mountain Master Hall | Dragon head tea ceremony, Red Pole promotion fanfare |
+| **11** | **The Wedding** | Banquet Hall | Wedding toast, 18K massacre alarm, Winston dying scene |
+| **12** | **Mrs. Chu's Revenge** | Golden Koi & Alleys | Kitchen cleaver mandate, Johnny Ratface pursuit & confession |
+| **13** | **Meet the New Boss** | Central District | Dragon head council politics, Broken Nose Jiang alliance |
+| **14** | **The Election / Final Kill (Ch2 Finale)** | Aberdeen Marina | Sports car pursuit, Dogeyes yacht boss fight (350 HP), Red Pole Boss ascension |
+| **15** | **Civil War / Hospital Defense** | Queen Mary Hospital | ICU defense, Uncle Po protection, hitmen assault |
+| **16** | **The Funeral** | Mount Davis Cemetery | Cemetery bell, Broken Nose Jiang eulogy, sniper firefight |
+| **17** | **The Kidnapping of Jackie Ma** | Kennedy Town Meat Locker | Slaughterhouse meat hooks, dual-cleaver Mr. Tong duel (280 HP), Jackie tragedy |
+| **18** | **Big Smile Lee (Grand Finale)** | Aberdeen Harbor Terminal | 12MB climax theme, container crane showdown, Big Smile Lee boss (500 HP), industrial crusher, Jane Teng epilogue & grand victory fanfare |

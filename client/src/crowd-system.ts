@@ -490,6 +490,49 @@ export class CrowdSystem {
     ]);
   }
 
+  public spawnHospitalDefenseCast(sceneGraph: SceneGraph): void {
+    this.clearStoryNPCs(sceneGraph);
+    this.spawnStoryBatch(sceneGraph, [
+      { id: 'uncle-po-icu', typeId: 'sun-on-yee', x: -8.0, z: 15.0, hp: 500, name: 'Uncle Po (Dragon Head in ICU)', hostile: false, state: 'talking', color: [0.3, 0.7, 0.9] },
+      { id: 'pendrew-hospital', typeId: 'pedestrian', x: -6.5, z: 16.5, hp: 300, name: 'Superintendent Thomas Pendrew', hostile: false, state: 'talking', color: [0.1, 0.2, 0.4] },
+      { id: 'lee-assassin-1', typeId: 'triad-enforcer', x: -10.5, z: 13.0, hp: 140, name: 'Big Smile Lee Hitman', hostile: true, state: 'circling', color: [0.8, 0.15, 0.15] },
+      { id: 'lee-assassin-2', typeId: 'triad-enforcer', x: -6.0, z: 12.5, hp: 145, name: 'Big Smile Lee Hitman', hostile: true, state: 'circling', color: [0.8, 0.15, 0.15] },
+      { id: 'lee-assassin-3', typeId: 'triad-enforcer', x: -8.5, z: 11.0, hp: 150, name: 'Armed Hospital Orderly Impostor', hostile: true, state: 'circling', color: [0.4, 0.1, 0.1] }
+    ]);
+  }
+
+  public spawnCemeteryFuneralCast(sceneGraph: SceneGraph): void {
+    this.clearStoryNPCs(sceneGraph);
+    this.spawnStoryBatch(sceneGraph, [
+      { id: 'jiang-funeral', typeId: 'pedestrian', x: 25.0, z: -35.0, hp: 450, name: 'Broken Nose Jiang', hostile: false, state: 'talking', color: [0.2, 0.6, 0.8] },
+      { id: 'jackie-funeral', typeId: 'pedestrian', x: 23.5, z: -36.2, hp: 250, name: 'Jackie Ma', hostile: false, state: 'talking', color: [0.2, 0.2, 0.25] },
+      { id: 'cemetery-sniper-1', typeId: 'triad-enforcer', x: 28.5, z: -38.5, hp: 135, name: 'Cemetery Ambush Sniper', hostile: true, state: 'circling', color: [0.75, 0.1, 0.1] },
+      { id: 'cemetery-gunman-2', typeId: 'triad-enforcer', x: 21.0, z: -38.0, hp: 140, name: '18K Ambush Gunman', hostile: true, state: 'circling', color: [0.75, 0.1, 0.1] },
+      { id: 'cemetery-gunman-3', typeId: 'triad-enforcer', x: 25.0, z: -41.0, hp: 145, name: '18K Cemetery Enforcer', hostile: true, state: 'circling', color: [0.75, 0.1, 0.1] }
+    ]);
+  }
+
+  public spawnSlaughterhouseCast(sceneGraph: SceneGraph): void {
+    this.clearStoryNPCs(sceneGraph);
+    this.spawnStoryBatch(sceneGraph, [
+      { id: 'jackie-captive', typeId: 'pedestrian', x: -22.0, z: -28.0, hp: 100, name: 'Jackie Ma (Captive)', hostile: false, state: 'panicked', color: [0.9, 0.3, 0.3] },
+      { id: 'mr-tong-boss', typeId: 'triad-enforcer', x: -20.5, z: -26.0, hp: 280, name: 'Mr. Tong (Dual-Cleaver Mini-Boss)', hostile: true, state: 'circling', color: [0.95, 0.1, 0.1] },
+      { id: 'butcher-1', typeId: 'triad-enforcer', x: -24.0, z: -27.0, hp: 130, name: 'Slaughterhouse Butcher', hostile: true, state: 'circling', color: [0.4, 0.2, 0.2] },
+      { id: 'butcher-2', typeId: 'triad-enforcer', x: -19.0, z: -29.5, hp: 135, name: 'Slaughterhouse Enforcer', hostile: true, state: 'circling', color: [0.4, 0.2, 0.2] }
+    ]);
+  }
+
+  public spawnBigSmileLeeCompoundCast(sceneGraph: SceneGraph): void {
+    this.clearStoryNPCs(sceneGraph);
+    this.spawnStoryBatch(sceneGraph, [
+      { id: 'big-smile-lee-boss', typeId: 'triad-enforcer', x: 40.0, z: 48.0, hp: 500, name: 'Big Smile Lee (Supreme Triad Boss)', hostile: true, state: 'circling', color: [0.98, 0.05, 0.05] },
+      { id: 'lee-elite-guard-1', typeId: 'triad-enforcer', x: 38.0, z: 46.5, hp: 180, name: 'Dragon Head Elite Guard', hostile: true, state: 'circling', color: [0.2, 0.2, 0.25] },
+      { id: 'lee-elite-guard-2', typeId: 'triad-enforcer', x: 42.5, z: 47.0, hp: 185, name: 'Dragon Head Elite Guard', hostile: true, state: 'circling', color: [0.2, 0.2, 0.25] },
+      { id: 'jiang-dragon-head', typeId: 'pedestrian', x: 43.5, z: 52.0, hp: 450, name: 'Broken Nose Jiang (New Dragon Head)', hostile: false, state: 'talking', color: [0.2, 0.7, 0.9] },
+      { id: 'teng-epilogue', typeId: 'pedestrian', x: 37.0, z: 51.5, hp: 350, name: 'Inspector Jane Teng (HKPD Major Crimes)', hostile: false, state: 'talking', color: [0.1, 0.3, 0.6] }
+    ]);
+  }
+
   /**
    * Updates crowd locomotion, active brawler combat AI, red-flash windups, and ragdoll knockouts
    */
