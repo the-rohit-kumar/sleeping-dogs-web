@@ -14,12 +14,16 @@
 
 import { Viewport3D, CameraMode } from './renderer';
 import { parseBixBuffer, BixArchive } from './bix-parser';
-import { parseIllusionBuffer, DecodedMesh } from './mesh-decoder';
+import { parseIllusionBuffer, decodeNativeIllusionModel, DecodedMesh } from './mesh-decoder';
 import { decodeAuthenticTexture, TextureFormat, DecodedTexture } from './texture-decoder';
 import {
     loadAuthenticVehicle,
     loadAuthenticCharacter,
     loadAuthenticWorldSector,
+    loadAuthenticIndexedVehicle,
+    loadAuthenticIndexedCharacter,
+    loadAuthenticIndexedWorldSector,
+    loadAuthenticMultipartMesh,
     loadAuthenticTexture,
     loadCompositeStreetScene,
     fetchArchiveIndex,
@@ -205,6 +209,9 @@ window.addEventListener('DOMContentLoaded', async () => {
     const btnMeshWorld = document.getElementById('btn-mesh-world')!;
     const btnTexBc3 = document.getElementById('btn-tex-bc3')!;
     const btnCameraMode = document.getElementById('btn-camera-mode')!;
+    const btnNativeIbVehicle = document.getElementById('btn-native-ib-vehicle')!;
+    const btnNativeIbChar = document.getElementById('btn-native-ib-char')!;
+    const btnNativeIbWorld = document.getElementById('btn-native-ib-world')!;
 
     // Archive selector buttons
     const btnBixVehicles = document.getElementById('btn-bix-vehicles')!;
@@ -1571,6 +1578,70 @@ window.addEventListener('DOMContentLoaded', async () => {
             cardStatus.style.color = 'var(--accent-crimson)';
         }
     });
+
+    // Option C: Native 16-bit Illusion Index Buffer Showcases
+    btnNativeIbVehicle.addEventListener('click', async () => {
+        document.querySelectorAll('.showcase-bar button').forEach(b => {
+            if (b.id !== 'btn-camera-mode' && b.id !== 'btn-tex-bc3') b.classList.remove('active');
+        });
+        btnNativeIbVehicle.classList.add('active');
+        activeSceneGraph = null;
+
+        try {
+            cardStatus.textContent = 'Streaming vehicle with native 16-bit index buffer from Vehicles.big (0x01f0a800)...';
+            const mesh = await loadAuthenticIndexedVehicle();
+            renderer.setMesh(mesh);
+            cardStatus.textContent = `Native IB Vehicle loaded: ${mesh.vertexCount} verts, ${mesh.triangleCount} genuine triangles (Vehicles.big 0x01f0a800)`;
+            cardStatus.style.color = '#38bdf8';
+        } catch (err: any) {
+            cardStatus.textContent = `Failed: ${err.message}`;
+            cardStatus.style.color = 'var(--accent-crimson)';
+        }
+    });
+
+    btnNativeIbChar.addEventListener('click', async () => {
+        document.querySelectorAll('.showcase-bar button').forEach(b => {
+            if (b.id !== 'btn-camera-mode' && b.id !== 'btn-tex-bc3') b.classList.remove('active');
+        });
+        btnNativeIbChar.classList.add('active');
+        activeSceneGraph = null;
+
+        try {
+            cardStatus.textContent = 'Streaming Wei Shen with native 16-bit index buffer from Characters.big (0x00527400)...';
+            const mesh = await loadAuthenticIndexedCharacter();
+            renderer.setMesh(mesh);
+            cardStatus.textContent = `Native IB Character loaded: ${mesh.vertexCount} verts, ${mesh.triangleCount} genuine triangles (Characters.big 0x00527400)`;
+            cardStatus.style.color = '#38bdf8';
+        } catch (err: any) {
+            cardStatus.textContent = `Failed: ${err.message}`;
+            cardStatus.style.color = 'var(--accent-crimson)';
+        }
+    });
+
+    btnNativeIbWorld.addEventListener('click', async () => {
+        document.querySelectorAll('.showcase-bar button').forEach(b => {
+            if (b.id !== 'btn-camera-mode' && b.id !== 'btn-tex-bc3') b.classList.remove('active');
+        });
+        btnNativeIbWorld.classList.add('active');
+        activeSceneGraph = null;
+
+        try {
+            cardStatus.textContent = 'Streaming world sector with native 16-bit index buffer from Game.big (0x3c9de400)...';
+            const mesh = await loadAuthenticIndexedWorldSector();
+            renderer.setMesh(mesh);
+            cardStatus.textContent = `Native IB World Sector loaded: ${mesh.vertexCount} verts, ${mesh.triangleCount} genuine triangles (Game.big 0x3c9de400)`;
+            cardStatus.style.color = '#38bdf8';
+        } catch (err: any) {
+            cardStatus.textContent = `Failed: ${err.message}`;
+            cardStatus.style.color = 'var(--accent-crimson)';
+        }
+    });
+
+    (window as any).loadAuthenticIndexedVehicle = loadAuthenticIndexedVehicle;
+    (window as any).loadAuthenticIndexedCharacter = loadAuthenticIndexedCharacter;
+    (window as any).loadAuthenticIndexedWorldSector = loadAuthenticIndexedWorldSector;
+    (window as any).loadAuthenticMultipartMesh = loadAuthenticMultipartMesh;
+    (window as any).decodeNativeIllusionModel = decodeNativeIllusionModel;
 
     btnTexBc3.addEventListener('click', async () => {
         if (btnTexBc3.classList.contains('active')) {

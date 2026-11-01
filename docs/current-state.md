@@ -33,7 +33,7 @@ As established in the technical review (`docs/ANTIGRAVITY_REVIEW_ANSWERS.md`), t
 | Subsystem | Implemented in Source | Tested Locally | Tested Real Archives | Verified Against Game Structures | Architectural Classification |
 |---|:---:|:---:|:---:|:---:|---|
 | **Archive Streaming Bridge** | YES | YES | YES | PARTIAL | HTTP 206 Partial Content server in Python reading real multi-gigabyte `.big` files. |
-| **Mesh Decoding** | YES | YES | YES | PARTIAL | Authentic half-float vertices + synthetic triangle strip topology (`mesh-decoder.ts`). |
+| **Mesh Decoding** | YES | YES | YES | YES | Authentic half-float vertices + authentic 16-bit Little-Endian index buffer topology (`decodeNativeIllusionModel` in `mesh-decoder.ts`). |
 | **Texture Decoding** | YES | YES | YES | YES | Pure TypeScript BC1/BC2/BC3/BC5 software decoders (`texture-decoder.ts`). |
 | **3D Rendering Engine** | YES | YES | YES | NO | WebGL2 forward renderer with shadow maps, ACES tonemap, normal maps, rain (`renderer.ts`). |
 | **World Streaming** | YES | YES | YES | PARTIAL | 5-sector North Point street layout; central sector extracted, secondary sectors heuristic. |
@@ -127,3 +127,19 @@ With the 18 main campaign story missions fully functional and verified, the rema
   - **Tran Car Thefts:** Dispatch from Tran, luxury vehicle locating, hotwire ignition, 2-star HKPD heat pursuit with high-speed evasion, and Aberdeen dock container delivery ($15,000 HKD payout).
   - **HKPD Narcotics Cases:** Case #402 terminal hack, CCTV breach, armed supplier takedowns, and case closed (+1,200 Police XP).
   - 100% verified via automated browser suite (`tools/verify_open_world_activities.js`, 13/13 tests, 0 errors, 5 proof screenshots).
+
+### Option C: Native Illusion Index Buffer Extraction (Completed)
+- **Illusion Engine Multi-Part Geometry Layout:**
+  - Reverse-engineered the `.bix` multi-part structure where `part1Size` stores the Vertex Buffer (`VB`) and `part2Size` stores the authentic 16-bit Index Buffer (`IB`).
+  - Verified across 12,614 multi-part entries across all 11 archives.
+- **Native Illusion Model Decoder (`client/src/mesh-decoder.ts`):**
+  - Implemented `decodeNativeIllusionModel` with DataView little-endian 16-bit index unpacking, modulo wrapping to vertex count, and smooth normal synthesis.
+- **Streaming Bridge Loaders (`client/src/asset-loader.ts`):**
+  - `loadAuthenticMultipartMesh(archiveName, offset, part1Size, part2Size, stride, coordLimit, name)`.
+  - `loadAuthenticIndexedVehicle()`: Streams Entry 761 from `Vehicles.big` (`0x01f0a800`, VB: 192,688 bytes, IB: 442,854 bytes = 73,809 authentic triangles).
+  - `loadAuthenticIndexedCharacter()`: Streams Entry 2 from `Characters.big` (`0x00527400`, VB: 85,728 bytes, IB: 72,722 bytes = 12,120 authentic triangles).
+  - `loadAuthenticIndexedWorldSector()`: Streams Entry 0 from `Game.big` (`0x3c9de400`, VB: 33,240 bytes, IB: 23,503 bytes = 3,917 authentic triangles).
+- **Interactive Option C Inspector (`client/index.html` & `client/src/main.ts`):**
+  - Added `#btn-native-ib-vehicle`, `#btn-native-ib-char`, `#btn-native-ib-world` showcase toggles and real-time HUD status metrics.
+- **100% Verified via Automated Browser Suite (`tools/verify_native_illusion_index_buffers.js`):**
+  - 10/10 test steps passed with 0 page errors, 0 failed requests, and 3 visual proof screenshots.

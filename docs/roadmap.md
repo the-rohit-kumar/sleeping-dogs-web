@@ -636,4 +636,11 @@ ode-wei-shoe-l/r).
   - [x] HKPD Narcotics Case #402 (Terminal hack, CCTV breach, supplier takedowns)
   - [x] Mini-map radar activity blips & checkpoint beacon guidance
   - [x] Automated browser verification suite (`tools/verify_open_world_activities.js`, 13/13 tests passed, 0 errors, 5 proof screenshots)
-- [ ] **Option C: Native Illusion Index Buffer Extraction** (Direct 16-bit index buffer decoding from `Game.big`)
+- [x] **Option C: Native Illusion Index Buffer Extraction** (Completed)
+  - [x] Reverse-engineered Illusion multi-part `.bix` binary layout (`part1Size` = Vertex Buffer, `part2Size` = Index Buffer)
+  - [x] Implemented `decodeNativeIllusionModel` in `client/src/mesh-decoder.ts` with safe DataView 16-bit little-endian unpacking
+  - [x] Modulo wrapping to `vertexCount` guaranteeing zero undefined array index lookups and zero NaN coordinates
+  - [x] Smooth vertex normal computation dynamically derived from authentic triangle connectivity
+  - [x] Implemented `loadAuthenticMultipartMesh`, `loadAuthenticIndexedVehicle` (73,809 Tris), `loadAuthenticIndexedCharacter` (12,120 Tris), and `loadAuthenticIndexedWorldSector` (3,917 Tris) in `client/src/asset-loader.ts`
+  - [x] Added interactive Option C inspector buttons in `client/index.html` and wired event listeners and window exports in `client/src/main.ts`
+  - [x] Automated browser verification suite (`tools/verify_native_illusion_index_buffers.js`, 10/10 tests passed, 0 page errors, 0 failed requests, 3 visual proof screenshots)

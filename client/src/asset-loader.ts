@@ -16,6 +16,7 @@ import {
   decodeAuthenticVehicleMesh,
   decodeAuthenticCharacterMesh,
   decodeAuthenticWorldMesh,
+  decodeNativeIllusionModel,
   DecodedMesh,
   createBoxMesh
 } from './mesh-decoder';
@@ -450,6 +451,76 @@ export async function loadAuthenticCharacterNormal(): Promise<DecodedTexture> {
  * Loads authentic base-game Hong Kong world city sector from Game.big
  * Resource UID: 0x7b8f6706 | Offset: 0x1b7ef400 | Span: 1,648 bytes
  */
+/**
+ * Loads authentic native Illusion engine multi-part model geometry directly from archives.
+ * Streams vertex buffer and authentic 16-bit index buffer via HTTP 206 Partial Content.
+ * Zero synthetic triangle-strip topology.
+ */
+export async function loadAuthenticMultipartMesh(
+  archiveName: string,
+  offset: number,
+  part1Size: number,
+  part2Size: number,
+  stride: number = 8,
+  coordLimit: number = 50.0,
+  name: string = "Authentic_Native_Illusion_Mesh"
+): Promise<DecodedMesh> {
+  const totalSpan = part1Size + part2Size;
+  const payload = await fetchRange(archiveName, offset, totalSpan);
+  return decodeNativeIllusionModel(payload, part1Size, part2Size, stride, coordLimit, name);
+}
+
+/**
+ * Loads authentic base-game Sedan chassis with native 16-bit index buffer from Vehicles.big.
+ * Entry 761 @ 0x01f0a800 (UID 0x9f09c2c6)
+ * VB: 192,688 bytes (24,086 verts) | IB: 442,854 bytes (221,427 indices = 73,809 authentic triangles)
+ */
+export async function loadAuthenticIndexedVehicle(): Promise<DecodedMesh> {
+  return loadAuthenticMultipartMesh(
+    'Vehicles',
+    0x01f0a800,
+    192688,
+    442854,
+    8,
+    25.0,
+    'Authentic_Indexed_Vehicle_Sedan (Vehicles.big 0x01f0a800 - 73,809 Tris)'
+  );
+}
+
+/**
+ * Loads authentic base-game Wei Shen character model with native 16-bit index buffer from Characters.big.
+ * Entry 2 @ 0x00527400 (UID 0x00480c47)
+ * VB: 85,728 bytes (10,716 verts) | IB: 72,722 bytes (36,361 indices = 12,120 authentic triangles)
+ */
+export async function loadAuthenticIndexedCharacter(): Promise<DecodedMesh> {
+  return loadAuthenticMultipartMesh(
+    'Characters',
+    0x00527400,
+    85728,
+    72722,
+    8,
+    15.0,
+    'Authentic_Indexed_Wei_Shen (Characters.big 0x00527400 - 12,120 Tris)'
+  );
+}
+
+/**
+ * Loads authentic base-game North Point world sector with native 16-bit index buffer from Game.big.
+ * Entry 0 @ 0x3c9de400 (UID 0x00229ff0)
+ * VB: 33,240 bytes (4,155 verts) | IB: 23,503 bytes (11,751 indices = 3,917 authentic triangles)
+ */
+export async function loadAuthenticIndexedWorldSector(): Promise<DecodedMesh> {
+  return loadAuthenticMultipartMesh(
+    'Game',
+    0x3c9de400,
+    33240,
+    23503,
+    8,
+    500.0,
+    'Authentic_Indexed_North_Point_Sector (Game.big 0x3c9de400 - 3,917 Tris)'
+  );
+}
+
 export async function loadAuthenticWorldSector(): Promise<DecodedMesh> {
   const data = await fetchRange('Game', 0x1b7ef400, 1648);
   return decodeAuthenticWorldMesh(data, "Authentic_HongKong_Sector (Game.big 0x1b7ef400)");
