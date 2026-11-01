@@ -9,12 +9,19 @@ GitHub Repository: [https://github.com/the-rohit-kumar/sleeping-dogs-web](https:
 
 ```mermaid
 flowchart LR
-    M1["Milestone 1: Vertical Slice<br/>(Done)"] --> M2["Milestone 2: Authentic Geometry & Shading<br/>(Done)"]
-    M2 --> M3["Milestone 3: World Streaming & Scene Graph<br/>(Done)"]
+    M1["Milestone 1: Vertical Slice<br/>(Done)"] --> M2["Milestone 2: Geometry & Shading<br/>(Done)"]
+    M2 --> M3["Milestone 3: World Streaming<br/>(Done)"]
     M3 --> M4["Milestone 4: Skeletal Animation & Audio<br/>(Done)"]
     M4 --> M5["Milestone 5: Physics & Controls<br/>(Done)"]
     M5 --> M6["Milestone 6: Game Systems & Simulation<br/>(Done)"]
-    M6 --> M7["Milestone 7: Living World, Traffic & Neon Rain<br/>(Done)"]
+    M6 --> M7["Milestone 7: Living World & Rain<br/>(Done)"]
+    M7 --> M8["Milestone 8: Shadows & ACES<br/>(Done)"]
+    M8 --> M9["Milestone 9: Authentic Materials<br/>(Done)"]
+    M9 --> M10["Milestone 10: Wet Asphalt SSR<br/>(Done)"]
+    M10 --> P1["Phase 1: Martial Arts & Counters<br/>(Done)"]
+    P1 --> P2["Phase 2: Street Props & Normal Maps<br/>(Done)"]
+    P2 --> P3["Phase 3: Scaleform HUD & In-Car Radios<br/>(Done)"]
+    P3 --> P4["Phase 4: Env Takedowns, Drift & Mission 2<br/>(Done)"]
 ```
 
 ---
@@ -196,3 +203,67 @@ flowchart LR
     3. `03_milestone7_sidewalk_crowd_variety.png`: 8 varied Triad enforcers, vendors, and citizens patrolling sidewalks.
     4. `04_milestone7_typhoon_storm_weather.png`: Heavy typhoon downpour with maximum wetness and intense neon bloom.
     5. `05_milestone7_clear_neon_night.png`: Clear neon night showing reflective damp pavement and colorful shop signage.
+
+---
+
+## Milestone 8: Real-Time Directional Shadow Mapping, Contact Grounding & ACES Tone Mapping (Completed)
+
+- [X] **Hardware Depth Pass & 2048x2048 Shadow FBO**: Directional shadow mapping pass rendering scene geometry from the primary Hong Kong streetlamp/moonlight perspective into an `R32F` high-precision depth texture.
+- [X] **4-Tap Poisson Disk PCF Filtering**: Soft penumbra filtering with adaptive slope-scaled depth bias eliminating shadow acne.
+- [X] **ACES Filmic Tone Mapping**: Sleeping Dogs' high-contrast cinematic color grading curve mapping HDR luminance into display-referred dynamic range.
+
+---
+
+## Milestone 9: Authentic Base-Game Multi-Texture Material Binding (Completed)
+
+- [X] **Pure Software BC1 (DXT1) & BC3 (DXT5) Block Decompressors**: Decompresses authentic 4x4 block-compressed mipmapped DDS streams into 32-bit RGBA WebGL textures.
+- [X] **Base-Game Texture Streaming**:
+  - Hong Kong street asphalt road texture from `Game.big` (`0x36341c10`, 32,768 bytes BC1, 256x256).
+  - Storefront architectural building facade from `Game.big` (`0x30136010`, 32,768 bytes BC1, 256x256).
+  - Authentic Hong Kong neon signboard texture from `Game.big` (`0x0ef12810`, 32,768 bytes BC1, 256x256).
+  - Sedan vehicle body paint & chassis livery from `Vehicles.big` (`0x020f3400`, 131,072 bytes BC1, 512x512).
+  - Wei Shen character clothing texture from `Characters.big` (`0x16063410`, 131,072 bytes BC1, 512x512).
+
+---
+
+## Milestone 10: Wet Asphalt SSR, Atmospheric Rain Mist & Headlight Cones (Completed)
+
+- [X] **Wet Asphalt Screen-Space Reflections (SSR)**: Dynamic grazing-angle puddle reflections calculating reflected color vectors across road geometry.
+- [X] **Dual Vehicle Headlight Cones**: 3D geometric volumetric illumination projecting down the street lane from vehicle headlamps.
+- [X] **Volumetric Atmospheric Rain Fog**: Mie forward in-scattering ($g = 0.55$) simulating thick coastal Hong Kong rain mist and neon light haloes.
+
+---
+
+## Milestone 11 & Polish Phase: BC5 Normal Mapping, Scaleform Gauges & In-Car Radios (Completed)
+
+- [X] **BC5 (ATI2/3Dc) Normal Mapping**: Two-channel software block decompressor with Mikkelsen/Schüler cotangent-frame per-pixel TBN reconstruction directly in fragment shaders.
+- [X] **Scaleform Curved Gauges Mini-Map HUD**:
+  - Curved health gauge (left arc, green to red).
+  - Curved Face Meter gauge (right arc, golden dragon adrenaline surge).
+  - Digital Speedometer readout (`KM/H`) and cardinal compass markers.
+- [X] **In-Car Wwise Radio Tuner & Horn**:
+  - Boosey & Hawkes 98.4 FM (Stream 11795260, classical).
+  - Kerrang! Radio 105.2 FM (Stream 42868061, high-octane rock).
+  - Softly FM Hong Kong Lounge (Stream 10361450, Cantopop/lounge).
+  - Animated `#radio-banner` HUD card and vehicle horn SFX (`Stream 16943907`).
+
+---
+
+## Milestone 12 & Gameplay Phases 1 & 2: Combat, Finishers, Drift & Missions (Completed)
+
+- [X] **Martial Arts Melee Combat & Signature Red-Flash Counter Reversals**:
+  - 3-hit combo chain (Jab $\to$ Cross $\to$ Roundhouse) with heavy kick (`[Q]`) and grapple (`[F]`).
+  - Telegraphed enemy red-flashes with counter reversal windows, dynamic 400ms slow-motion camera, and bone-crunch impact audio (`Stream 36466185`).
+  - Face Meter Adrenaline Surge with 2.2x damage boost and health regeneration.
+- [X] **Interactive Environmental Takedowns (`FSR_EnvTakedown`)**:
+  - Interactive street hazards: phone booths, steel dumpsters, high-voltage fuse boxes, and market counters.
+  - Spatial detection prompt (`⚡ [F] ENVIRONMENTAL TAKEDOWN ⚡`) triggering instant knockout, slow-motion camera, and authentic takedown audio (`Stream 4784603`).
+- [X] **Vehicle 4-Wheel Steering & Drift Skid Marks**:
+  - Front wheels steer with Ackerman geometry while all 4 wheels spin continuously with vehicle speed.
+  - Dynamic asphalt skid mark ribbon geometry generated during handbrake drifts (`Space`) with tire screech audio.
+- [X] **18K Triad Thug Texture & Taxi Livery**:
+  - Authentic 18K Triad brawler clothing decoded from `Characters.big` (`0x16595000 + 16`, 131,072 bytes BC1).
+  - Authentic Crown Comfort taxi livery decoded from `Vehicles.big` (`0x0207f800 + 16`, 131,072 bytes BC1).
+- [X] **Chained Campaign Missions**:
+  - **Mission 1 ("Night Market Ambush")**: Defeat 4 ambushers $\to$ Hijack sedan/taxi $\to$ Evade police $\to$ Deliver to Golden Dragon Teahouse safehouse.
+  - **Mission 2 ("Dockside Warehouse Shakedown")**: Urgent police radio dispatch $\to$ Drive to Aberdeen Fish Warehouse $\to$ Eliminate 4 armed dock enforcers $\to$ Defeat 18K Lieutenant Boss $\to$ Orchestral victory fanfare (`Stream 2530870`).
