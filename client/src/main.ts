@@ -51,6 +51,7 @@ import { SaveManager, SaveGameSlot, GameSettingsState } from './save-manager';
 import { PauseMenuController } from './pause-menu';
 import { OpenWorldActivitiesManager, ACTIVITY_HOTSPOTS, STREET_RACE_CHECKPOINTS } from './open-world-activities';
 import { SafehouseSystem, OUTFIT_CATALOG } from './safehouse-system';
+import { ActionHijackSystem } from './action-hijack-system';
 
 window.addEventListener('DOMContentLoaded', async () => {
     const canvas = document.getElementById('viewport') as HTMLCanvasElement;
@@ -73,6 +74,8 @@ window.addEventListener('DOMContentLoaded', async () => {
     openWorldActivities.totalCashEarned = 1000;
     const safehouseSystem = new SafehouseSystem();
     (window as any).safehouseSystem = safehouseSystem;
+    const actionHijackSystem = new ActionHijackSystem();
+    (window as any).actionHijackSystem = actionHijackSystem;
     (window as any).restorePlayerHealth = (hp: number = 100) => { playerHealth = hp; };
     (window as any).performSave = performSave;
     Object.defineProperty(window, 'sceneGraph', {
@@ -252,6 +255,8 @@ window.addEventListener('DOMContentLoaded', async () => {
             console.log('Ambience playback on user click:', err);
         }
         cameraController.isDriving = false;
+            actionHijackSystem.isCockpitActive = false;
+            cameraController.isCockpit = false;
         updateCameraModeUI('follow');
         performSave('autosave', 'Prologue: Night Market Ambush');
     });
@@ -491,6 +496,8 @@ window.addEventListener('DOMContentLoaded', async () => {
                 await audioEngine.playTrack('hk_ambience');
             } catch (err) {}
             cameraController.isDriving = false;
+            actionHijackSystem.isCockpitActive = false;
+            cameraController.isCockpit = false;
             updateCameraModeUI('follow');
         });
     }
@@ -762,6 +769,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             audioEngine.playTrack(st.id).catch(() => {});
         }
         showRadioBanner(st);
+        actionHijackSystem.updateRadioStationName(st.name);
     }
 
     function honkCarHorn() {
@@ -806,12 +814,15 @@ window.addEventListener('DOMContentLoaded', async () => {
                 if (st.id !== 'off') {
                     audioEngine.playTrack(st.id).catch(() => {});
                     showRadioBanner(st);
+        actionHijackSystem.updateRadioStationName(st.name);
                 }
             }
         } else {
             // Exit vehicle
             vehicleController.toggleEntry(characterController.position, audioEngine);
             cameraController.isDriving = false;
+            actionHijackSystem.isCockpitActive = false;
+            cameraController.isCockpit = false;
 
             // Silence in-car radio on vehicle exit
             audioEngine.stopTrack('radio_boosey');
@@ -1169,6 +1180,28 @@ window.addEventListener('DOMContentLoaded', async () => {
             );
         } else if (e.code === 'KeyQ' || e.key.toLowerCase() === 'q') {
             performHeavyKick();
+        } else if (e.code === 'KeyC' || e.key.toLowerCase() === 'c') {
+            const isCockpit = actionHijackSystem.toggleCockpitView(cameraController, vehicleController);
+            if (isCockpit) {
+                actionPrompt.style.display = 'block';
+                actionPrompt.textContent = '👀 COCKPIT VIEW ACTIVATED [C TO TOGGLE]';
+                actionPrompt.style.background = '#0284c7';
+                setTimeout(() => actionPrompt.style.display = 'none', 1500);
+            }
+        } else if (e.code === 'Space' || e.key === ' ') {
+            if (actionHijackSystem.currentTarget) {
+                const triggered = actionHijackSystem.triggerActionHijack(
+                    characterController,
+                    vehicleController,
+                    cameraController,
+                    trafficSystem,
+                    audioEngine,
+                    combatSystem
+                );
+                if (triggered) {
+                    e.preventDefault();
+                }
+            }
         } else if (e.code === 'KeyR' || e.key.toLowerCase() === 'r') {
             switchRadioStation();
         } else if (e.code === 'KeyT' || e.key.toLowerCase() === 't') {
@@ -1547,6 +1580,8 @@ window.addEventListener('DOMContentLoaded', async () => {
             characterController.velocity = [0, 0, 0];
             characterController.isGrounded = true;
             cameraController.isDriving = false;
+            actionHijackSystem.isCockpitActive = false;
+            cameraController.isCockpit = false;
             cameraController.targetPos = [...characterController.position];
             updateCameraModeUI('follow');
             campaignStory.startCampaign(sceneGraph, crowdSystem, cameraController, audioEngine);
@@ -2289,6 +2324,19 @@ window.addEventListener('DOMContentLoaded', async () => {
                 openWorldActivities,
                 characterController,
                 renderer.sceneGraph!
+            );
+
+            // Option 2: Sleeping Dogs Action Hijack & Cockpit Driving Update
+            actionHijackSystem.update(
+                deltaTimeSec,
+                characterController,
+                vehicleController,
+                cameraController,
+                trafficSystem,
+                audioEngine,
+                combatSystem,
+                weatherSystem,
+                renderer.sceneGraph
             );
 
             // Canonical Sleeping Dogs Story Mission & Cutscene Pipeline Update

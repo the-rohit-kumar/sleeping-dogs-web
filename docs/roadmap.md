@@ -654,3 +654,17 @@ ode-wei-shoe-l/r).
   - [x] Hong Kong Urban Red Taxi fast-travel network (`[X]`) across North Point, Central, Aberdeen, Kennedy Town, and Victoria Peak with fare deductions
   - [x] Rigorous edge-case audit across Options A, B, C (pause spam, fight club pause, race pause, corrupt save recovery, proximity boundary, mesh switching stress - 8/8 passed)
   - [x] Automated browser verification suite (`tools/verify_safehouse_and_taxi.js`, 10/10 passed, 0 page errors, 0 failed requests, 6 visual proof screenshots)
+
+- [x] **Option 2: Sleeping Dogs Action Hijack & First-Person Cockpit Driving** (Completed)
+  - [x] High-speed vehicular Action Hijack system (`client/src/action-hijack-system.ts`)
+  - [x] Real-time lock-on reticle (`#action-hijack-reticle`) tracking target vehicles ahead & distance
+  - [x] Bullet-time slow-motion camera dilation ($0.35\times$ time scale) with dynamic tracking shot
+  - [x] Parabolic 3D leap trajectory onto moving vehicle roof/hood with martial arts SFX
+  - [x] Roof latch, windshield kick/smash takedown, violent driver ejection onto pavement
+  - [x] Instant vehicle takeover with speed boost, $+30\%$ Face Meter surge, and action victory banner
+  - [x] First-person Cockpit Driving view (`[C]`) positioned in Hong Kong right-hand drive driver seat
+  - [x] Interactive cockpit dashboard: Speedometer dial (0-180 km/h), Tachometer RPM dial (0-8000 RPM), gear readout (`P`, `1`, `2`, `3`, `4`, `5`, `R`), and animated rotating steering wheel
+  - [x] Dual oscillating windshield wipers during Hong Kong Rain and Typhoon weather
+  - [x] In-car radio tuner card (`[R]`) cycling authentic stations and tracks
+  - [x] Option 2 edge cases audited (empty Space fallback, on-foot deny, rapid [C] spam, cockpit hijack, exit car reset)
+  - [x] Automated browser verification suite (`tools/verify_action_hijack_and_cockpit.js`, 13/13 passed, 0 page errors, 0 failed requests, 6 visual proof screenshots)

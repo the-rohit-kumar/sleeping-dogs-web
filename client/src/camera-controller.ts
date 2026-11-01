@@ -24,6 +24,7 @@ export class CameraController {
 
   // Mode & Vehicle Tracking
   public isDriving = false;
+  public isCockpit = false;
   public vehicleHeading = 0.0;
   public vehicleSpeed = 0.0;
   public fov = Math.PI / 4.0; // 45 deg vertical / 65 deg horizontal
@@ -120,6 +121,31 @@ export class CameraController {
     let targetOffset: [number, number, number] = this.lookOffset;
 
     if (this.isDriving) {
+      if (this.isCockpit) {
+        this.fov = 1.35; // Wide cockpit FOV (~78 deg)
+        const cosYaw = Math.cos(this.vehicleHeading);
+        const sinYaw = Math.sin(this.vehicleHeading);
+
+        // Hong Kong Right-Hand Drive driver seat position
+        const driverX = this.targetPos[0] + cosYaw * 0.38 + sinYaw * (-0.15);
+        const driverY = this.targetPos[1] + 0.72;
+        const driverZ = this.targetPos[2] - sinYaw * 0.38 + cosYaw * (-0.15);
+
+        this.eyePos = [driverX, driverY, driverZ];
+
+        // Look forward along vehicle heading with slight mouse look
+        const lookYaw = this.vehicleHeading + (this.yaw - this.vehicleHeading) * 0.4;
+        const lookPitch = Math.max(-0.4, Math.min(0.4, this.pitch));
+        const forwardDist = 12.0;
+
+        this.lookAtTarget = [
+          driverX + Math.sin(lookYaw) * Math.cos(lookPitch) * forwardDist,
+          driverY + Math.sin(lookPitch) * forwardDist,
+          driverZ + Math.cos(lookYaw) * Math.cos(lookPitch) * forwardDist
+        ];
+        return;
+      }
+
       targetDist = 5.6; // Longer follow distance for vehicles
       targetOffset = [0.0, 0.95, 0.0]; // Centered look point above car chassis
 

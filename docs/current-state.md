@@ -149,3 +149,8 @@ With the 18 main campaign story missions fully functional and verified, the rema
 - **Urban Red Taxi Network:** Instant fast-travel across 5 Hong Kong districts with fare deduction and fade transition.
 - **Edge-Case Resilience:** Audited against rapid pause spamming, mid-fight club pause, countdown pause, save file corruption, and rapid mesh switching with 100% stability.
 - **Automated Verification:** `tools/verify_safehouse_and_taxi.js` and `tools/verify_system_edge_cases.js` verified with 0 errors.
+
+### Option 2: Action Hijack & Cockpit Driving (100% Operational)
+- **Action Hijack:** `client/src/action-hijack-system.ts` implementing real-time target reticle tracking, 0.35x bullet-time leap, roof latch, windshield smash, driver ejection, vehicle takeover, and +30% Face Meter surge.
+- **Cockpit Driving:** First-person driver seat camera (`[C]`), Speedometer (0-180 km/h), Tachometer (0-8000 RPM), Gear display, rotating steering wheel, rain wipers, and in-car radio tuner card.
+- **Automated Verification:** `tools/verify_action_hijack_and_cockpit.js` passed all 13 steps with 0 errors.
