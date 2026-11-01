@@ -52,13 +52,15 @@ export class CharacterController {
   private initEvents() {
     window.addEventListener('keydown', (e) => {
       this.keysDown.add(e.code);
-      if (e.code === 'Space') {
+      if (e.key) this.keysDown.add(e.key.toLowerCase());
+      if (e.code === 'Space' || e.key === ' ') {
         this.jump();
       }
     });
 
     window.addEventListener('keyup', (e) => {
       this.keysDown.delete(e.code);
+      if (e.key) this.keysDown.delete(e.key.toLowerCase());
     });
   }
 
@@ -121,13 +123,13 @@ export class CharacterController {
     let inputX = 0;
     let inputZ = 0;
 
-    if (this.keysDown.has('KeyW')) inputZ -= 1;
-    if (this.keysDown.has('KeyS')) inputZ += 1;
-    if (this.keysDown.has('KeyA')) inputX -= 1;
-    if (this.keysDown.has('KeyD')) inputX += 1;
+    if (this.keysDown.has('KeyW') || this.keysDown.has('w')) inputZ -= 1;
+    if (this.keysDown.has('KeyS') || this.keysDown.has('s')) inputZ += 1;
+    if (this.keysDown.has('KeyA') || this.keysDown.has('a')) inputX -= 1;
+    if (this.keysDown.has('KeyD') || this.keysDown.has('d')) inputX += 1;
 
     const inputLen = Math.hypot(inputX, inputZ);
-    this.isSprinting = (this.keysDown.has('ShiftLeft') || this.keysDown.has('ShiftRight')) && inputZ < 0;
+    this.isSprinting = (this.keysDown.has('ShiftLeft') || this.keysDown.has('ShiftRight') || this.keysDown.has('shift')) && inputZ < 0;
 
     let targetSpeed = 0;
     let moveDirX = 0;

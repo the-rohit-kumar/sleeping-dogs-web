@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sleeping Dogs — Browser Reconstruction Engine</title>
+    <link rel="icon" href="data:,">
     <style>
         :root {
             --bg-dark: #0b0d11;
@@ -34,10 +35,10 @@
         }
 
         header {
+            display: none;
             height: 48px;
             background: var(--panel-bg);
             border-bottom: 1px solid var(--panel-border);
-            display: flex;
             align-items: center;
             justify-content: space-between;
             padding: 0 16px;
@@ -81,19 +82,195 @@
         }
 
         .container {
-            flex: 1;
-            display: grid;
-            grid-template-columns: 410px 1fr;
-            height: calc(100vh - 48px);
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            display: block;
         }
 
-        /* Sidebar / Explorer */
+        /* Collapsible Drawer Sidebar / Explorer */
         aside {
-            background: var(--panel-bg);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 420px;
+            height: 100vh;
+            background: rgba(19, 23, 31, 0.96);
+            backdrop-filter: blur(14px);
             border-right: 1px solid var(--panel-border);
+            z-index: 100;
+            transform: translateX(-100%);
+            transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
             display: flex;
             flex-direction: column;
             overflow-y: auto;
+            box-shadow: 12px 0 32px rgba(0, 0, 0, 0.75);
+        }
+
+        aside.open {
+            transform: translateX(0);
+        }
+
+        .btn-inspector-toggle {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            z-index: 50;
+            background: rgba(19, 23, 31, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: var(--text-muted);
+            padding: 7px 14px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 11px;
+            cursor: pointer;
+            backdrop-filter: blur(6px);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-inspector-toggle:hover {
+            border-color: var(--accent-cyan);
+            color: #ffffff;
+            background: rgba(0, 210, 255, 0.2);
+            box-shadow: 0 0 12px rgba(0, 210, 255, 0.3);
+        }
+
+        .btn-inspector-close {
+            background: transparent;
+            border: 1px solid var(--panel-border);
+            color: var(--text-muted);
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: monospace;
+            font-size: 11px;
+        }
+
+        .btn-inspector-close:hover {
+            color: #ffffff;
+            border-color: #ef4444;
+        }
+
+        main {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        #viewport {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        /* AAA Title / Start Screen Overlay */
+        .start-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: radial-gradient(circle at center, rgba(11, 13, 17, 0.75) 0%, rgba(6, 8, 12, 0.95) 85%);
+            backdrop-filter: blur(6px);
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease-out, visibility 0.5s;
+        }
+
+        .start-overlay.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .start-emblem {
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 4px;
+            color: var(--accent-crimson);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+        }
+
+        .start-title {
+            font-size: 44px;
+            font-weight: 900;
+            letter-spacing: 5px;
+            color: #ffffff;
+            text-shadow: 0 0 35px rgba(225, 29, 72, 0.8), 0 4px 12px rgba(0, 0, 0, 0.9);
+            text-align: center;
+            text-transform: uppercase;
+        }
+
+        .start-subtitle {
+            font-size: 12px;
+            letter-spacing: 3px;
+            color: var(--accent-cyan);
+            font-family: monospace;
+            margin-top: 6px;
+            margin-bottom: 30px;
+        }
+
+        .btn-start-game {
+            background: linear-gradient(135deg, #e11d48 0%, #be123c 100%);
+            color: #ffffff;
+            border: 2px solid rgba(255, 255, 255, 0.5);
+            font-size: 18px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            padding: 15px 52px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-family: monospace;
+            box-shadow: 0 0 40px rgba(225, 29, 72, 0.65);
+            transition: all 0.2s;
+            text-transform: uppercase;
+            animation: pulsePlayBtn 2.2s infinite ease-in-out;
+        }
+
+        .btn-start-game:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 60px rgba(225, 29, 72, 0.95);
+        }
+
+        @keyframes pulsePlayBtn {
+            0%, 100% { transform: scale(1.0); }
+            50% { transform: scale(1.03); }
+        }
+
+        .start-controls-card {
+            margin-top: 34px;
+            background: rgba(19, 23, 31, 0.85);
+            border: 1px solid var(--panel-border);
+            border-radius: 8px;
+            padding: 16px 24px;
+            max-width: 580px;
+            font-family: monospace;
+            font-size: 11px;
+            color: var(--text-muted);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .start-controls-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px 24px;
+            margin-top: 10px;
+        }
+
+        .start-ctrl-item span {
+            color: var(--accent-cyan);
+            font-weight: 700;
         }
 
         .section-header {
@@ -452,7 +629,25 @@
     </header>
 
     <div class="container">
-        <aside>
+        <!-- Floating Dev Inspector Toggle Button -->
+        <button class="btn-inspector-toggle" id="btn-toggle-inspector">
+            <span>⚙ DEV INSPECTOR</span>
+        </button>
+
+        <aside id="aside-drawer">
+            <div class="section-header" style="background: rgba(225, 29, 72, 0.2); border-bottom: 1px solid var(--accent-crimson); padding: 10px 16px;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="logo-tag">SLEEPING DOGS</span>
+                    <span style="font-weight: 700; color: #ffffff;">DEV INSPECTOR</span>
+                </div>
+                <button class="btn-inspector-close" id="btn-close-inspector">✕ CLOSE</button>
+            </div>
+            <div style="padding: 8px 16px; background: rgba(0, 0, 0, 0.3); border-bottom: 1px solid var(--panel-border); display: flex; flex-wrap: wrap; gap: 6px;">
+                <span class="pill" id="pill-bridge-drawer">Bridge: HTTP 127.0.0.1:8080</span>
+                <span class="pill" id="pill-source-drawer">Source: Base Game Archives</span>
+                <span class="pill" id="pill-renderer-drawer">Renderer: WebGL2</span>
+            </div>
+
             <div class="section-header">
                 <span>Authentic Base-Game Stream // Scene &amp; Models</span>
             </div>
@@ -571,6 +766,7 @@
                     <button class="btn-toggle active" id="btn-weather-rain">HK Rain</button>
                     <button class="btn-toggle" id="btn-weather-storm">Typhoon</button>
                     <button class="btn-toggle active" id="btn-traffic-toggle">Traffic: ON</button>
+                    <button class="btn-toggle active" id="btn-shadow-toggle" style="border-color: #facc15; color: #facc15;">Shadows: 2048 PCF</button>
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 6px; margin-top: 6px;">
                     <div style="display: flex; justify-content: space-between; align-items: center; font-size: 10px;">
@@ -635,6 +831,34 @@
 
         <main>
             <canvas id="viewport"></canvas>
+
+            <!-- Milestone 8: Cyberpunk2077.lol Style Zero-Setup Hit & Play Title Screen Overlay -->
+            <div class="start-overlay" id="start-overlay">
+                <div class="start-emblem">UNITED FRONT GAMES // SQUARE ENIX</div>
+                <div class="start-title">SLEEPING DOGS</div>
+                <div class="start-subtitle">DEFINITIVE EDITION — BROWSER RECONSTRUCTION</div>
+                <button class="btn-start-game" id="btn-start-game">▶ PLAY GAME</button>
+                
+                <div class="start-controls-card">
+                    <div style="font-weight: 700; color: #ffffff; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; border-bottom: 1px solid var(--panel-border); padding-bottom: 4px; display: flex; justify-content: space-between;">
+                        <span>🎮 KEYBOARD &amp; MOUSE CONTROLS</span>
+                        <span style="color: #4ade80;">ZERO SETUP REQUIRED</span>
+                    </div>
+                    <div class="start-controls-grid">
+                        <div class="start-ctrl-item"><span>[W][A][S][D]</span> Move Wei Shen / Steer Vehicle</div>
+                        <div class="start-ctrl-item"><span>[SHIFT]</span> Sprint / Handbrake Drift</div>
+                        <div class="start-ctrl-item"><span>[SPACE]</span> Jump / Vault Obstacles</div>
+                        <div class="start-ctrl-item"><span>[E]</span> Hijack &amp; Enter / Exit Vehicle</div>
+                        <div class="start-ctrl-item"><span>[L-CLICK]</span> Martial Arts Strike &amp; Combo</div>
+                        <div class="start-ctrl-item"><span>[MOUSE DRAG]</span> Orbit 3rd Person Follow Camera</div>
+                        <div class="start-ctrl-item"><span>[1 / 2 / 3]</span> Hong Kong Rain &amp; Neon Shading</div>
+                        <div class="start-ctrl-item"><span>[H]</span> Toggle Debug HUD &amp; Engine Stats</div>
+                    </div>
+                    <div style="margin-top: 12px; font-size: 10px; color: #4ade80; text-align: center; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 6px;">
+                        ✓ 100% Authentic Assets Streamed Directly via HTTP 206 • ZERO Synthetic Models
+                    </div>
+                </div>
+            </div>
 
             <!-- Milestone 6: Mission Directive Banner -->
             <div class="mission-banner" id="mission-banner">

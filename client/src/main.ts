@@ -118,6 +118,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     const btnWeatherRain = document.getElementById('btn-weather-rain')!;
     const btnWeatherStorm = document.getElementById('btn-weather-storm')!;
     const btnTrafficToggle = document.getElementById('btn-traffic-toggle')!;
+    const btnShadowToggle = document.getElementById('btn-shadow-toggle')!;
     const sliderWetness = document.getElementById('slider-wetness') as HTMLInputElement;
     const labelWetness = document.getElementById('label-wetness')!;
     const sliderNeon = document.getElementById('slider-neon') as HTMLInputElement;
@@ -180,6 +181,35 @@ window.addEventListener('DOMContentLoaded', async () => {
     const btnBixCharacters = document.getElementById('btn-bix-characters')!;
     const btnBixGame = document.getElementById('btn-bix-game')!;
     const btnBixUi = document.getElementById('btn-bix-ui')!;
+
+    // Milestone 8: Full-Screen Hit & Play Title Screen & Collapsible Drawer
+    const asideDrawer = document.getElementById('aside-drawer')!;
+    const btnToggleInspector = document.getElementById('btn-toggle-inspector')!;
+    const btnCloseInspector = document.getElementById('btn-close-inspector')!;
+    const startOverlay = document.getElementById('start-overlay')!;
+    const btnStartGame = document.getElementById('btn-start-game')!;
+
+    btnToggleInspector.addEventListener('click', () => {
+        asideDrawer.classList.toggle('open');
+    });
+    btnCloseInspector.addEventListener('click', () => {
+        asideDrawer.classList.remove('open');
+    });
+
+    btnStartGame.addEventListener('click', async () => {
+        startOverlay.classList.add('hidden');
+        try {
+            await audioEngine.playTrack('hk_ambience');
+        } catch (err) {
+            console.log('Ambience playback on user click:', err);
+        }
+        cameraController.isDriving = false;
+        updateCameraModeUI('follow');
+    });
+
+    (window as any).startGame = () => {
+        btnStartGame.click();
+    };
 
     let currentArchiveName = 'Game';
     let currentArchive: BixArchive | null = null;
@@ -339,8 +369,23 @@ window.addEventListener('DOMContentLoaded', async () => {
     btnEnterCar.addEventListener('click', () => toggleVehicleEntry(true));
 
     window.addEventListener('keydown', (e) => {
-        if (e.code === 'KeyE' || e.code === 'KeyF') {
+        if (e.code === 'KeyE' || e.code === 'KeyF' || e.key.toLowerCase() === 'e' || e.key.toLowerCase() === 'f') {
             toggleVehicleEntry();
+        } else if (e.code === 'KeyH' || e.key.toLowerCase() === 'h') {
+            const hudEl = document.querySelector('.hud-overlay') as HTMLElement;
+            if (hudEl) {
+                hudEl.style.display = (hudEl.style.display === 'none') ? 'block' : 'none';
+            }
+        } else if (e.code === 'Digit1' || e.key === '1') {
+            applyWeatherPreset('neon_night');
+        } else if (e.code === 'Digit2' || e.key === '2') {
+            applyWeatherPreset('hong_kong_rain');
+        } else if (e.code === 'Digit3' || e.key === '3') {
+            applyWeatherPreset('typhoon_storm');
+        } else if (e.code === 'Escape' || e.key === 'Escape') {
+            if (asideDrawer.classList.contains('open')) {
+                asideDrawer.classList.remove('open');
+            }
         }
     });
 
@@ -412,6 +457,14 @@ window.addEventListener('DOMContentLoaded', async () => {
         trafficSystem.trafficEnabled = !trafficSystem.trafficEnabled;
         btnTrafficToggle.classList.toggle('active', trafficSystem.trafficEnabled);
         btnTrafficToggle.textContent = trafficSystem.trafficEnabled ? 'Traffic: ON' : 'Traffic: OFF';
+    });
+
+    btnShadowToggle.addEventListener('click', () => {
+        renderer.shadowsEnabled = !renderer.shadowsEnabled;
+        btnShadowToggle.classList.toggle('active', renderer.shadowsEnabled);
+        btnShadowToggle.textContent = renderer.shadowsEnabled ? 'Shadows: 2048 PCF' : 'Shadows: OFF';
+        btnShadowToggle.style.color = renderer.shadowsEnabled ? '#facc15' : 'var(--text-muted)';
+        btnShadowToggle.style.borderColor = renderer.shadowsEnabled ? '#facc15' : 'var(--panel-border)';
     });
 
     sliderWetness.addEventListener('input', () => {

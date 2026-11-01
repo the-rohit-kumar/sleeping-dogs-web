@@ -25,6 +25,14 @@ export class Viewport3D {
     private texture: WebGLTexture | null = null;
     private hasTexture = false;
 
+    // Milestone 8: Real-Time Directional Shadow Mapping & Contact Occlusion
+    private shadowProgram!: WebGLProgram;
+    private shadowFbo!: WebGLFramebuffer;
+    private shadowDepthTexture!: WebGLTexture;
+    public shadowMapSize = 1024;
+    public shadowsEnabled = true;
+    public playerPos: [number, number, number] = [0, 0, 0];
+
     private singleVbo!: WebGLBuffer;
     private singleEbo!: WebGLBuffer;
 
@@ -87,7 +95,25 @@ export class Viewport3D {
     private initShaders() {
         const gl = this.gl;
 
-        // Model Shaders
+        // Milestone 8: Dedicated Shadow Map Depth Shaders
+        const shadowVs = `#version 300 es
+            layout(location = 0) in vec3 aPosition;
+            uniform mat4 uModel;
+            uniform mat4 uLightSpaceMatrix;
+            void main() {
+                gl_Position = uLightSpaceMatrix * uModel * vec4(aPosition, 1.0);
+            }
+        `;
+
+        const shadowFs = `#version 300 es
+            precision highp float;
+            void main() {
+                // Hardware depth written automatically to gl_FragDepth
+            }
+        `;
+        this.shadowProgram = this.createProgram(shadowVs, shadowFs);
+
+        // Model Shaders with Real-Time Directional Shadow Receiver & Contact Grounding
         const vsSource = `#version 300 es
             layout(location = 0) in vec3 aPosition;
             layout(location = 1) in vec3 aNormal;
@@ -96,15 +122,18 @@ export class Viewport3D {
             uniform mat4 uModel;
             uniform mat4 uView;
             uniform mat4 uProjection;
+            uniform mat4 uLightSpaceMatrix;
 
             out vec3 vNormal;
             out vec3 vFragPos;
             out vec2 vUV;
+            out vec4 vFragPosLightSpace;
 
             void main() {
                 vFragPos = vec3(uModel * vec4(aPosition, 1.0));
                 vNormal = mat3(transpose(inverse(uModel))) * aNormal;
                 vUV = aUV;
+                vFragPosLightSpace = uLightSpaceMatrix * vec4(vFragPos, 1.0);
                 gl_Position = uProjection * uView * vec4(vFragPos, 1.0);
             }
         `;
@@ -115,6 +144,7 @@ export class Viewport3D {
             in vec3 vNormal;
             in vec3 vFragPos;
             in vec2 vUV;
+            in vec4 vFragPosLightSpace;
 
             uniform vec3 uLightPos;
             uniform vec3 uLightColor;
@@ -122,6 +152,11 @@ export class Viewport3D {
             uniform vec3 uViewPos;
             uniform sampler2D uTexture;
             uniform bool uHasTexture;
+
+            // Milestone 8: Shadow Depth Map & Contact Occlusion
+            uniform sampler2D uShadowMap;
+            uniform bool uShadowsEnabled;
+            uniform vec3 uPlayerPos;
 
             // Milestone 7C: Neon Nights & Wet Road Shading
             uniform float uWetness;
@@ -135,39 +170,83 @@ export class Viewport3D {
 
             out vec4 fragColor;
 
+            // ACES Filmic Tone Mapping Curve (Authentic Sleeping Dogs High-Contrast Cinema)
+            vec3 acesTonemap(vec3 x) {
+                const float a = 2.51;
+                const float b = 0.03;
+                const float c = 2.43;
+                const float d = 0.59;
+                const float e = 0.14;
+                return clamp((x * (a * x + b)) / (x * (c * x + d) + e), 0.0, 1.0);
+            }
+
+            // 4-tap Poisson disk kernel (smooth penumbra & ultra-fast for WebGL2)
+            const vec2 POISSON[4] = vec2[4](
+                vec2(-0.326, -0.406),
+                vec2(-0.840, -0.074),
+                vec2( 0.696,  0.457),
+                vec2( 0.202, -0.628)
+            );
+
+            float calculateShadow(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir) {
+                if (!uShadowsEnabled) return 0.0;
+
+                // Perspective divide to NDC
+                vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+                projCoords = projCoords * 0.5 + 0.5;
+
+                // Keep outside shadow map bounds unshadowed
+                if (projCoords.z > 1.0 || projCoords.x < 0.0 || projCoords.x > 1.0 || projCoords.y < 0.0 || projCoords.y > 1.0) {
+                    return 0.0;
+                }
+
+                // Adaptive slope-scaled bias to eliminate shadow acne
+                float bias = max(0.0035 * (1.0 - dot(normal, lightDir)), 0.0010);
+                float currentDepth = projCoords.z;
+
+                vec2 texelSize = 1.0 / vec2(1024.0, 1024.0);
+                float shadow = 0.0;
+                for (int i = 0; i < 4; ++i) {
+                    float pcfDepth = texture(uShadowMap, projCoords.xy + POISSON[i] * texelSize * 1.5).r;
+                    shadow += (currentDepth - bias > pcfDepth) ? 1.0 : 0.0;
+                }
+                return shadow * 0.25;
+            }
+
             void main() {
-                // If node is an authentic glowing neon sign or lantern
+                // Emissive neon signage & lanterns
                 if (uIsEmissive) {
                     float flicker = 0.95 + 0.05 * sin(uTime * 14.0) * cos(uTime * 5.5);
                     vec3 neonColor = uObjectColor * uNeonFactor * flicker;
-                    fragColor = vec4(neonColor, 1.0);
+                    fragColor = vec4(acesTonemap(neonColor * 1.5), 1.0);
                     return;
                 }
 
-                // Night ambient with urban light pollution & lightning flashes
-                vec3 ambientColor = uSkyAmbient + vec3(uLightningFlash * 0.45, uLightningFlash * 0.48, uLightningFlash * 0.55);
-                float ambientStrength = 0.42;
+                // Hong Kong night ambient lighting: rich city sky glow + lightning flash
+                vec3 sky = uSkyAmbient + vec3(uLightningFlash * 0.55, uLightningFlash * 0.58, uLightningFlash * 0.65);
+                vec3 ambientColor = sky * 1.6 + vec3(0.18, 0.20, 0.24); // Ambient bounce from surrounding city
+                float ambientStrength = 0.55;
                 vec3 ambient = ambientStrength * ambientColor;
 
-                // Streetlamp & Directional Diffuse
+                // Directional Sunlight / Streetlamp Light
                 vec3 norm = normalize(vNormal);
                 vec3 lightDir = normalize(uLightPos - vFragPos);
                 float diff = max(dot(norm, lightDir), 0.0);
-                vec3 diffuse = diff * uLightColor;
+                vec3 diffuse = diff * uLightColor * 1.35;
 
                 // View & Specular
                 vec3 viewDir = normalize(uViewPos - vFragPos);
                 vec3 halfwayDir = normalize(lightDir + viewDir);
 
                 // Wet asphalt specular calculation (Sleeping Dogs signature)
-                float isGround = clamp(norm.y, 0.0, 1.0); // Road and sidewalk upward normal
+                float isGround = clamp(norm.y, 0.0, 1.0);
                 float specPower = mix(24.0, 72.0, uWetness);
                 float spec = pow(max(dot(norm, halfwayDir), 0.0), specPower);
 
                 // Fresnel reflectance (grazing angles reflect streetlamps and neon signs)
                 float nDotV = max(dot(norm, viewDir), 0.0);
                 float fresnel = 0.04 + (1.0 - 0.04) * pow(1.0 - nDotV, 5.0);
-                float wetSpecularStrength = mix(0.35, 1.8 * uPuddleReflectivity, uWetness * isGround);
+                float wetSpecularStrength = mix(0.40, 2.0 * uPuddleReflectivity, uWetness * isGround);
                 vec3 specular = wetSpecularStrength * (spec + fresnel * 0.35) * uLightColor;
 
                 vec3 baseColor = uObjectColor;
@@ -178,17 +257,32 @@ export class Viewport3D {
 
                 // Wet asphalt darkens albedo when saturated with water
                 if (isGround > 0.5) {
-                    baseColor *= mix(1.0, 0.72, uWetness);
+                    baseColor *= mix(1.0, 0.78, uWetness);
                 }
 
-                vec3 result = (ambient + diffuse + specular) * baseColor;
+                // Milestone 8: Real-Time Directional Shadow Mapping (attenuates direct lighting, preserves ambient bounce)
+                float shadow = (diff > 0.001) ? calculateShadow(vFragPosLightSpace, norm, lightDir) : 1.0;
+                vec3 directLighting = (1.0 - shadow * 0.68) * diffuse + (1.0 - shadow * 0.82) * specular;
+
+                // Milestone 8: Contact Ambient Occlusion directly underneath character feet & wheels
+                float contactAO = 1.0;
+                if (isGround > 0.5) {
+                    float distToPlayer = length(vFragPos.xz - uPlayerPos.xz);
+                    if (distToPlayer < 0.95 && abs(vFragPos.y - uPlayerPos.y) < 0.35) {
+                        float footOcclusion = smoothstep(0.90, 0.15, distToPlayer);
+                        contactAO *= (1.0 - footOcclusion * 0.52);
+                    }
+                }
+
+                vec3 result = (ambient * contactAO + directLighting) * baseColor;
 
                 // Atmospheric Distance Fog (Hong Kong night haze)
                 float dist = length(vFragPos - uViewPos);
                 float fogFactor = clamp(exp(-pow(dist * uFogDensity, 1.3)), 0.0, 1.0);
-                result = mix(ambientColor * 0.85, result, fogFactor);
+                result = mix(ambientColor * 0.75, result, fogFactor);
 
-                fragColor = vec4(result, 1.0);
+                // Exposure scaled ACES Filmic Tone Mapping for authentic cinema contrast
+                fragColor = vec4(acesTonemap(result * 1.55), 1.0);
             }
         `;
 
@@ -233,6 +327,9 @@ export class Viewport3D {
         const fs = gl.createShader(gl.FRAGMENT_SHADER)!;
         gl.shaderSource(fs, fsCode);
         gl.compileShader(fs);
+        if (!gl.getShaderParameter(fs, gl.COMPILE_STATUS)) {
+            console.error('Fragment shader compile log:', gl.getShaderInfoLog(fs));
+        }
 
         const prog = gl.createProgram()!;
         gl.attachShader(prog, vs);
@@ -240,7 +337,9 @@ export class Viewport3D {
         gl.linkProgram(prog);
 
         if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
-            throw new Error('Shader compilation failure: ' + gl.getProgramInfoLog(prog));
+            const fsLog = gl.getShaderInfoLog(fs);
+            const vsLog = gl.getShaderInfoLog(vs);
+            throw new Error(`Shader compilation failure: prog=[${gl.getProgramInfoLog(prog)}] fs=[${fsLog}] vs=[${vsLog}]`);
         }
         return prog;
     }
@@ -267,6 +366,36 @@ export class Viewport3D {
         gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 3 * 4, 0);
         gl.enableVertexAttribArray(0);
         gl.bindVertexArray(null);
+
+        // Milestone 8: Initialize Shadow Framebuffer & 2048x2048 Depth Map
+        this.initShadowMap();
+    }
+
+    private initShadowMap() {
+        const gl = this.gl;
+        this.shadowDepthTexture = gl.createTexture()!;
+        gl.bindTexture(gl.TEXTURE_2D, this.shadowDepthTexture);
+        gl.texImage2D(
+            gl.TEXTURE_2D, 0, gl.DEPTH_COMPONENT24,
+            this.shadowMapSize, this.shadowMapSize, 0,
+            gl.DEPTH_COMPONENT, gl.UNSIGNED_INT, null
+        );
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+
+        this.shadowFbo = gl.createFramebuffer()!;
+        gl.bindFramebuffer(gl.FRAMEBUFFER, this.shadowFbo);
+        gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.DEPTH_ATTACHMENT, gl.TEXTURE_2D, this.shadowDepthTexture, 0);
+        gl.drawBuffers([gl.NONE]);
+        gl.readBuffer(gl.NONE);
+
+        const status = gl.checkFramebufferStatus(gl.FRAMEBUFFER);
+        if (status !== gl.FRAMEBUFFER_COMPLETE) {
+            console.error('Shadow FBO initialization error:', status);
+        }
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
     }
 
     public setCameraMode(mode: CameraMode) {
@@ -565,6 +694,64 @@ export class Viewport3D {
 
         this.drawCalls = 0;
 
+        // Active Player / Target Center for Shadow Projection Focus
+        const targetCenter: [number, number, number] = (this.cameraMode === 'follow' && this.cameraController)
+            ? [this.cameraController.targetPos[0], this.cameraController.targetPos[1], this.cameraController.targetPos[2]]
+            : (this.cameraMode === 'freefly'
+                ? [this.freeflyPos[0], 0.0, this.freeflyPos[2] - 4.0]
+                : [this.target[0], this.target[1], this.target[2]]);
+
+        // Directional Key Light (Key moonlight / high street fixture from Hong Kong sky)
+        const lightDir: [number, number, number] = [0.35, 0.85, 0.4];
+        const lightDist = 28.0;
+        const lightEye: [number, number, number] = [
+            targetCenter[0] + lightDir[0] * lightDist,
+            targetCenter[1] + lightDir[1] * lightDist,
+            targetCenter[2] + lightDir[2] * lightDist
+        ];
+        const lightView = this.lookAt(lightEye, targetCenter, [0, 1, 0]);
+        const shadowFrustumSize = 25.0;
+        const lightProj = this.ortho(
+            -shadowFrustumSize, shadowFrustumSize,
+            -shadowFrustumSize, shadowFrustumSize,
+            1.0, 65.0
+        );
+        const lightSpaceMatrix = this.multiplyMat4(lightProj, lightView);
+
+        // -----------------------------------------------------------------
+        // PASS 1: Dedicated Shadow Map Depth Pass (2048x2048 FBO)
+        // -----------------------------------------------------------------
+        if (this.shadowsEnabled && this.sceneGraph) {
+            gl.bindFramebuffer(gl.FRAMEBUFFER, this.shadowFbo);
+            gl.viewport(0, 0, this.shadowMapSize, this.shadowMapSize);
+            gl.clear(gl.DEPTH_BUFFER_BIT);
+            gl.enable(gl.DEPTH_TEST);
+            gl.depthFunc(gl.LESS);
+            gl.disable(gl.CULL_FACE); // Both sides cast shadows for authentic street geometry
+
+            gl.useProgram(this.shadowProgram);
+            gl.uniformMatrix4fv(gl.getUniformLocation(this.shadowProgram, 'uLightSpaceMatrix'), false, lightSpaceMatrix);
+
+            const nodes = this.sceneGraph.getAllNodes();
+            for (const node of nodes) {
+                if (!node.visible || !node.mesh) continue;
+                // Exclude distant Hong Kong skyline towers from casting shadows across local alley
+                if (node.id.includes('distant-tower')) continue;
+                if (!node.gpuReady) this.initNodeGpu(node);
+
+                gl.uniformMatrix4fv(gl.getUniformLocation(this.shadowProgram, 'uModel'), false, node.transform);
+                gl.bindVertexArray(node.vao!);
+                gl.drawElements(gl.TRIANGLES, node.mesh.triangleCount * 3, gl.UNSIGNED_SHORT, 0);
+            }
+
+            gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+        }
+
+        // -----------------------------------------------------------------
+        // PASS 2: Main Camera Viewport Render Pass (with PCF Shadows & ACES)
+        // -----------------------------------------------------------------
+        gl.viewport(0, 0, this.canvas.width, this.canvas.height);
+
         const ambient = this.weatherSystem ? this.weatherSystem.settings.skyAmbient : [0.04, 0.05, 0.07];
         const flash = this.weatherSystem ? this.weatherSystem.lightningFlash : 0.0;
         gl.clearColor(
@@ -597,7 +784,6 @@ export class Viewport3D {
             view = this.lookAt(eyePos, this.target, [0, 1, 0]);
         } else {
             eyePos = [this.freeflyPos[0], this.freeflyPos[1], this.freeflyPos[2]];
-            // Forward look direction
             const lookDirX = -Math.sin(this.freeflyYaw) * Math.cos(this.freeflyPitch);
             const lookDirY = Math.sin(this.freeflyPitch);
             const lookDirZ = -Math.cos(this.freeflyYaw) * Math.cos(this.freeflyPitch);
@@ -624,7 +810,10 @@ export class Viewport3D {
         gl.useProgram(this.program);
         gl.uniformMatrix4fv(gl.getUniformLocation(this.program, 'uView'), false, view);
         gl.uniformMatrix4fv(gl.getUniformLocation(this.program, 'uProjection'), false, proj);
-        gl.uniform3f(gl.getUniformLocation(this.program, 'uLightPos'), 20.0, 45.0, 30.0);
+        gl.uniformMatrix4fv(gl.getUniformLocation(this.program, 'uLightSpaceMatrix'), false, lightSpaceMatrix);
+        gl.uniform1i(gl.getUniformLocation(this.program, 'uShadowsEnabled'), this.shadowsEnabled ? 1 : 0);
+        gl.uniform3f(gl.getUniformLocation(this.program, 'uPlayerPos'), targetCenter[0], targetCenter[1], targetCenter[2]);
+        gl.uniform3f(gl.getUniformLocation(this.program, 'uLightPos'), lightEye[0], lightEye[1], lightEye[2]);
         gl.uniform3f(gl.getUniformLocation(this.program, 'uLightColor'), 1.0, 0.96, 0.92);
         gl.uniform3f(gl.getUniformLocation(this.program, 'uViewPos'), eyePos[0], eyePos[1], eyePos[2]);
 
@@ -642,6 +831,7 @@ export class Viewport3D {
         gl.uniform1f(gl.getUniformLocation(this.program, 'uTime'), now * 0.001);
         gl.uniform1f(gl.getUniformLocation(this.program, 'uLightningFlash'), flash);
 
+        // Unit 0: Diffuse Texture
         gl.activeTexture(gl.TEXTURE0);
         if (this.hasTexture && this.texture) {
             gl.bindTexture(gl.TEXTURE_2D, this.texture);
@@ -650,6 +840,11 @@ export class Viewport3D {
         } else {
             gl.uniform1i(gl.getUniformLocation(this.program, 'uHasTexture'), 0);
         }
+
+        // Unit 1: Shadow Depth Texture
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, this.shadowDepthTexture);
+        gl.uniform1i(gl.getUniformLocation(this.program, 'uShadowMap'), 1);
 
         if (this.sceneGraph) {
             // Render Multi-Node Scene Graph
@@ -733,6 +928,35 @@ export class Viewport3D {
         out[13] = -(yx * eye[0] + yy * eye[1] + yz * eye[2]);
         out[14] = -(zx * eye[0] + zy * eye[1] + zz * eye[2]);
         out[15] = 1;
+        return out;
+    }
+
+    private ortho(left: number, right: number, bottom: number, top: number, near: number, far: number): Float32Array {
+        const out = new Float32Array(16);
+        const lr = 1 / (left - right);
+        const bt = 1 / (bottom - top);
+        const nf = 1 / (near - far);
+        out[0] = -2 * lr;
+        out[5] = -2 * bt;
+        out[10] = 2 * nf;
+        out[12] = (left + right) * lr;
+        out[13] = (top + bottom) * bt;
+        out[14] = (far + near) * nf;
+        out[15] = 1;
+        return out;
+    }
+
+    private multiplyMat4(a: Float32Array, b: Float32Array): Float32Array {
+        const out = new Float32Array(16);
+        for (let i = 0; i < 4; i++) {
+            for (let j = 0; j < 4; j++) {
+                out[j * 4 + i] =
+                    a[i] * b[j * 4] +
+                    a[4 + i] * b[j * 4 + 1] +
+                    a[8 + i] * b[j * 4 + 2] +
+                    a[12 + i] * b[j * 4 + 3];
+            }
+        }
         return out;
     }
 
