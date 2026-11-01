@@ -52,6 +52,7 @@ import { PauseMenuController } from './pause-menu';
 import { OpenWorldActivitiesManager, ACTIVITY_HOTSPOTS, STREET_RACE_CHECKPOINTS } from './open-world-activities';
 import { SafehouseSystem, OUTFIT_CATALOG } from './safehouse-system';
 import { ActionHijackSystem } from './action-hijack-system';
+import { StreetEconomySystem, FOOD_MENU, CLOTHING_CATALOG } from './street-economy-system';
 
 window.addEventListener('DOMContentLoaded', async () => {
     const canvas = document.getElementById('viewport') as HTMLCanvasElement;
@@ -76,6 +77,8 @@ window.addEventListener('DOMContentLoaded', async () => {
     (window as any).safehouseSystem = safehouseSystem;
     const actionHijackSystem = new ActionHijackSystem();
     (window as any).actionHijackSystem = actionHijackSystem;
+    const streetEconomySystem = new StreetEconomySystem();
+    (window as any).streetEconomySystem = streetEconomySystem;
     (window as any).restorePlayerHealth = (hp: number = 100) => { playerHealth = hp; };
     (window as any).performSave = performSave;
     Object.defineProperty(window, 'sceneGraph', {
@@ -1162,7 +1165,17 @@ window.addEventListener('DOMContentLoaded', async () => {
                 renderer.sceneGraph!
             );
             if (!handled) {
-                performCombatCounter();
+                const economyHandled = streetEconomySystem.handleInteraction(
+                    'e',
+                    characterController.position,
+                    openWorldActivities,
+                    combatSystem,
+                    audioEngine,
+                    renderer.sceneGraph!
+                );
+                if (!economyHandled) {
+                    performCombatCounter();
+                }
             }
         } else if (e.code === 'KeyX' || e.key.toLowerCase() === 'x') {
             safehouseSystem.handleInteraction(
@@ -1232,7 +1245,9 @@ window.addEventListener('DOMContentLoaded', async () => {
         } else if (e.code === 'Digit3' || e.key === '3') {
             applyWeatherPreset('typhoon_storm');
         } else if (e.code === 'Escape' || e.key === 'Escape') {
-            if (frequencyTuner.isRunning()) {
+            if (streetEconomySystem.isFoodModalOpen || streetEconomySystem.isBoutiqueModalOpen) {
+                streetEconomySystem.closeModals();
+            } else if (frequencyTuner.isRunning()) {
                 frequencyTuner.cancelTuner();
             } else if (hackingMinigame.isRunning()) {
                 hackingMinigame.cancelMinigame();
@@ -2337,6 +2352,14 @@ window.addEventListener('DOMContentLoaded', async () => {
                 combatSystem,
                 weatherSystem,
                 renderer.sceneGraph
+            );
+
+            // Option 3: Hong Kong Street Economy, Food Vendors & Clothing Boutiques Update
+            streetEconomySystem.update(
+                deltaTimeSec,
+                activePos,
+                isDriving,
+                combatSystem
             );
 
             // Canonical Sleeping Dogs Story Mission & Cutscene Pipeline Update

@@ -154,3 +154,8 @@ With the 18 main campaign story missions fully functional and verified, the rema
 - **Action Hijack:** `client/src/action-hijack-system.ts` implementing real-time target reticle tracking, 0.35x bullet-time leap, roof latch, windshield smash, driver ejection, vehicle takeover, and +30% Face Meter surge.
 - **Cockpit Driving:** First-person driver seat camera (`[C]`), Speedometer (0-180 km/h), Tachometer (0-8000 RPM), Gear display, rotating steering wheel, rain wipers, and in-car radio tuner card.
 - **Automated Verification:** `tools/verify_action_hijack_and_cockpit.js` passed all 13 steps with 0 errors.
+
+### Option 3: Hong Kong Street Economy & Boutiques (100% Operational)
+- **Street Food Vendors:** Uncle Chow Pork Buns ("Whole Man" +25% Melee DMG), Grandma Lin Herbal Tea ("Chi Resilience" 50% DEF), Dim Sum (3x Face Adrenaline), Dragon Kick.
+- **Clothing Boutiques:** Hang + Deng (Level 1), J. Jigger (Level 2), Aspirazole (Level 3) with real-time 3D character mesh limb recoloring and stat perks.
+- **Automated Verification:** `tools/verify_street_economy.js` passed all 12 steps with 0 errors.

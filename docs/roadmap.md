@@ -668,3 +668,17 @@ ode-wei-shoe-l/r).
   - [x] In-car radio tuner card (`[R]`) cycling authentic stations and tracks
   - [x] Option 2 edge cases audited (empty Space fallback, on-foot deny, rapid [C] spam, cockpit hijack, exit car reset)
   - [x] Automated browser verification suite (`tools/verify_action_hijack_and_cockpit.js`, 13/13 passed, 0 page errors, 0 failed requests, 6 visual proof screenshots)
+
+- [x] **Option 3: Hong Kong Street Economy, Food Vendors & Clothing Boutiques** (Completed)
+  - [x] Street food vendors system (`client/src/street-economy-system.ts`)
+  - [x] Uncle Chow Pork Bun stall (*"A man who never eats pork buns is never a whole man!"*) with $+25\%$ Melee Damage Whole Man buff and full heal
+  - [x] Grandma Lin Herbal Tea stall with $50\%$ damage reduction Chi Resilience buff
+  - [x] Golden Dragon Dim Sum cart with $3.0\times$ Face Meter adrenaline buff
+  - [x] Street Kiosk Dragon Kick cans with $+50\%$ instant Face Meter surge
+  - [x] HUD active food buffs overlay with real-time countdown timers
+  - [x] Hang + Deng clothing boutique (North Point Night Market, Face Level 1)
+  - [x] J. Jigger designer apparel (Central Promenade, Face Level 2)
+  - [x] Aspirazole luxury haute couture (Victoria Peak, Face Level 3)
+  - [x] Real-time 3D character mesh limb recoloring upon equipping garments
+  - [x] Option 3 edge cases audited (broke buy denial, face level lock, independent timer decay, modal spam resilience, combat multiplier integration)
+  - [x] Automated browser verification suite (`tools/verify_street_economy.js`, 12/12 passed, 0 page errors, 0 failed requests, 5 visual proof screenshots)
