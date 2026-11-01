@@ -15,7 +15,7 @@
  *  - Interactive dialogue skip ([Space] / [E])
  *  - Seamless transitions directly into authentic gameplay, parkour, and combat
  *
- * ZERO synthetic assets: 100% extracted from Sleeping Dogs: Definitive Edition archives.
+ * Hybrid reconstruction: authentic base-game voice audio and character models with authored campaign state machines.
  */
 
 import { AudioEngine } from './audio-engine';

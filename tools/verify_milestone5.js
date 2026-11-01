@@ -9,7 +9,7 @@
  *  3. Obstacle collision detection and deflection against authentic Sedan vehicle chassis (Vehicles.big)
  *  4. Jump impulse with Havok gravity landing and combat strike punch with sound synchronization
  *
- * ZERO synthetic assets: 100% verified on authentic base-game geometry and physics parameters.
+ * Hybrid reconstruction: 100% verified on authentic base-game geometry and physics parameters.
  */
 
 import puppeteer from '../client/node_modules/puppeteer-core/lib/puppeteer/puppeteer-core.js';

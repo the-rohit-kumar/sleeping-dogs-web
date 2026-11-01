@@ -8,7 +8,7 @@
  *  - Face Meter Adrenaline Surge & Health Gauge
  *  - Carjacking, Vehicle Driving & Safehouse Delivery Waypoints
  *
- * ZERO synthetic assets: Evaluates authentic base-game models, animations, and audio.
+ * Hybrid reconstruction: Evaluates authentic base-game models, animations, and audio.
  */
 
 import puppeteer from '../client/node_modules/puppeteer-core/lib/puppeteer/puppeteer-core.js';

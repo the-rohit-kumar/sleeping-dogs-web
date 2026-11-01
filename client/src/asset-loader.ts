@@ -41,8 +41,108 @@ export const cacheStats: CacheStats = {
 };
 
 // L1 Memory Cache (Max 128 chunks)
-const MAX_L1_ENTRIES = 128;
-const l1Cache = new Map<string, Uint8Array>();
+export const MAX_L1_ENTRIES = 128;
+export const l1Cache = new Map<string, Uint8Array>();
+
+/**
+ * Inserts or promotes an entry in the L1 memory cache, enforcing the MAX_L1_ENTRIES limit.
+ * Refreshes LRU recency by moving the entry to the end of insertion order.
+ */
+export function setL1(key: string, data: Uint8Array): void {
+  if (l1Cache.has(key)) {
+    l1Cache.delete(key);
+  } else if (l1Cache.size >= MAX_L1_ENTRIES) {
+    const oldestKey = l1Cache.keys().next().value;
+    if (oldestKey !== undefined) {
+      l1Cache.delete(oldestKey);
+    }
+  }
+  l1Cache.set(key, data);
+}
+
+/**
+ * Retrieves an entry from L1 memory cache and refreshes its LRU recency.
+ */
+export function getL1(key: string): Uint8Array | undefined {
+  if (!l1Cache.has(key)) return undefined;
+  const data = l1Cache.get(key)!;
+  l1Cache.delete(key);
+  l1Cache.set(key, data);
+  return data;
+}
+
+/**
+ * Clears the L1 memory cache (useful for deterministic unit tests).
+ */
+export function clearL1Cache(): void {
+  l1Cache.clear();
+}
+
+/**
+ * Validation result for HTTP 206 Content-Range headers.
+ */
+export interface ContentRangeValidation {
+  valid: boolean;
+  error?: string;
+  start?: number;
+  end?: number;
+  total?: number;
+}
+
+/**
+ * Strictly parses and validates the HTTP 206 Content-Range header.
+ * Expected format: "bytes <start>-<end>/<total>" or "bytes <start>-<end>/*"
+ * Requires exact match with requested byte offset and length.
+ */
+export function validateContentRange(
+  header: string | null,
+  expectedOffset: number,
+  expectedLength: number
+): ContentRangeValidation {
+  if (!header) {
+    return { valid: false, error: 'Missing Content-Range header in HTTP 206 response' };
+  }
+
+  const match = header.trim().match(/^bytes\s+(\d+)-(\d+)\/(\d+|\*)$/i);
+  if (!match) {
+    return { valid: false, error: `Malformed Content-Range header: "${header}"` };
+  }
+
+  const start = parseInt(match[1], 10);
+  const end = parseInt(match[2], 10);
+  const expectedEnd = expectedOffset + expectedLength - 1;
+
+  if (start !== expectedOffset) {
+    return {
+      valid: false,
+      error: `Content-Range start mismatch: expected ${expectedOffset}, got ${start}`
+    };
+  }
+
+  if (end !== expectedEnd) {
+    return {
+      valid: false,
+      error: `Content-Range end mismatch: expected ${expectedEnd}, got ${end}`
+    };
+  }
+
+  if (start > end) {
+    return { valid: false, error: `Content-Range start (${start}) cannot exceed end (${end})` };
+  }
+
+  if (match[3] !== '*') {
+    const total = parseInt(match[3], 10);
+    if (isNaN(total) || total <= 0) {
+      return { valid: false, error: `Invalid Content-Range total size: "${match[3]}"` };
+    }
+    if (end >= total) {
+      return { valid: false, error: `Content-Range end (${end}) exceeds total size (${total})` };
+    }
+    return { valid: true, start, end, total };
+  }
+
+  return { valid: true, start, end };
+}
 
 // L2 IndexedDB Persistent Cache
 let idbDatabase: IDBDatabase | null = null;
@@ -112,27 +212,24 @@ async function idbSet(key: string, data: Uint8Array): Promise<void> {
 
 /**
  * Streams a specific byte range directly from a base-game .big archive container
- * with two-tier L1/L2 caching.
+ * with two-tier L1/L2 caching and strict HTTP 206 / Content-Range / body validation.
  */
 export async function fetchRange(archiveName: string, offset: number, length: number): Promise<Uint8Array> {
   const cacheKey = `${archiveName}:${offset}:${length}`;
 
-  // 1. Check L1 Memory Cache
-  if (l1Cache.has(cacheKey)) {
+  // 1. Check L1 Memory Cache (refreshes LRU recency)
+  const l1Cached = getL1(cacheKey);
+  if (l1Cached) {
     cacheStats.l1Hits++;
-    // Move to end for LRU refresh
-    const cached = l1Cache.get(cacheKey)!;
-    l1Cache.delete(cacheKey);
-    l1Cache.set(cacheKey, cached);
-    return cached;
+    return l1Cached;
   }
 
   // 2. Check L2 IndexedDB Cache
   const idbCached = await idbGet(cacheKey);
   if (idbCached) {
     cacheStats.l2Hits++;
-    // Promote to L1
-    l1Cache.set(cacheKey, idbCached);
+    // Promote to L1 with strict MAX_L1_ENTRIES eviction
+    setL1(cacheKey, idbCached);
     return idbCached;
   }
 
@@ -149,26 +246,45 @@ export async function fetchRange(archiveName: string, offset: number, length: nu
   });
 
   if (response.status !== 206) {
-    throw new Error(`Expected HTTP 206 Partial Content for range [${offset}-${end}] from ${archiveName}.big, received HTTP ${response.status}. Full-file download rejected to prevent memory exhaustion.`);
+    throw new Error(
+      `Expected HTTP 206 Partial Content for range [${offset}-${end}] from ${archiveName}.big, ` +
+      `received HTTP ${response.status}. Full-file download rejected to prevent memory exhaustion.`
+    );
   }
 
+  // Validate Content-Range header
   const contentRange = response.headers.get('Content-Range');
+  const rangeValidation = validateContentRange(contentRange, offset, length);
+  if (!rangeValidation.valid) {
+    throw new Error(`Invalid HTTP 206 Content-Range response: ${rangeValidation.error}`);
+  }
+
+  // Validate Content-Length header if present
+  const contentLength = response.headers.get('Content-Length');
+  if (contentLength !== null) {
+    const cl = parseInt(contentLength, 10);
+    if (!isNaN(cl) && cl !== length) {
+      throw new Error(
+        `HTTP 206 Content-Length header mismatch: expected ${length} bytes, received ${cl} bytes`
+      );
+    }
+  }
+
   const arrayBuffer = await response.arrayBuffer();
   const data = new Uint8Array(arrayBuffer);
 
+  // Assert exact body length match
   if (data.byteLength !== length) {
-    console.warn(`Range length mismatch: requested ${length} bytes, received ${data.byteLength} bytes (Content-Range: ${contentRange})`);
+    throw new Error(
+      `Received body length mismatch: requested ${length} bytes, received ${data.byteLength} bytes`
+    );
   }
 
   cacheStats.bytesLoaded += data.byteLength;
   cacheStats.bytesCached += data.byteLength;
 
-  // Store in L1
-  if (l1Cache.size >= MAX_L1_ENTRIES) {
-    const oldestKey = l1Cache.keys().next().value;
-    if (oldestKey) l1Cache.delete(oldestKey);
-  }
-  l1Cache.set(cacheKey, data);
+  // Insert into L1 (evicts oldest entry if >= MAX_L1_ENTRIES)
+  setL1(cacheKey, data);
 
   // Store in L2 asynchronously
   idbSet(cacheKey, data);

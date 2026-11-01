@@ -9,7 +9,7 @@
  *  3. Pedestrian Crowd AI (Sidewalk waypoint navigation, obstacle avoidance & panic fleeing)
  *  4. Martial Arts Melee Combat (Soft lock-on, multi-hit combo chain, stagger knockback, Face meter boost)
  *
- * ZERO synthetic assets: 100% evaluated on authentic base-game assets from Sleeping Dogs: Definitive Edition.
+ * Hybrid reconstruction: 100% evaluated on authentic base-game assets from Sleeping Dogs: Definitive Edition.
  */
 
 import puppeteer from '../client/node_modules/puppeteer-core/lib/puppeteer/puppeteer-core.js';

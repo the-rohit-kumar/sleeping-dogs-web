@@ -14,7 +14,7 @@
  *  5. Direct comparison between Shadows ON vs Shadows OFF
  *  6. Shaded depth grounding in Typhoon Storm weather
  *
- * ZERO synthetic assets: 100% evaluated on authentic base-game assets.
+ * Hybrid reconstruction: 100% evaluated on authentic base-game assets.
  */
 
 import puppeteer from '../client/node_modules/puppeteer-core/lib/puppeteer/puppeteer-core.js';

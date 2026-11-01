@@ -6,7 +6,7 @@
  *  - Vehicle 4-Wheel Steering Kinematics & Dynamic Asphalt Drift Skid Marks
  *  - Campaign Mission 2: "Dockside Warehouse Shakedown" with Aberdeen Docks Boss Brawl
  *
- * ZERO synthetic assets: 100% authentic base-game assets.
+ * Hybrid reconstruction: 100% authentic base-game assets.
  */
 
 import puppeteer from '../client/node_modules/puppeteer-core/lib/puppeteer/puppeteer-core.js';

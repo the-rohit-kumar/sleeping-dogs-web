@@ -1,12 +1,14 @@
 /**
  * verify_missions_3_and_4.js
- * End-to-end automated browser verification for authentic Sleeping Dogs: Definitive Edition story missions:
+ * Visual Scenario Showcase & Cinematic Fixture Script:
+ * Captures visual artifacts and inspects telemetry across Mission 3 and Mission 4 scenes:
  *  - Screenshot 1: Mission 3 — Night Market Chase: Confronting Food Stand Contact & Ming Flees
  *  - Screenshot 2: Mission 3 — Rooftop Knife Combat Climax: Cornering Ming & 18K Blade Enforcers
  *  - Screenshot 3: Mission 4 — Amanda Tour: Driving Amanda Cartwright in Sedan across North Point
  *  - Screenshot 4: Mission 4 — Master Kwok's Martial Arts Dojo: Kung Fu Sparring with Disciples
  *
- * ZERO synthetic assets: 100% authentic base-game archives.
+ * NOTE: This is a scene fixture script that positions camera and entities for visual inspection.
+ * For functional assertion testing without state injection, see tools/test_functional_browser.js.
  */
 
 import puppeteer from '../client/node_modules/puppeteer-core/lib/puppeteer/puppeteer-core.js';

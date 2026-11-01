@@ -7,7 +7,7 @@
  *  - In-Car Radio Station Tuner (Boosey & Hawkes, Kerrang!, Softly FM) with HUD Banner
  *  - Digital Speedometer and Vehicle Horn SFX
  *
- * ZERO synthetic assets: 100% authentic base-game assets.
+ * Hybrid reconstruction: 100% authentic base-game assets.
  */
 
 import puppeteer from '../client/node_modules/puppeteer-core/lib/puppeteer/puppeteer-core.js';

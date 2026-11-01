@@ -13,7 +13,7 @@
  *  2. Neon Night (Clear damp street, maximum neon mirror reflections)
  *  3. Typhoon Storm Deluge (Waterlogged flooded street with ripple turbulence)
  *
- * ZERO synthetic assets: 100% evaluated on authentic base-game assets.
+ * Hybrid reconstruction: 100% evaluated on authentic base-game assets.
  */
 
 import puppeteer from '../client/node_modules/puppeteer-core/lib/puppeteer/puppeteer-core.js';

@@ -110,9 +110,11 @@ $$\text{SlicePitch} = \left\lfloor\frac{H + 3}{4}\right\rfloor \times \text{RowP
 
 ## 5. Illusion Engine Buffer Specification (`Illusion::BufferLoader`)
 
-**Status:** `CONFIRMED` via Ghidra decompiler analysis of `FUN_140a18c70` and `FUN_140a16e20`.
+**Status:** `WORKING HYPOTHESIS / REVERSE-ENGINEERING IN PROGRESS` (Heuristic and decompilation analysis under investigation).
 
-### 5.1 Buffer Descriptor Layout
+### 5.1 Buffer Descriptor Layout (Hypothesis)
+
+The following layout is derived from preliminary static analysis of buffer setup routines (`FUN_140a18c70` and `FUN_140a16e20` in the local Ghidra project). It represents a working hypothesis for resource chunk headers preceding buffer data:
 
 | Relative Offset | Type | Field | Description |
 |---|---|---|---|
@@ -121,8 +123,30 @@ $$\text{SlicePitch} = \left\lfloor\frac{H + 3}{4}\right\rfloor \times \text{RowP
 | `-0x34` | `uint32_t` | `mByteWidth` | Total buffer payload size in bytes (`D3D11_BUFFER_DESC::ByteWidth`) |
 | `-0x30` | `int64_t` | `mDataOffset` | Relative offset from this field to raw buffer memory |
 
-### 5.2 Vertex Buffer Layouts
-Sleeping Dogs uses interleaved vertex streams:
-- **Standard Stride (32 bytes):** Position (3x float32), Normal (3x float32), UV0 (2x float32)
-- **High-Detail Mesh Stride (40 bytes):** Position (3x float32), Normal (3x float32), Tangent (4x int8_snorm), UV0 (2x float32)
-- **Skinned Mesh Stride (48 bytes):** Position (3x float32), BlendWeights (4x uint8_unorm), BlendIndices (4x uint8), Normal (3x float32), UV0 (2x float32)
+### 5.2 Vertex Buffer Layouts & Stride Accounting
+
+Sleeping Dogs uses interleaved vertex streams. The exact strides observed in vertex buffers include 8-byte half-float streams, 16-byte streams, and potential 32/40/48-byte full attribute streams. Note on stride arithmetic:
+
+- **Compact Half-Float Stride (8 bytes) [VERIFIED IN ENTRY 6]:**
+  - Position: 4x float16 (8 bytes: X, Y, Z, W)
+- **Standard Stride (32 bytes) [Hypothesis]:**
+  - Position: 3x float32 (12 bytes)
+  - Normal: 3x float32 (12 bytes)
+  - UV0: 2x float32 (8 bytes)
+  - Total: $12 + 12 + 8 = 32\text{ bytes}$ (Fully accounted)
+- **High-Detail Mesh Stride (40 bytes) [Hypothesis]:**
+  - Position: 3x float32 (12 bytes)
+  - Normal: 3x float32 (12 bytes)
+  - Tangent: 4x int8_snorm (4 bytes)
+  - UV0: 2x float32 (8 bytes)
+  - *Remaining 4 bytes:* Attributed to either a 4-byte packed Binormal/Bitangent sign (`4x int8_snorm`) or 4-byte alignment padding. Total: $12 + 12 + 4 + 8 + 4 = 40\text{ bytes}$.
+- **Skinned Mesh Stride (48 bytes) [Hypothesis]:**
+  - Position: 3x float32 (12 bytes)
+  - BlendWeights: 4x uint8_unorm (4 bytes)
+  - BlendIndices: 4x uint8 (4 bytes)
+  - Normal: 3x float32 (12 bytes)
+  - UV0: 2x float32 (8 bytes)
+  - *Remaining 8 bytes:* Attributed to secondary UV channel (`2x float32` / 8 bytes) or packed Tangent/Bitangent. Total: $12 + 4 + 4 + 12 + 8 + 8 = 48\text{ bytes}$.
+
+> [!NOTE]
+> The 32-, 40-, and 48-byte vertex layouts remain working hypotheses. The exact `D3D11_INPUT_ELEMENT_DESC` arrays from `CreateInputLayout` calls in the executable have not yet been extracted from the binary. Entry 6 (`Vehicles.big 0x01f0a400`) currently renders using authentic 8-byte float16 vertex streams.

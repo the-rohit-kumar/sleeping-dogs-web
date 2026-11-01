@@ -6,7 +6,7 @@
  *  - Screenshot 3: Chapter 1 — HKPD Interrogation Room & Holding Cells Brawl with Jackie Ma
  *  - Screenshot 4: Chapter 1 — Vendor Extortion, Night Market Shakedown & 18K Ambush Combat
  *
- * ZERO synthetic assets: 100% authentic base-game archives.
+ * Hybrid reconstruction: 100% authentic base-game archives.
  */
 
 import puppeteer from '../client/node_modules/puppeteer-core/lib/puppeteer/puppeteer-core.js';

@@ -110,7 +110,7 @@ The mesh decoder **invents its topology**. The index buffers rendered in the bro
 
 **Technical Analysis & Evidence:**
 1. **Actual Vertex Layout:**
-   In [client/src/mesh-decoder.ts](file:///client/src/mesh-decoder.ts#L138-L164), `decodeAuthenticVehicleMesh` assumes an 8-byte stride containing 4 half-floats (Float16):
+   In [client/src/mesh-decoder.ts](client/src/mesh-decoder.ts#L138-L164), `decodeAuthenticVehicleMesh` assumes an 8-byte stride containing 4 half-floats (Float16):
    - Offset 0: `hx` (X position)
    - Offset 2: `hy` (Y position)
    - Offset 4: `hz` (Z position)
@@ -122,7 +122,7 @@ The mesh decoder **invents its topology**. The index buffers rendered in the bro
    - World Sector: `Math.abs(x) < 500.0 && Math.abs(y) < 500.0 && Math.abs(z) < 500.0`
    Any vertex exceeding these thresholds is dropped from `rawPoints`.
 3. **Synthetic Index Generation:**
-   In [client/src/mesh-decoder.ts](file:///client/src/mesh-decoder.ts#L165-L173), [L230-L238](file:///client/src/mesh-decoder.ts#L230-L238), and [L295-L303](file:///client/src/mesh-decoder.ts#L295-L303):
+   In [client/src/mesh-decoder.ts](client/src/mesh-decoder.ts#L165-L173), [L230-L238](client/src/mesh-decoder.ts#L230-L238), and [L295-L303](client/src/mesh-decoder.ts#L295-L303):
    ```typescript
    const rawIndices: number[] = [];
    for (let i = 0; i < vertexCount - 2; i++) {
@@ -136,10 +136,10 @@ The mesh decoder **invents its topology**. The index buffers rendered in the bro
    ```
    This generates an artificial triangle strip across consecutive surviving vertices. It is not decoded from the `.big` archive.
 4. **Normals and UVs:**
-   - Normals are generated via `computeSmoothNormals()` ([client/src/mesh-decoder.ts#L86-L132](file:///client/src/mesh-decoder.ts#L86-L132)) by computing cross products of the synthetic triangle faces.
-   - UVs are generated via planar bounding-box projection: `(pos - bounds.min) / bounds.span` ([client/src/mesh-decoder.ts#L177-L184](file:///client/src/mesh-decoder.ts#L177-L184)).
+   - Normals are generated via `computeSmoothNormals()` ([client/src/mesh-decoder.ts#L86-L132](client/src/mesh-decoder.ts#L86-L132)) by computing cross products of the synthetic triangle faces.
+   - UVs are generated via planar bounding-box projection: `(pos - bounds.min) / bounds.span` ([client/src/mesh-decoder.ts#L177-L184](client/src/mesh-decoder.ts#L177-L184)).
 5. **Original Engine Comparison (Ghidra Decompilation):**
-   In [docs/buffer-create-decomp.txt](file:///docs/buffer-create-decomp.txt), function `FUN_140a18c70` (`BufferLoader::CreateBufferResource`) reads the buffer descriptor at negative offsets from the sysMem pointer:
+   In [docs/buffer-create-decomp.txt](docs/buffer-create-decomp.txt), function `FUN_140a18c70` (`BufferLoader::CreateBufferResource`) reads the buffer descriptor at negative offsets from the sysMem pointer:
    - `*(uint *)(param_1 - 0x38)`: Buffer Type (`0` = Vertex Buffer, `1` = Index Buffer)
    - `*(uint *)(param_1 - 0x34)`: ByteWidth (passed to `D3D11_BUFFER_DESC.ByteWidth`)
    - `*(param_1 - 0x30)`: SysMem pointer (passed to `D3D11_SUBRESOURCE_DATA.pSysMem`)
@@ -158,7 +158,7 @@ The meshes rendered in the browser are **geometry approximations**: authentic ve
 **Status:** **CONFIRMED**
 
 **Evidence & Vulnerability:**
-In [client/src/mesh-decoder.ts](file:///client/src/mesh-decoder.ts#L332-L397):
+In [client/src/mesh-decoder.ts](client/src/mesh-decoder.ts#L332-L397):
 ```typescript
 for (const stride of [8, 16, 24]) {
   // decodes half-floats at offset 0, 2, 4
@@ -174,7 +174,7 @@ for (const stride of [8, 16, 24]) {
 ### Q06 — Are the hard-coded archive offsets and spans validated against BIX entries?
 
 **Direct Answer:**
-Mixed. We executed a complete cross-reference audit tool ([tools/audit_bix_resources.py](file:///tools/audit_bix_resources.py)) comparing all 18 hard-coded resources across `asset-loader.ts`, `world-streamer.ts`, `traffic-system.ts`, and `crowd-system.ts` against the binary `.bix` indices (`Vehicles.bix`, `Characters.bix`, `Game.bix`, and `UI.bix`).
+Mixed. We executed a complete cross-reference audit tool ([tools/audit_bix_resources.py](tools/audit_bix_resources.py)) comparing all 18 hard-coded resources across `asset-loader.ts`, `world-streamer.ts`, `traffic-system.ts`, and `crowd-system.ts` against the binary `.bix` indices (`Vehicles.bix`, `Characters.bix`, `Game.bix`, and `UI.bix`).
 
 - **5 resources** are **EXACT BIX MATCHES** (UID, offset, and span match the real `.bix` file).
 - **2 resources** have valid BIX offsets, but the TypeScript code used the offset value as the UID.
@@ -182,7 +182,7 @@ Mixed. We executed a complete cross-reference audit tool ([tools/audit_bix_resou
 
 **Status:** **CONFIRMED**
 
-**Empirical Audit Table ([tools/audit_bix_resources.py](file:///tools/audit_bix_resources.py)):**
+**Empirical Audit Table ([tools/audit_bix_resources.py](tools/audit_bix_resources.py)):**
 
 | Resource | Archive | Requested UID | Requested Offset | BIX Entry Index | True BIX UID | True BIX Offset | BIX Span (Bytes) | Match Status |
 |---|---|---|---|---|---|---|---|---|
@@ -226,7 +226,7 @@ No. `client/src/bix-parser.ts` parses the 32-byte header and entry records, but 
 ### Q08 — Are the mesh decoders consistent with the documented vertex layouts?
 
 **Direct Answer:**
-No. `docs/asset-formats.md` documents complex 32-byte, 40-byte, and 48-byte vertex layouts containing packed normals, tangents, UV channels, and 4-bone blend weights. The actual TypeScript decoder ([client/src/mesh-decoder.ts](file:///client/src/mesh-decoder.ts)) implements none of these: it uses an 8-byte half-float stride reading positions only.
+No. `docs/asset-formats.md` documents complex 32-byte, 40-byte, and 48-byte vertex layouts containing packed normals, tangents, UV channels, and 4-bone blend weights. The actual TypeScript decoder ([client/src/mesh-decoder.ts](client/src/mesh-decoder.ts)) implements none of these: it uses an 8-byte half-float stride reading positions only.
 
 **Status:** **CONFIRMED**
 
@@ -239,14 +239,14 @@ No. `docs/asset-formats.md` documents complex 32-byte, 40-byte, and 48-byte vert
 ### Q09 — Are texture headers actually parsed, or are known payloads being decoded by hard-coded assumptions?
 
 **Direct Answer:**
-Known payloads are decoded using **hard-coded caller assumptions**. While the decompression algorithms for BC1, BC2, BC3, and BC5 in [client/src/texture-decoder.ts](file:///client/src/texture-decoder.ts) are fully functional software implementations, `decodeAuthenticTexture()` does not parse the `Illusion::rTexture` header at runtime.
+Known payloads are decoded using **hard-coded caller assumptions**. While the decompression algorithms for BC1, BC2, BC3, and BC5 in [client/src/texture-decoder.ts](client/src/texture-decoder.ts) are fully functional software implementations, `decodeAuthenticTexture()` does not parse the `Illusion::rTexture` header at runtime.
 
 **Status:** **CONFIRMED**
 
 **Evidence:**
-- In [client/src/texture-decoder.ts#L367-L373](file:///client/src/texture-decoder.ts#L367-L373):
+- In [client/src/texture-decoder.ts#L367-L373](client/src/texture-decoder.ts#L367-L373):
   `decodeAuthenticTexture(payload, width, height, format, name)` receives `width`, `height`, and `format` as external arguments.
-- The caller in [client/src/asset-loader.ts#L225-L235](file:///client/src/asset-loader.ts#L225-L235) hard-codes `128, 128, TextureFormat.BC3` or `256, 256, TextureFormat.BC1`.
+- The caller in [client/src/asset-loader.ts#L225-L235](client/src/asset-loader.ts#L225-L235) hard-codes `128, 128, TextureFormat.BC3` or `256, 256, TextureFormat.BC1`.
 - Native `Illusion::rTexture` metadata (magic `0x54455855`, mipmap count, DXGI format enum) is not read dynamically.
 
 ---
@@ -333,7 +333,7 @@ No. In `main.ts`, `physicsEngine.initFromSceneNodes()` is called only with `node
 ### Q15 — What part of the physics system is genuinely Havok-derived?
 
 **Direct Answer:**
-**0% of the physics system is Havok-derived.** The physics engine in [client/src/physics-engine.ts](file:///client/src/physics-engine.ts) is a custom TypeScript implementation using Möller–Trumbore raycasts against the ground mesh, horizontal capsule-like penetration pushes against AABBs, and custom Euler integration. Havok `.hkx` collision files (`hkpRigidBody`, `hkpMoppCode`) are neither decompressed nor executed.
+**0% of the physics system is Havok-derived.** The physics engine in [client/src/physics-engine.ts](client/src/physics-engine.ts) is a custom TypeScript implementation using Möller–Trumbore raycasts against the ground mesh, horizontal capsule-like penetration pushes against AABBs, and custom Euler integration. Havok `.hkx` collision files (`hkpRigidBody`, `hkpMoppCode`) are neither decompressed nor executed.
 
 **Status:** **CONFIRMED**
 
@@ -344,7 +344,7 @@ No. In `main.ts`, `physicsEngine.initFromSceneNodes()` is called only with `node
 ### Q16 — Are authentic animation clips loaded and evaluated?
 
 **Direct Answer:**
-No. All character animations in [client/src/character-animator.ts](file:///client/src/character-animator.ts) and [client/src/anim-player.ts](file:///client/src/anim-player.ts) are **procedural trigonometric kinematics** evaluated in TypeScript.
+No. All character animations in [client/src/character-animator.ts](client/src/character-animator.ts) and [client/src/anim-player.ts](client/src/anim-player.ts) are **procedural trigonometric kinematics** evaluated in TypeScript.
 
 **Status:** **CONFIRMED**
 
@@ -381,7 +381,7 @@ Crowd models are decoded from genuine BIX entries; traffic vehicles (minivan, SU
 ### Q19 — How faithful are vehicle physics and driving behavior?
 
 **Direct Answer:**
-Vehicle driving in [client/src/vehicle-controller.ts](file:///client/src/vehicle-controller.ts) is an **authored arcade raycast/bicycle model**, not a port of Havok Vehicle SDK.
+Vehicle driving in [client/src/vehicle-controller.ts](client/src/vehicle-controller.ts) is an **authored arcade raycast/bicycle model**, not a port of Havok Vehicle SDK.
 
 **Status:** **CONFIRMED**
 
@@ -395,7 +395,7 @@ Vehicle driving in [client/src/vehicle-controller.ts](file:///client/src/vehicle
 ### Q20 — Are the combat animation names backed by actual animation resources?
 
 **Direct Answer:**
-No. Combat animations in [client/src/combat-system.ts](file:///client/src/combat-system.ts) trigger procedural kinematic bone poses. The timing windows (0.45s strike combo window, 0.6s counter reversal window) and damage multipliers are authored gameplay logic, not decompiled engine bytecode.
+No. Combat animations in [client/src/combat-system.ts](client/src/combat-system.ts) trigger procedural kinematic bone poses. The timing windows (0.45s strike combo window, 0.6s counter reversal window) and damage multipliers are authored gameplay logic, not decompiled engine bytecode.
 
 **Status:** **CONFIRMED**
 
@@ -404,7 +404,7 @@ No. Combat animations in [client/src/combat-system.ts](file:///client/src/combat
 ### Q21 — Are environmental takedowns real game interactions or scripted hazard triggers?
 
 **Direct Answer:**
-They are **scripted hazard triggers**. [client/src/environmental-hazards.ts](file:///client/src/environmental-hazards.ts) registers predefined bounding zones around phone booths, dumpsters, and electrical fuse boxes. When an enemy is grappled within 2.5 meters of a hazard, pressing the action key triggers a scripted takedown sequence, playing authentic impact audio from `SFX.pck` and neutralizing the NPC.
+They are **scripted hazard triggers**. [client/src/environmental-hazards.ts](client/src/environmental-hazards.ts) registers predefined bounding zones around phone booths, dumpsters, and electrical fuse boxes. When an enemy is grappled within 2.5 meters of a hazard, pressing the action key triggers a scripted takedown sequence, playing authentic impact audio from `SFX.pck` and neutralizing the NPC.
 
 **Status:** **CONFIRMED**
 
@@ -440,18 +440,18 @@ No. Traffic lane navigation and pedestrian crowd wandering are authored state ma
 ### Q24 — Is the wet-road effect actually screen-space reflection?
 
 **Direct Answer:**
-No. The effect in [client/src/renderer.ts#L367-L386](file:///client/src/renderer.ts#L367-L386) is an **analytic anisotropic specular streak approximation**. It calculates specular streaks against 6 hard-coded neon sign positions and colors (`uNeonPositions`, `uNeonColors`). There is no screen color buffer raymarching or depth buffer traversal.
+No. The effect in [client/src/renderer.ts#L367-L386](client/src/renderer.ts#L367-L386) is an **analytic anisotropic specular streak approximation**. It calculates specular streaks against 6 hard-coded neon sign positions and colors (`uNeonPositions`, `uNeonColors`). There is no screen color buffer raymarching or depth buffer traversal.
 
 **Status:** **CONFIRMED**
 
-- Wet puddle masks are generated via procedural multi-frequency sine noise ([L350-L352](file:///client/src/renderer.ts#L350-L352)) and animated wave ripple perturbation ([L356-L361](file:///client/src/renderer.ts#L356-L361)), not extracted texture masks.
+- Wet puddle masks are generated via procedural multi-frequency sine noise ([L350-L352](client/src/renderer.ts#L350-L352)) and animated wave ripple perturbation ([L356-L361](client/src/renderer.ts#L356-L361)), not extracted texture masks.
 
 ---
 
 ### Q25 — Which rendering features are present, and which are merely described?
 
 **Direct Answer:**
-The table below documents the actual implementation status of every graphics feature in [client/src/renderer.ts](file:///client/src/renderer.ts).
+The table below documents the actual implementation status of every graphics feature in [client/src/renderer.ts](client/src/renderer.ts).
 
 **Status:** **CONFIRMED**
 
@@ -480,7 +480,7 @@ Yes. The project is exclusively WebGL2. There is no WebGPU renderer, no capabili
 ### Q27 — Is the local asset bridge safely read-only and correctly constrained?
 
 **Direct Answer:**
-The bridge in [tools/asset_server.py](file:///tools/asset_server.py) is strictly read-only (implements `GET`, `HEAD`, and `OPTIONS` only; no `POST`, `PUT`, or `DELETE`), but has architectural limitations:
+The bridge in [tools/asset_server.py](tools/asset_server.py) is strictly read-only (implements `GET`, `HEAD`, and `OPTIONS` only; no `POST`, `PUT`, or `DELETE`), but has architectural limitations:
 1. It does not enforce a strict filename allowlist (serves any file within `GAME_DIR`).
 2. CORS uses a wildcard (`Access-Control-Allow-Origin: *`).
 3. Suffix ranges (`bytes=-N`) are handled incorrectly due to simple string splitting on `-`.
@@ -496,7 +496,7 @@ The bridge in [tools/asset_server.py](file:///tools/asset_server.py) is strictly
 Previously, yes: `asset-loader.ts` accepted HTTP 200 alongside HTTP 206, which could cause the browser to attempt reading a multi-gigabyte `.big` file into memory if the server returned full content.
 
 **Remediation Applied in this Update:**
-In [client/src/asset-loader.ts#L151-L162](file:///client/src/asset-loader.ts#L151-L162), `fetchRange()` now strictly requires `HTTP 206 Partial Content`, verifies `Content-Range`, checks that the received byte count matches `length`, and rejects full-file responses immediately before materializing the ArrayBuffer.
+In [client/src/asset-loader.ts#L151-L162](client/src/asset-loader.ts#L151-L162), `fetchRange()` now strictly requires `HTTP 206 Partial Content`, verifies `Content-Range`, checks that the received byte count matches `length`, and rejects full-file responses immediately before materializing the ArrayBuffer.
 
 **Status:** **CONFIRMED**
 
@@ -514,7 +514,7 @@ L1 memory cache is strictly bounded to 128 chunks (LRU via `Map` key refresh). L
 ### Q30 — Does the audio decoder use verified Wwise stream metadata?
 
 **Direct Answer:**
-Audio streams in [tools/asset_server.py](file:///tools/asset_server.py) are extracted using verified byte offsets and sizes directly from `SFX.pck` and `English(US).pck`. The raw Wwise Vorbis bitstreams are decoded into authentic 48kHz WAV waveforms via bundled `vgmstream-cli` and cached in `audio_cache/`. Spoken dialogue and combat SFX played in the browser are 100% authentic bitstreams.
+Audio streams in [tools/asset_server.py](tools/asset_server.py) are extracted using verified byte offsets and sizes directly from `SFX.pck` and `English(US).pck`. The raw Wwise Vorbis bitstreams are decoded into authentic 48kHz WAV waveforms via bundled `vgmstream-cli` and cached in `audio_cache/`. Spoken dialogue and combat SFX played in the browser are 100% authentic bitstreams.
 
 **Status:** **CONFIRMED**
 
@@ -571,7 +571,7 @@ The verification scripts currently use hardcoded Windows paths to Chrome (`C:\Pr
 ### Q35 — Are third-party binaries and repository contents properly documented?
 
 **Direct Answer:**
-- `tools/vgmstream/`: Contains `vgmstream-cli.exe` and supporting DLLs with the full open-source license ([tools/vgmstream/COPYING](file:///tools/vgmstream/COPYING)).
+- `tools/vgmstream/`: Contains `vgmstream-cli.exe` and supporting DLLs with the full open-source license ([tools/vgmstream/COPYING](tools/vgmstream/COPYING)).
 - **Proprietary Game Assets:** Zero copyrighted `.big` files, `.pck` soundbanks, or raw game extracts are committed to the git repository (`git ls-files` verified). The project operates strictly on the user's legally owned local Steam installation.
 
 **Status:** **CONFIRMED**
@@ -581,6 +581,8 @@ The verification scripts currently use hardcoded Windows paths to Chrome (`C:\Pr
 # I. Final Synthesis Requested
 
 ### Q36 — What is the next technically correct milestone?
+
+**Status: ACTION PLAN DEFINED / IN PROGRESS**
 
 **Direct Answer:**
 The next technically correct milestone is:
@@ -600,6 +602,8 @@ The next technically correct milestone is:
 ---
 
 ### Q37 — What claims in the existing documentation must be corrected immediately?
+
+**Status: RECONCILED / CORRECTED**
 
 **Direct Answer:**
 The following claims have been identified as inaccurate or needing qualification and are immediately reconciled across all documentation:

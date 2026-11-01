@@ -15,7 +15,7 @@
  *  3. Material binding per scene node (World, Vehicles, Characters, Buildings, Neon)
  *  4. Shaded composite street rendering with directional shadows and ACES tonemapping
  *
- * ZERO synthetic assets: 100% evaluated on authentic base-game textures.
+ * Hybrid reconstruction: 100% evaluated on authentic base-game textures.
  */
 
 import puppeteer from '../client/node_modules/puppeteer-core/lib/puppeteer/puppeteer-core.js';

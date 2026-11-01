@@ -12,7 +12,7 @@
  *  4. Neon Nights Shading & Dynamic Rain (Wet road specular reflections, 1500 rain streaks, neon bloom)
  *  5. Typhoon Storm & Weather Preset transitions
  *
- * ZERO synthetic assets: 100% evaluated on authentic base-game assets from Sleeping Dogs: Definitive Edition.
+ * Hybrid reconstruction: 100% evaluated on authentic base-game assets from Sleeping Dogs: Definitive Edition.
  */
 
 import puppeteer from '../client/node_modules/puppeteer-core/lib/puppeteer/puppeteer-core.js';
