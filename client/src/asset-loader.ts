@@ -213,6 +213,59 @@ export async function loadAuthenticTexture(): Promise<DecodedTexture> {
 }
 
 /**
+ * Milestone 9: Loads authentic base-game vehicle body paint & chassis texture from Vehicles.big
+ * Offset: 0x020f3400 | Payload: 131,072 bytes BC1 (512x512)
+ */
+export async function loadAuthenticVehicleTexture(): Promise<DecodedTexture> {
+  const payload = await fetchRange('Vehicles', 0x020f3400, 131072);
+  return decodeAuthenticTexture(payload, 512, 512, TextureFormat.BC1, "Authentic_Vehicle_Paint (Vehicles.big 0x020f3400)");
+}
+
+/**
+ * Milestone 9: Loads authentic base-game Wei Shen character clothing texture from Characters.big
+ * Offset: 0x16063410 (0x16063400 + 16) | Payload: 131,072 bytes BC1 (512x512)
+ */
+export async function loadAuthenticClothingTexture(): Promise<DecodedTexture> {
+  const payload = await fetchRange('Characters', 0x16063400 + 16, 131072);
+  return decodeAuthenticTexture(payload, 512, 512, TextureFormat.BC1, "Authentic_Character_Clothing (Characters.big 0x16063410)");
+}
+
+/**
+ * Milestone 9: Loads authentic base-game Hong Kong street asphalt road texture from Game.big
+ * Offset: 0x36341c10 (0x36341c00 + 16) | Payload: 32,768 bytes BC1 (256x256)
+ */
+export async function loadAuthenticAsphaltTexture(): Promise<DecodedTexture> {
+  const payload = await fetchRange('Game', 0x36341c00 + 16, 32768);
+  return decodeAuthenticTexture(payload, 256, 256, TextureFormat.BC1, "Authentic_Asphalt_Road (Game.big 0x36341c10)");
+}
+
+/**
+ * Milestone 9: Loads authentic base-game storefront & building facade texture from Game.big
+ * Offset: 0x30136010 (0x30136000 + 16) | Payload: 32,768 bytes BC1 (256x256)
+ */
+export async function loadAuthenticBuildingTexture(): Promise<DecodedTexture> {
+  const payload = await fetchRange('Game', 0x30136000 + 16, 32768);
+  return decodeAuthenticTexture(payload, 256, 256, TextureFormat.BC1, "Authentic_Building_Facade (Game.big 0x30136010)");
+}
+
+/**
+ * Milestone 9: Loads authentic base-game Hong Kong neon signboard texture from Game.big
+ * Offset: 0x0ef12810 (0x0ef12800 + 16) | Payload: 32,768 bytes BC1 (256x256)
+ */
+export async function loadAuthenticNeonTexture(): Promise<DecodedTexture> {
+  const payload = await fetchRange('Game', 0x0ef12800 + 16, 32768);
+  return decodeAuthenticTexture(payload, 256, 256, TextureFormat.BC1, "Authentic_Neon_Signboard (Game.big 0x0ef12810)");
+}
+
+export interface AuthenticTextures {
+  asphalt: DecodedTexture;
+  building: DecodedTexture;
+  neon: DecodedTexture;
+  vehicle: DecodedTexture;
+  clothing: DecodedTexture;
+}
+
+/**
  * Loads authentic base-game Hong Kong world city sector from Game.big
  * Resource UID: 0x7b8f6706 | Offset: 0x1b7ef400 | Span: 1,648 bytes
  */
@@ -226,14 +279,39 @@ export async function loadAuthenticWorldSector(): Promise<DecodedMesh> {
  * authentic base-game entities: road sector, street vehicle, pedestrian character,
  * and authentic materials.
  */
-export async function loadCompositeStreetScene(): Promise<{ sceneGraph: SceneGraph; texture: DecodedTexture }> {
+export async function loadCompositeStreetScene(): Promise<{
+  sceneGraph: SceneGraph;
+  texture: DecodedTexture;
+  textures: AuthenticTextures;
+}> {
   // Stream models and textures concurrently via HTTP 206
-  const [worldMesh, vehicleMesh, charMesh, texture] = await Promise.all([
+  const [
+    worldMesh,
+    vehicleMesh,
+    charMesh,
+    asphaltTexture,
+    buildingTexture,
+    neonTexture,
+    vehicleTexture,
+    clothingTexture
+  ] = await Promise.all([
     loadAuthenticWorldSector(),
     loadAuthenticVehicle(),
     loadAuthenticCharacter(),
-    loadAuthenticTexture()
+    loadAuthenticAsphaltTexture(),
+    loadAuthenticBuildingTexture(),
+    loadAuthenticNeonTexture(),
+    loadAuthenticVehicleTexture(),
+    loadAuthenticClothingTexture()
   ]);
+
+  const textures: AuthenticTextures = {
+    asphalt: asphaltTexture,
+    building: buildingTexture,
+    neon: neonTexture,
+    vehicle: vehicleTexture,
+    clothing: clothingTexture
+  };
 
   const sceneGraph = new SceneGraph();
 
@@ -242,11 +320,11 @@ export async function loadCompositeStreetScene(): Promise<{ sceneGraph: SceneGra
     id: 'node-hk-sector',
     name: 'Hong Kong City Sector (Game.big 0x7b8f6706)',
     mesh: worldMesh,
-    texture: texture,
+    texture: asphaltTexture,
     position: [0, 0, 0],
     rotation: [0, 0, 0],
     scale: [0.05, 0.05, 0.05], // Normalized broad city sector
-    color: [0.35, 0.40, 0.45], // Hong Kong asphalt gray
+    color: [0.85, 0.85, 0.85], // Balanced diffuse albedo
     visible: true,
     transform: createTransformMatrix([0, 0, 0], [0, 0, 0], [0.05, 0.05, 0.05])
   };
@@ -257,7 +335,7 @@ export async function loadCompositeStreetScene(): Promise<{ sceneGraph: SceneGra
     id: 'node-vehicle',
     name: 'Authentic Vehicle Chassis (Vehicles.big 0x008c038c)',
     mesh: vehicleMesh,
-    texture: texture,
+    texture: vehicleTexture,
     position: [1.8, 0.35, 0.0],
     rotation: [0, 0.4, 0],
     scale: [1.0, 1.0, 1.0],
@@ -272,7 +350,7 @@ export async function loadCompositeStreetScene(): Promise<{ sceneGraph: SceneGra
     id: 'node-character',
     name: 'Hong Kong Pedestrian Model (Characters.big 0x030e17e9)',
     mesh: charMesh,
-    texture: texture,
+    texture: clothingTexture,
     position: [-2.2, 0.0, 1.2],
     rotation: [0, -0.6, 0],
     scale: [1.0, 1.0, 1.0],
@@ -282,5 +360,5 @@ export async function loadCompositeStreetScene(): Promise<{ sceneGraph: SceneGra
   };
   sceneGraph.addNode(charNode);
 
-  return { sceneGraph, texture };
+  return { sceneGraph, texture: asphaltTexture, textures };
 }

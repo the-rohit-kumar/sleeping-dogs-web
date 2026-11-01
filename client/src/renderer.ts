@@ -252,7 +252,15 @@ export class Viewport3D {
                 vec3 baseColor = uObjectColor;
                 if (uHasTexture) {
                     vec4 texColor = texture(uTexture, vUV);
-                    baseColor = mix(uObjectColor, texColor.rgb, 0.85);
+                    // Milestone 9: Authentic multi-texture diffuse modulation
+                    float saturation = max(uObjectColor.r, max(uObjectColor.g, uObjectColor.b)) - min(uObjectColor.r, min(uObjectColor.g, uObjectColor.b));
+                    if (saturation > 0.15) {
+                        // Colored objects (e.g. Red Taxi, Denim Pedestrian, Triad jackets): modulate texture with body tint
+                        baseColor = texColor.rgb * (uObjectColor * 2.2);
+                    } else {
+                        // Neutral surfaces (e.g. Asphalt roads, building facades, curbs): preserve rich raw texture details
+                        baseColor = texColor.rgb * (uObjectColor * 1.25);
+                    }
                 }
 
                 // Wet asphalt darkens albedo when saturated with water
@@ -465,6 +473,28 @@ export class Viewport3D {
         gl.enableVertexAttribArray(2);
 
         gl.bindVertexArray(null);
+
+        // Milestone 9: Upload authentic node diffuse texture to GPU (cached across shared materials)
+        if (node.texture) {
+            if (!node.texture.gpuTexture) {
+                const tex = gl.createTexture();
+                gl.bindTexture(gl.TEXTURE_2D, tex);
+                gl.texImage2D(
+                    gl.TEXTURE_2D, 0, gl.RGBA,
+                    node.texture.width, node.texture.height, 0,
+                    gl.RGBA, gl.UNSIGNED_BYTE,
+                    node.texture.rgbaPixels
+                );
+                gl.generateMipmap(gl.TEXTURE_2D);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+                node.texture.gpuTexture = tex;
+            }
+            node.gpuTexture = node.texture.gpuTexture;
+        }
+
         node.gpuReady = true;
     }
 
@@ -855,6 +885,20 @@ export class Viewport3D {
 
                 if (!node.gpuReady) {
                     this.initNodeGpu(node);
+                }
+
+                // Milestone 9: Bind node-specific authentic base-game texture
+                gl.activeTexture(gl.TEXTURE0);
+                if (node.gpuTexture) {
+                    gl.bindTexture(gl.TEXTURE_2D, node.gpuTexture);
+                    gl.uniform1i(gl.getUniformLocation(this.program, 'uTexture'), 0);
+                    gl.uniform1i(gl.getUniformLocation(this.program, 'uHasTexture'), 1);
+                } else if (this.hasTexture && this.texture) {
+                    gl.bindTexture(gl.TEXTURE_2D, this.texture);
+                    gl.uniform1i(gl.getUniformLocation(this.program, 'uTexture'), 0);
+                    gl.uniform1i(gl.getUniformLocation(this.program, 'uHasTexture'), 1);
+                } else {
+                    gl.uniform1i(gl.getUniformLocation(this.program, 'uHasTexture'), 0);
                 }
 
                 const isEmissive = node.id.includes('neon-sign') ||

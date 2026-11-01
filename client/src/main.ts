@@ -619,16 +619,16 @@ window.addEventListener('DOMContentLoaded', async () => {
 
         try {
             cardStatus.textContent = 'Streaming Hong Kong world sectors, traffic & crowd entities...';
-            const { sceneGraph, texture } = await loadCompositeStreetScene();
+            const { sceneGraph, texture, textures } = await loadCompositeStreetScene();
             cachedTexture = texture;
             renderer.setTexture(texture);
 
-            // Milestone 7A: Stream multi-sector Hong Kong world & urban architecture
-            await worldStreamer.initPrimaryWorld(sceneGraph);
+            // Milestone 7A & 9: Stream multi-sector Hong Kong world & urban architecture with authentic materials
+            await worldStreamer.initPrimaryWorld(sceneGraph, textures);
 
-            // Milestone 7B: Stream authentic traffic vehicles & sidewalk crowds
-            await trafficSystem.initTraffic(sceneGraph);
-            await crowdSystem.initCrowd(sceneGraph);
+            // Milestone 7B & 9: Stream authentic traffic vehicles & sidewalk crowds with authentic materials
+            await trafficSystem.initTraffic(sceneGraph, textures.vehicle);
+            await crowdSystem.initCrowd(sceneGraph, textures.clothing);
 
             renderer.setSceneGraph(sceneGraph);
             renderSceneHierarchy(sceneGraph);

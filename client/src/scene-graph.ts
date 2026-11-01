@@ -23,6 +23,7 @@ export interface SceneNode {
   vao?: WebGLVertexArrayObject | null;
   vbo?: WebGLBuffer | null;
   ebo?: WebGLBuffer | null;
+  gpuTexture?: WebGLTexture | null;
   gpuReady?: boolean;
 }
 

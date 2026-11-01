@@ -28,6 +28,7 @@ export interface DecodedTexture {
   format: TextureFormat;
   formatName: string;
   rgbaPixels: Uint8Array;
+  gpuTexture?: WebGLTexture | null;
 }
 
 /**

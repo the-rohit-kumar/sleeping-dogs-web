@@ -17,6 +17,7 @@
 
 import { DecodedMesh, parseIllusionBuffer } from './mesh-decoder';
 import { fetchRange } from './asset-loader';
+import { DecodedTexture } from './texture-decoder';
 import { SceneGraph, SceneNode, createTransformMatrix } from './scene-graph';
 import { AudioEngine } from './audio-engine';
 
@@ -96,6 +97,7 @@ export class TrafficSystem {
   private vehicleMeshes = new Map<string, DecodedMesh>();
   public vehicles: TrafficVehicleInstance[] = [];
   public trafficEnabled = true;
+  private vehicleTexture?: DecodedTexture;
 
   // Road lane coordinates (Hong Kong drives on the left)
   // Left lane (Northbound): x = -2.2, driving toward -Z
@@ -107,7 +109,11 @@ export class TrafficSystem {
   /**
    * Initializes vehicle models and spawns initial living traffic
    */
-  public async initTraffic(sceneGraph: SceneGraph): Promise<void> {
+  public async initTraffic(sceneGraph: SceneGraph, vehicleTexture?: DecodedTexture): Promise<void> {
+    if (vehicleTexture) {
+      this.vehicleTexture = vehicleTexture;
+    }
+
     // 1. Preload authentic vehicle models from Vehicles.big
     for (const vType of AUTHENTIC_VEHICLE_CATALOG) {
       try {
@@ -165,6 +171,7 @@ export class TrafficSystem {
         id: nodeId,
         name: `${vType.name} [Traffic #${idx + 1}]`,
         mesh,
+        texture: this.vehicleTexture,
         position: instance.position,
         rotation: [0, rotY, 0],
         scale: [1, 1, 1],

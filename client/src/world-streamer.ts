@@ -16,6 +16,7 @@
 
 import { DecodedMesh, parseIllusionBuffer } from './mesh-decoder';
 import { fetchRange } from './asset-loader';
+import { DecodedTexture } from './texture-decoder';
 import { SceneGraph, SceneNode, createTransformMatrix } from './scene-graph';
 
 export interface WorldSectorMeta {
@@ -168,10 +169,24 @@ export class WorldStreamer {
   public loadedSectorCount = 0;
   public totalWorldTriangles = 0;
 
+  // Milestone 9: Authentic base-game materials
+  private asphaltTexture?: DecodedTexture;
+  private buildingTexture?: DecodedTexture;
+  private neonTexture?: DecodedTexture;
+
   /**
    * Initializes and streams the primary Hong Kong sectors
    */
-  public async initPrimaryWorld(sceneGraph: SceneGraph): Promise<void> {
+  public async initPrimaryWorld(
+    sceneGraph: SceneGraph,
+    textures?: { asphalt?: DecodedTexture; building?: DecodedTexture; neon?: DecodedTexture }
+  ): Promise<void> {
+    if (textures) {
+      this.asphaltTexture = textures.asphalt;
+      this.buildingTexture = textures.building;
+      this.neonTexture = textures.neon;
+    }
+
     for (const meta of AUTHENTIC_WORLD_SECTORS) {
       await this.streamSector(meta, sceneGraph);
     }
@@ -203,10 +218,11 @@ export class WorldStreamer {
           id: `node-${meta.id}`,
           name: meta.name,
           mesh,
+          texture: this.asphaltTexture,
           position: meta.worldOffset,
           rotation: [0, 0, 0],
           scale: [0.04, 0.04, 0.04], // Authentic broad city block scaling
-          color: meta.color,
+          color: [0.85, 0.85, 0.85], // Balanced texture diffuse
           visible: true,
           transform: createTransformMatrix(meta.worldOffset, [0, 0, 0], [0.04, 0.04, 0.04])
         };
@@ -239,10 +255,11 @@ export class WorldStreamer {
       id: 'node-sidewalk-left',
       name: 'North Point Sidewalk Walkway (West)',
       mesh: curbMesh,
+      texture: this.asphaltTexture,
       position: [-6.8, 0.14, 0.0],
       rotation: [0, 0, 0],
       scale: [1, 1, 2.5],
-      color: [0.28, 0.30, 0.33], // Dark concrete sidewalk
+      color: [0.85, 0.85, 0.85], // Balanced sidewalk concrete
       visible: true,
       transform: createTransformMatrix([-6.8, 0.14, 0.0], [0, 0, 0], [1, 1, 2.5])
     };
@@ -252,10 +269,11 @@ export class WorldStreamer {
       id: 'node-sidewalk-right',
       name: 'North Point Sidewalk Walkway (East)',
       mesh: curbMesh,
+      texture: this.asphaltTexture,
       position: [6.8, 0.14, 0.0],
       rotation: [0, 0, 0],
       scale: [1, 1, 2.5],
-      color: [0.28, 0.30, 0.33],
+      color: [0.85, 0.85, 0.85],
       visible: true,
       transform: createTransformMatrix([6.8, 0.14, 0.0], [0, 0, 0], [1, 1, 2.5])
     };
@@ -263,11 +281,11 @@ export class WorldStreamer {
 
     // 2. High-Density Hong Kong Building Facades lining the street
     const buildingColors: [number, number, number][] = [
-      [0.22, 0.24, 0.27], // Slate grey concrete
-      [0.26, 0.23, 0.21], // Weathered brick
-      [0.20, 0.26, 0.28], // Patinated teal facade
-      [0.28, 0.27, 0.25], // Urban plaster
-      [0.23, 0.22, 0.26]  // Night-tinted indigo
+      [0.92, 0.90, 0.88], // Light commercial plaster
+      [0.85, 0.82, 0.80], // Weathered brick tone
+      [0.80, 0.88, 0.90], // Patinated teal facade
+      [0.90, 0.88, 0.85], // Urban concrete
+      [0.82, 0.80, 0.85]  // Night-tinted indigo
     ];
 
     const zPositions = [-42, -18, 6, 30, 54];
@@ -280,6 +298,7 @@ export class WorldStreamer {
         id: `node-building-w-${idx}`,
         name: `North Point Building Facade W${idx + 1}`,
         mesh: bMesh,
+        texture: this.buildingTexture,
         position: [-14.5, height / 2, z],
         rotation: [0, 0, 0],
         scale: [1, 1, 1],
@@ -298,6 +317,7 @@ export class WorldStreamer {
         id: `node-building-e-${idx}`,
         name: `North Point Building Facade E${idx + 1}`,
         mesh: bMesh,
+        texture: this.buildingTexture,
         position: [14.5, height / 2, z],
         rotation: [0, 0, 0],
         scale: [1, 1, 1],
@@ -314,6 +334,7 @@ export class WorldStreamer {
         id: `node-neon-sign-${idx}`,
         name: `Hong Kong Neon Sign: ${sign.text} (${sign.subtext})`,
         mesh: neonSignMesh,
+        texture: this.neonTexture,
         position: sign.position,
         rotation: [0, sign.rotationY, 0],
         scale: sign.scale,
@@ -424,12 +445,18 @@ export class WorldStreamer {
     ]);
 
     const uvs = new Float32Array([
-      0, 0,  1, 0,  1, 1,  0, 1,
-      0, 0,  1, 0,  1, 1,  0, 1,
-      0, 0,  1, 0,  1, 1,  0, 1,
-      0, 0,  1, 0,  1, 1,  0, 1,
-      0, 0,  1, 0,  1, 1,  0, 1,
-      0, 0,  1, 0,  1, 1,  0, 1
+      // Front (dx x dy) - 4m architectural repeat
+      0, 0,  dx / 4.0, 0,  dx / 4.0, dy / 4.0,  0, dy / 4.0,
+      // Back (dx x dy)
+      0, 0,  dx / 4.0, 0,  dx / 4.0, dy / 4.0,  0, dy / 4.0,
+      // Top (dx x dz)
+      0, 0,  dx / 4.0, 0,  dx / 4.0, dz / 4.0,  0, dz / 4.0,
+      // Bottom (dx x dz)
+      0, 0,  dx / 4.0, 0,  dx / 4.0, dz / 4.0,  0, dz / 4.0,
+      // Right (dz x dy)
+      0, 0,  dz / 4.0, 0,  dz / 4.0, dy / 4.0,  0, dy / 4.0,
+      // Left (dz x dy)
+      0, 0,  dz / 4.0, 0,  dz / 4.0, dy / 4.0,  0, dy / 4.0
     ]);
 
     const indices = new Uint16Array([

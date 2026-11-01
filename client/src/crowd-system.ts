@@ -16,6 +16,7 @@
 
 import { DecodedMesh, parseIllusionBuffer } from './mesh-decoder';
 import { fetchRange } from './asset-loader';
+import { DecodedTexture } from './texture-decoder';
 import { SceneGraph, SceneNode, createTransformMatrix } from './scene-graph';
 import { AudioEngine } from './audio-engine';
 
@@ -94,11 +95,16 @@ export class CrowdSystem {
   private characterMeshes = new Map<string, DecodedMesh>();
   public npcs: CrowdNPCInstance[] = [];
   public crowdEnabled = true;
+  private clothingTexture?: DecodedTexture;
 
   /**
    * Initializes character models and populates Hong Kong sidewalks
    */
-  public async initCrowd(sceneGraph: SceneGraph): Promise<void> {
+  public async initCrowd(sceneGraph: SceneGraph, clothingTexture?: DecodedTexture): Promise<void> {
+    if (clothingTexture) {
+      this.clothingTexture = clothingTexture;
+    }
+
     // 1. Preload authentic character meshes from Characters.big
     for (const cType of AUTHENTIC_CROWD_CATALOG) {
       try {
@@ -164,6 +170,7 @@ export class CrowdSystem {
         id: nodeId,
         name: `${cType.name} [Crowd #${idx + 1}]`,
         mesh,
+        texture: this.clothingTexture,
         position: instance.position,
         rotation: [0, rotY, 0],
         scale: [1, 1, 1],
