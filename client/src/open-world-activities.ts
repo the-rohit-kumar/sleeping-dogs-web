@@ -471,6 +471,13 @@ export class OpenWorldActivitiesManager {
     this.showBanner('⭐ HKPD CASE #402 CLOSED: NARCOTICS SYNDICATE BUSTED! +1,200 POLICE XP ⭐', '#38bdf8', 5000);
   }
 
+  public cancelActivity(): void {
+    this.activeActivity = null;
+    this.activityStage = '';
+    this.isCountdownActive = false;
+    this.hideBanner();
+  }
+
   // =========================================================================
   // Per-Frame State Machine
   // =========================================================================

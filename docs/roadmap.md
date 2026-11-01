@@ -644,3 +644,13 @@ ode-wei-shoe-l/r).
   - [x] Implemented `loadAuthenticMultipartMesh`, `loadAuthenticIndexedVehicle` (73,809 Tris), `loadAuthenticIndexedCharacter` (12,120 Tris), and `loadAuthenticIndexedWorldSector` (3,917 Tris) in `client/src/asset-loader.ts`
   - [x] Added interactive Option C inspector buttons in `client/index.html` and wired event listeners and window exports in `client/src/main.ts`
   - [x] Automated browser verification suite (`tools/verify_native_illusion_index_buffers.js`, 10/10 tests passed, 0 page errors, 0 failed requests, 3 visual proof screenshots)
+
+- [x] **Option 1: Hong Kong Safehouse & Urban Red Taxi Fast-Travel Network** (Completed)
+  - [x] Enterable North Point Safehouse interior (`client/src/safehouse-system.ts`)
+  - [x] Bed rest cycling weather modes (`neon_night`, `hong_kong_rain`, `typhoon_storm`), full HP restore, and AutoSave checkpoint
+  - [x] Wardrobe customizer with 4 authentic outfits and real-time mesh limb recoloring
+  - [x] Refrigerator Dragon Kick drink restoring HP and granting +50% Face Meter adrenaline surge
+  - [x] CCTV surveillance desk with 4 encrypted district monitor feeds and CRT scanlines
+  - [x] Hong Kong Urban Red Taxi fast-travel network (`[X]`) across North Point, Central, Aberdeen, Kennedy Town, and Victoria Peak with fare deductions
+  - [x] Rigorous edge-case audit across Options A, B, C (pause spam, fight club pause, race pause, corrupt save recovery, proximity boundary, mesh switching stress - 8/8 passed)
+  - [x] Automated browser verification suite (`tools/verify_safehouse_and_taxi.js`, 10/10 passed, 0 page errors, 0 failed requests, 6 visual proof screenshots)

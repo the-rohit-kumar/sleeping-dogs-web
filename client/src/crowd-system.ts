@@ -204,7 +204,9 @@ export class CrowdSystem {
         transform: createTransformMatrix(instance.position, [0, rotY, 0], [1, 1, 1])
       };
 
-      sceneGraph.addNode(sceneNode);
+      if (sceneGraph && typeof sceneGraph.addNode === 'function') {
+        sceneGraph.addNode(sceneNode);
+      }
       this.npcs.push(instance);
     });
   }
@@ -266,7 +268,9 @@ export class CrowdSystem {
         transform: createTransformMatrix(instance.position, [0, instance.rotationY, 0], cfg.isBoss ? [1.15, 1.15, 1.15] : [1, 1, 1])
       };
 
-      sceneGraph.addNode(sceneNode);
+      if (sceneGraph && typeof sceneGraph.addNode === 'function') {
+        sceneGraph.addNode(sceneNode);
+      }
       this.npcs.push(instance);
     });
   }
@@ -274,11 +278,13 @@ export class CrowdSystem {
   /**
    * Cleans up story-specific combatants and cast members between mission chapters
    */
-  public clearStoryNPCs(sceneGraph: SceneGraph): void {
-    const storyPrefixes = ['prologue-', 'cell-', 'vendor-', 'ambush-', 'm2-'];
+  public clearStoryNPCs(sceneGraph?: SceneGraph | null): void {
+    const storyPrefixes = ['prologue-', 'cell-', 'vendor-', 'ambush-', 'm2-', 'fc-', 'pc-'];
     const toRemove = this.npcs.filter(n => storyPrefixes.some(pfx => n.id.startsWith(pfx)));
-    for (const npc of toRemove) {
-      sceneGraph.removeNode(npc.nodeId);
+    if (sceneGraph && typeof sceneGraph.removeNode === 'function') {
+      for (const npc of toRemove) {
+        sceneGraph.removeNode(npc.nodeId);
+      }
     }
     this.npcs = this.npcs.filter(n => !storyPrefixes.some(pfx => n.id.startsWith(pfx)));
   }
@@ -339,7 +345,9 @@ export class CrowdSystem {
         transform: createTransformMatrix(instance.position, [0, instance.rotationY, 0], scale)
       };
 
-      sceneGraph.addNode(sceneNode);
+      if (sceneGraph && typeof sceneGraph.addNode === 'function') {
+        sceneGraph.addNode(sceneNode);
+      }
       this.npcs.push(instance);
     });
   }

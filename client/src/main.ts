@@ -50,6 +50,7 @@ import { FrequencyTunerMinigame } from './frequency-tuner';
 import { SaveManager, SaveGameSlot, GameSettingsState } from './save-manager';
 import { PauseMenuController } from './pause-menu';
 import { OpenWorldActivitiesManager, ACTIVITY_HOTSPOTS, STREET_RACE_CHECKPOINTS } from './open-world-activities';
+import { SafehouseSystem, OUTFIT_CATALOG } from './safehouse-system';
 
 window.addEventListener('DOMContentLoaded', async () => {
     const canvas = document.getElementById('viewport') as HTMLCanvasElement;
@@ -69,6 +70,16 @@ window.addEventListener('DOMContentLoaded', async () => {
     const campaignStory = new CampaignStoryEngine();
     const openWorldActivities = new OpenWorldActivitiesManager();
     (window as any).openWorldActivities = openWorldActivities;
+    openWorldActivities.totalCashEarned = 1000;
+    const safehouseSystem = new SafehouseSystem();
+    (window as any).safehouseSystem = safehouseSystem;
+    (window as any).restorePlayerHealth = (hp: number = 100) => { playerHealth = hp; };
+    (window as any).performSave = performSave;
+    Object.defineProperty(window, 'sceneGraph', {
+        get: () => activeSceneGraph,
+        set: (val) => { activeSceneGraph = val; },
+        configurable: true
+    });
     const hackingMinigame = new HackingMinigame(audioEngine);
     const frequencyTuner = new FrequencyTunerMinigame(audioEngine);
     const gunplaySystem = new GunplaySystem(
@@ -1126,7 +1137,36 @@ window.addEventListener('DOMContentLoaded', async () => {
                 performGrapple();
             }
         } else if (e.code === 'KeyE' || e.key.toLowerCase() === 'e') {
-            performCombatCounter();
+            const handled = safehouseSystem.handleInteraction(
+                'e',
+                characterController.position,
+                vehicleController.isOccupied,
+                audioEngine,
+                saveManager,
+                weatherSystem,
+                combatSystem,
+                openWorldActivities,
+                characterController,
+                cameraController,
+                renderer.sceneGraph!
+            );
+            if (!handled) {
+                performCombatCounter();
+            }
+        } else if (e.code === 'KeyX' || e.key.toLowerCase() === 'x') {
+            safehouseSystem.handleInteraction(
+                'x',
+                characterController.position,
+                vehicleController.isOccupied,
+                audioEngine,
+                saveManager,
+                weatherSystem,
+                combatSystem,
+                openWorldActivities,
+                characterController,
+                cameraController,
+                renderer.sceneGraph!
+            );
         } else if (e.code === 'KeyQ' || e.key.toLowerCase() === 'q') {
             performHeavyKick();
         } else if (e.code === 'KeyR' || e.key.toLowerCase() === 'r') {
@@ -2235,6 +2275,20 @@ window.addEventListener('DOMContentLoaded', async () => {
                 crowdSystem,
                 combatSystem,
                 vehicleController
+            );
+
+            // Option 1: Hong Kong Safehouses & Urban Red Taxi Network Update
+            safehouseSystem.update(
+                deltaTimeSec,
+                activePos,
+                isDriving,
+                audioEngine,
+                saveManager,
+                weatherSystem,
+                combatSystem,
+                openWorldActivities,
+                characterController,
+                renderer.sceneGraph!
             );
 
             // Canonical Sleeping Dogs Story Mission & Cutscene Pipeline Update

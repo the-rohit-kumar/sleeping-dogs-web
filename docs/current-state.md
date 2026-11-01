@@ -143,3 +143,9 @@ With the 18 main campaign story missions fully functional and verified, the rema
   - Added `#btn-native-ib-vehicle`, `#btn-native-ib-char`, `#btn-native-ib-world` showcase toggles and real-time HUD status metrics.
 - **100% Verified via Automated Browser Suite (`tools/verify_native_illusion_index_buffers.js`):**
   - 10/10 test steps passed with 0 page errors, 0 failed requests, and 3 visual proof screenshots.
+
+### Option 1: Hong Kong Safehouse & Urban Red Taxi Network (100% Operational)
+- **Safehouse System:** `client/src/safehouse-system.ts` managing interior/exterior transitions, interactive bed, wardrobe customizer, refrigerator dragon kick drinks, and CCTV desk.
+- **Urban Red Taxi Network:** Instant fast-travel across 5 Hong Kong districts with fare deduction and fade transition.
+- **Edge-Case Resilience:** Audited against rapid pause spamming, mid-fight club pause, countdown pause, save file corruption, and rapid mesh switching with 100% stability.
+- **Automated Verification:** `tools/verify_safehouse_and_taxi.js` and `tools/verify_system_edge_cases.js` verified with 0 errors.
