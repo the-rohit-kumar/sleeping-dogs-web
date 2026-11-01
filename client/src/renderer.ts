@@ -12,6 +12,7 @@ import { DecodedMesh } from './mesh-decoder';
 import { SceneGraph, SceneNode } from './scene-graph';
 import { CameraController } from './camera-controller';
 import { WeatherSystem } from './weather-system';
+import { HONG_KONG_NEON_SIGNS } from './world-streamer';
 
 export type CameraMode = 'follow' | 'orbit' | 'freefly';
 
@@ -32,6 +33,10 @@ export class Viewport3D {
     public shadowMapSize = 1024;
     public shadowsEnabled = true;
     public playerPos: [number, number, number] = [0, 0, 0];
+
+    // Milestone 10: Wet Asphalt SSR & Volumetric Rain Fog
+    private neonPositions = new Float32Array(18);
+    private neonColors = new Float32Array(18);
 
     private singleVbo!: WebGLBuffer;
     private singleEbo!: WebGLBuffer;
@@ -85,6 +90,17 @@ export class Viewport3D {
             throw new Error('WebGL2 is not supported by your browser.');
         }
         this.gl = gl;
+
+        // Milestone 10: Cache authentic neon sign positions & colors for SSR
+        HONG_KONG_NEON_SIGNS.forEach((sign, idx) => {
+            this.neonPositions[idx * 3 + 0] = sign.position[0];
+            this.neonPositions[idx * 3 + 1] = sign.position[1];
+            this.neonPositions[idx * 3 + 2] = sign.position[2];
+
+            this.neonColors[idx * 3 + 0] = sign.color[0];
+            this.neonColors[idx * 3 + 1] = sign.color[1];
+            this.neonColors[idx * 3 + 2] = sign.color[2];
+        });
 
         this.initShaders();
         this.initBuffers();
@@ -168,6 +184,14 @@ export class Viewport3D {
             uniform float uTime;
             uniform float uLightningFlash;
 
+            // Milestone 10: Wet Asphalt SSR, Neon Reflections & Headlight Cones
+            uniform vec3 uNeonPositions[6];
+            uniform vec3 uNeonColors[6];
+            uniform float uRainIntensity;
+            uniform vec3 uCarHeadlightPos;
+            uniform vec3 uCarHeadlightDir;
+            uniform bool uCarHeadlightActive;
+
             out vec4 fragColor;
 
             // ACES Filmic Tone Mapping Curve (Authentic Sleeping Dogs High-Contrast Cinema)
@@ -218,7 +242,11 @@ export class Viewport3D {
                 if (uIsEmissive) {
                     float flicker = 0.95 + 0.05 * sin(uTime * 14.0) * cos(uTime * 5.5);
                     vec3 neonColor = uObjectColor * uNeonFactor * flicker;
-                    fragColor = vec4(acesTonemap(neonColor * 1.5), 1.0);
+                    if (uHasTexture) {
+                        vec4 tex = texture(uTexture, vUV);
+                        neonColor = mix(neonColor, tex.rgb * uNeonFactor * 1.5, 0.45);
+                    }
+                    fragColor = vec4(acesTonemap(neonColor * 1.6), 1.0);
                     return;
                 }
 
@@ -282,12 +310,94 @@ export class Viewport3D {
                     }
                 }
 
-                vec3 result = (ambient * contactAO + directLighting) * baseColor;
+                // -------------------------------------------------------------
+                // Milestone 10: Wet Asphalt Puddle Mask & Rain Ripple Perturbation
+                // -------------------------------------------------------------
+                vec3 wetNormal = norm;
+                float puddleMask = 0.0;
+                vec3 ssrReflection = vec3(0.0);
 
-                // Atmospheric Distance Fog (Hong Kong night haze)
+                if (isGround > 0.45 && uWetness > 0.05) {
+                    // Procedural puddle accumulation in road depressions
+                    float puddleNoise = sin(vFragPos.x * 0.42 + sin(vFragPos.z * 0.32) * 1.8) * cos(vFragPos.z * 0.36);
+                    puddleNoise += 0.45 * sin(vFragPos.x * 1.15 - vFragPos.z * 0.85);
+                    puddleMask = smoothstep(0.18 - uWetness * 0.55, 0.62, puddleNoise) * uWetness;
+
+                    // Animated multi-frequency rain ripples oscillating on wet puddle pools
+                    vec2 rippleUV = vFragPos.xz * 2.8;
+                    float t = uTime * 4.2;
+                    vec2 waveVec = vec2(
+                        sin(length(fract(rippleUV) - 0.5) * 22.0 - t * 5.5) + sin(length(fract(rippleUV * 1.6 + 0.3) - 0.5) * 18.0 - t * 7.0),
+                        cos(length(fract(rippleUV) - 0.5) * 22.0 - t * 5.5) + cos(length(fract(rippleUV * 1.6 + 0.3) - 0.5) * 18.0 - t * 7.0)
+                    );
+                    vec2 ripplePerturb = waveVec * (0.038 * uRainIntensity + 0.012 * uWetness) * puddleMask;
+                    wetNormal = normalize(norm + vec3(ripplePerturb.x, 0.0, ripplePerturb.y));
+
+                    // Calculate ground reflection ray
+                    vec3 reflRay = reflect(-viewDir, wetNormal);
+
+                    // Screen-Space Neon Sign Reflections (Signature Hong Kong Rain Mirrors)
+                    for (int i = 0; i < 6; ++i) {
+                        vec3 toSign = uNeonPositions[i] - vFragPos;
+                        float distToSign = length(toSign);
+                        vec3 dirToSign = toSign / max(distToSign, 0.001);
+
+                        // Anisotropic ground reflection streak along view reflection direction
+                        float reflDot = clamp(dot(reflRay, dirToSign), 0.0, 1.0);
+                        float streakPower = mix(36.0, 10.0, 1.0 - puddleMask);
+                        float streak = pow(reflDot, streakPower);
+
+                        // Distance attenuation
+                        float atten = 1.0 / (1.0 + distToSign * 0.042 + distToSign * distToSign * 0.0015);
+
+                        // Subtle sign flicker
+                        float signFlicker = 0.96 + 0.04 * sin(uTime * 12.0 + float(i) * 1.6);
+
+                        ssrReflection += uNeonColors[i] * streak * atten * uNeonFactor * signFlicker * 3.4;
+                    }
+
+                    // Wet Fresnel enhancement at grazing angles
+                    ssrReflection *= mix(0.40, 1.0, fresnel) * puddleMask * uPuddleReflectivity;
+                }
+
+                // -------------------------------------------------------------
+                // Milestone 10: Vehicle Headlight Projections & Wet Ground Cones
+                // -------------------------------------------------------------
+                vec3 headlightColor = vec3(0.0);
+                if (uCarHeadlightActive && isGround > 0.45) {
+                    vec3 toFrag = vFragPos - uCarHeadlightPos;
+                    float distHead = length(toFrag);
+                    vec3 dirHead = toFrag / max(distHead, 0.001);
+
+                    float spotDot = dot(dirHead, uCarHeadlightDir);
+                    float spotCone = smoothstep(0.72, 0.95, spotDot);
+                    float distAtten = clamp(1.0 - distHead / 26.0, 0.0, 1.0);
+
+                    float beam = spotCone * distAtten * distAtten;
+                    vec3 headHalfway = normalize(-uCarHeadlightDir + viewDir);
+                    float headSpec = pow(max(dot(wetNormal, headHalfway), 0.0), 32.0) * puddleMask;
+
+                    headlightColor = vec3(1.0, 0.96, 0.88) * (beam * 1.6 + headSpec * 2.4 * uPuddleReflectivity);
+                }
+
+                vec3 result = (ambient * contactAO + directLighting) * baseColor + ssrReflection + headlightColor;
+
+                // -------------------------------------------------------------
+                // Milestone 10: Volumetric Rain Fog & Mie Light In-Scattering
+                // -------------------------------------------------------------
                 float dist = length(vFragPos - uViewPos);
-                float fogFactor = clamp(exp(-pow(dist * uFogDensity, 1.3)), 0.0, 1.0);
-                result = mix(ambientColor * 0.75, result, fogFactor);
+                float dynamicFogDensity = uFogDensity * mix(1.0, 1.9, uWetness);
+                float fogFactor = clamp(exp(-pow(dist * dynamicFogDensity, 1.25)), 0.0, 1.0);
+
+                // Mie forward scattering phase from neon signs & streetlights through rain mist
+                float cosTheta = dot(viewDir, lightDir);
+                float g = 0.55;
+                float miePhase = (1.0 - g * g) / pow(1.0 + g * g - 2.0 * g * cosTheta, 1.5) * 0.159;
+
+                vec3 neonAmbientGlow = vec3(0.08, 0.12, 0.18) * uNeonFactor;
+                vec3 scatteredFog = mix(ambientColor, ambientColor + neonAmbientGlow * 1.5, 0.55) + miePhase * uLightColor * 0.35;
+
+                result = mix(scatteredFog, result, fogFactor);
 
                 // Exposure scaled ACES Filmic Tone Mapping for authentic cinema contrast
                 fragColor = vec4(acesTonemap(result * 1.55), 1.0);
@@ -860,6 +970,34 @@ export class Viewport3D {
         gl.uniform3f(gl.getUniformLocation(this.program, 'uSkyAmbient'), ambient[0], ambient[1], ambient[2]);
         gl.uniform1f(gl.getUniformLocation(this.program, 'uTime'), now * 0.001);
         gl.uniform1f(gl.getUniformLocation(this.program, 'uLightningFlash'), flash);
+
+        // Milestone 10: Neon sign positions, colors and weather rain intensity
+        gl.uniform3fv(gl.getUniformLocation(this.program, 'uNeonPositions'), this.neonPositions);
+        gl.uniform3fv(gl.getUniformLocation(this.program, 'uNeonColors'), this.neonColors);
+        gl.uniform1f(gl.getUniformLocation(this.program, 'uRainIntensity'), this.weatherSystem ? this.weatherSystem.settings.rainIntensity : 0.0);
+
+        // Milestone 10: Vehicle dual headlight projection
+        let carHeadlightPos = [1.8, 0.45, 1.2];
+        let carHeadlightDir = [0.0, -0.15, 1.0];
+        let carHeadlightActive = false;
+        if (this.sceneGraph) {
+            const vehicleNode = this.sceneGraph.getNode('node-vehicle');
+            if (vehicleNode) {
+                carHeadlightActive = true;
+                const yaw = vehicleNode.rotation[1];
+                const forwardX = Math.sin(yaw);
+                const forwardZ = Math.cos(yaw);
+                carHeadlightPos = [
+                    vehicleNode.position[0] + forwardX * 1.8,
+                    vehicleNode.position[1] + 0.35,
+                    vehicleNode.position[2] + forwardZ * 1.8
+                ];
+                carHeadlightDir = [forwardX, -0.12, forwardZ];
+            }
+        }
+        gl.uniform3f(gl.getUniformLocation(this.program, 'uCarHeadlightPos'), carHeadlightPos[0], carHeadlightPos[1], carHeadlightPos[2]);
+        gl.uniform3f(gl.getUniformLocation(this.program, 'uCarHeadlightDir'), carHeadlightDir[0], carHeadlightDir[1], carHeadlightDir[2]);
+        gl.uniform1i(gl.getUniformLocation(this.program, 'uCarHeadlightActive'), carHeadlightActive ? 1 : 0);
 
         // Unit 0: Diffuse Texture
         gl.activeTexture(gl.TEXTURE0);
