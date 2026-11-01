@@ -421,7 +421,9 @@ export class CrowdSystem {
     npc.rotationY = Math.atan2(playerPos[0] - npc.position[0], playerPos[2] - npc.position[2]);
 
     if (audioEngine) {
-      audioEngine.playTrack('combat_strike').catch(() => {});
+      audioEngine.playTrack('counter_impact').catch(() => {
+        audioEngine.playTrack('combat_strike').catch(() => {});
+      });
     }
 
     if (npc.health <= 0) {
@@ -448,7 +450,9 @@ export class CrowdSystem {
     npc.position[2] += knockbackDir[2] * 0.75;
 
     if (audioEngine) {
-      audioEngine.playTrack('combat_strike').catch(() => {});
+      audioEngine.playTrack('counter_impact').catch(() => {
+        audioEngine.playTrack('combat_strike').catch(() => {});
+      });
     }
 
     if (npc.health <= 0) {

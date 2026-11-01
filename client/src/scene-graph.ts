@@ -12,6 +12,7 @@ export interface SceneNode {
   name: string;
   mesh: DecodedMesh;
   texture?: DecodedTexture;
+  normalMap?: DecodedTexture;
   position: [number, number, number];
   rotation: [number, number, number]; // [pitch, yaw, roll] in radians
   scale: [number, number, number];
@@ -24,6 +25,7 @@ export interface SceneNode {
   vbo?: WebGLBuffer | null;
   ebo?: WebGLBuffer | null;
   gpuTexture?: WebGLTexture | null;
+  gpuNormalMap?: WebGLTexture | null;
   gpuReady?: boolean;
 }
 

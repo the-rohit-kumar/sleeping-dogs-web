@@ -270,6 +270,98 @@ export function decompressBC3(data: Uint8Array, width: number, height: number): 
 }
 
 /**
+ * Extracts 16 unpacked 8-bit values from an 8-byte block (DXT5 alpha / BC4 channel block)
+ */
+function decodeBC4Block(data: Uint8Array, view: DataView, offset: number): Uint8Array {
+  const e0 = data[offset];
+  const e1 = data[offset + 1];
+  const bits0 = view.getUint32(offset + 2, true);
+  const bits1 = view.getUint16(offset + 6, true);
+
+  const palette = new Uint8Array(8);
+  palette[0] = e0;
+  palette[1] = e1;
+  if (e0 > e1) {
+    for (let i = 1; i <= 6; i++) {
+      palette[i + 1] = Math.round(((7 - i) * e0 + i * e1) / 7);
+    }
+  } else {
+    for (let i = 1; i <= 4; i++) {
+      palette[i + 1] = Math.round(((5 - i) * e0 + i * e1) / 5);
+    }
+    palette[6] = 0;
+    palette[7] = 255;
+  }
+
+  const out = new Uint8Array(16);
+  for (let i = 0; i < 16; i++) {
+    let code = 0;
+    const bitOffset = i * 3;
+    if (bitOffset < 32) {
+      code = (bits0 >> bitOffset) & 0x07;
+      if (bitOffset > 29) {
+        const shift = 32 - bitOffset;
+        code |= (bits1 & ((1 << (3 - shift)) - 1)) << shift;
+      }
+    } else {
+      code = (bits1 >> (bitOffset - 32)) & 0x07;
+    }
+    out[i] = palette[code & 0x07];
+  }
+  return out;
+}
+
+/**
+ * Decompresses BC5 (ATI2 / 3Dc) 16-byte block compressed tangent-space normal maps
+ * Reconstructs Z component via z = sqrt(max(0, 1 - x^2 - y^2))
+ */
+export function decompressBC5(data: Uint8Array, width: number, height: number): Uint8Array {
+  const output = new Uint8Array(width * height * 4);
+  const blockCountX = Math.max(1, Math.floor((width + 3) / 4));
+  const blockCountY = Math.max(1, Math.floor((height + 3) / 4));
+  const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
+
+  let offset = 0;
+  for (let by = 0; by < blockCountY; by++) {
+    for (let bx = 0; bx < blockCountX; bx++) {
+      if (offset + 16 > data.byteLength) break;
+
+      // Channel 0: X (Red)
+      const rVals = decodeBC4Block(data, view, offset);
+      // Channel 1: Y (Green)
+      const gVals = decodeBC4Block(data, view, offset + 8);
+      offset += 16;
+
+      for (let py = 0; py < 4; py++) {
+        for (let px = 0; px < 4; px++) {
+          const x = bx * 4 + px;
+          const y = by * 4 + py;
+          if (x < width && y < height) {
+            const pixelIdx = py * 4 + px;
+            const r = rVals[pixelIdx];
+            const g = gVals[pixelIdx];
+
+            // Reconstruct Tangent-Space Z component: z = sqrt(1 - x^2 - y^2)
+            const nx = (r / 255.0) * 2.0 - 1.0;
+            const ny = (g / 255.0) * 2.0 - 1.0;
+            const nz = Math.sqrt(Math.max(0.0, 1.0 - nx * nx - ny * ny));
+            const b = Math.round((nz * 0.5 + 0.5) * 255.0);
+
+            const outIdx = (y * width + x) * 4;
+            output[outIdx + 0] = r;
+            output[outIdx + 1] = g;
+            output[outIdx + 2] = b;
+            output[outIdx + 3] = 255;
+          }
+        }
+      }
+    }
+  }
+
+  return output;
+}
+
+/**
  * Decodes authentic base game texture payload into DecodedTexture
  */
 export function decodeAuthenticTexture(
@@ -287,6 +379,8 @@ export function decodeAuthenticTexture(
     rgbaPixels = decompressBC2(payload, width, height);
   } else if (format === TextureFormat.BC3) {
     rgbaPixels = decompressBC3(payload, width, height);
+  } else if (format === TextureFormat.BC5) {
+    rgbaPixels = decompressBC5(payload, width, height);
   } else if (format === TextureFormat.RGBA8 && payload.length >= width * height * 4) {
     rgbaPixels = payload.slice(0, width * height * 4);
   } else {

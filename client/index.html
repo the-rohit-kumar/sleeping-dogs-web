@@ -675,6 +675,50 @@
             z-index: 20;
             letter-spacing: 1px;
         }
+
+        /* Sleeping Dogs Authentic Vehicle Radio Station Banner */
+        .radio-banner {
+            position: absolute;
+            top: 16px;
+            right: 250px;
+            background: rgba(11, 13, 17, 0.94);
+            border: 1px solid var(--panel-border);
+            border-top: 3px solid #38bdf8;
+            border-radius: 4px;
+            padding: 8px 16px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            font-family: monospace;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.7);
+            z-index: 25;
+            pointer-events: none;
+            animation: radioSlide 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes radioSlide {
+            0% { transform: translateY(-20px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        .radio-icon {
+            font-size: 20px;
+        }
+
+        .radio-title {
+            color: #ffffff;
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .radio-freq {
+            color: #38bdf8;
+            font-size: 10px;
+            margin-top: 2px;
+            letter-spacing: 0.5px;
+        }
     </style>
 </head>
 <body>
@@ -931,6 +975,15 @@
             <!-- Face Meter Burst Adrenaline Banner -->
             <div class="face-burst-banner" id="face-burst-banner">
                 🐲 FACE METER BURST ACTIVE! (2.2x DAMAGE • RAPID HEALTH REGEN) 🐲
+            </div>
+
+            <!-- Sleeping Dogs Authentic In-Car Radio Station Banner -->
+            <div class="radio-banner" id="radio-banner">
+                <span class="radio-icon">📻</span>
+                <div class="radio-info">
+                    <div class="radio-title" id="radio-station-title">BOOSEY &amp; HAWKES</div>
+                    <div class="radio-freq" id="radio-station-freq">98.4 FM • CLASSICAL [R: SWITCH]</div>
+                </div>
             </div>
 
             <!-- Milestone 6: Mission Directive Banner -->

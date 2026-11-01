@@ -374,6 +374,57 @@ window.addEventListener('DOMContentLoaded', async () => {
         updateMissionBanner();
     });
 
+    // -------------------------------------------------------------
+    // Milestone 12: Sleeping Dogs In-Car Radio Station Tuner
+    // -------------------------------------------------------------
+    const RADIO_STATIONS = [
+        { id: 'radio_boosey', name: 'Boosey & Hawkes', freq: '98.4 FM', genre: 'CLASSICAL' },
+        { id: 'radio_kerrang', name: 'Kerrang! Radio', freq: '105.2 FM', genre: 'HIGH-OCTANE ROCK' },
+        { id: 'radio_softly', name: 'Softly FM Hong Kong', freq: '101.8 FM', genre: 'CANTOPOP & LOUNGE' },
+        { id: 'off', name: 'Radio Off', freq: '---', genre: 'MUTED' }
+    ];
+    let currentRadioIdx = 0;
+    let radioBannerTimer: any = null;
+
+    const radioBanner = document.getElementById('radio-banner') as HTMLElement;
+    const radioTitle = document.getElementById('radio-station-title') as HTMLElement;
+    const radioFreq = document.getElementById('radio-station-freq') as HTMLElement;
+
+    function showRadioBanner(st: typeof RADIO_STATIONS[0]) {
+        if (!radioBanner) return;
+        radioTitle.textContent = st.name.toUpperCase();
+        radioFreq.textContent = `${st.freq} • ${st.genre} [R: SWITCH]`;
+        radioBanner.style.display = 'flex';
+        if (radioBannerTimer) clearTimeout(radioBannerTimer);
+        radioBannerTimer = setTimeout(() => {
+            radioBanner.style.display = 'none';
+        }, 4000);
+    }
+
+    function switchRadioStation() {
+        if (!vehicleController.isOccupied) return;
+        currentRadioIdx = (currentRadioIdx + 1) % RADIO_STATIONS.length;
+        const st = RADIO_STATIONS[currentRadioIdx];
+
+        audioEngine.stopTrack('radio_boosey');
+        audioEngine.stopTrack('radio_kerrang');
+        audioEngine.stopTrack('radio_softly');
+
+        if (st.id !== 'off') {
+            audioEngine.playTrack(st.id).catch(() => {});
+        }
+        showRadioBanner(st);
+    }
+
+    function honkCarHorn() {
+        if (!vehicleController.isOccupied) return;
+        audioEngine.playTrack('vehicle_horn').catch(() => {});
+        actionPrompt.style.display = 'block';
+        actionPrompt.textContent = '📢 BEEP BEEP!';
+        actionPrompt.style.background = '#f59e0b';
+        setTimeout(() => actionPrompt.style.display = 'none', 800);
+    }
+
     function toggleVehicleEntry(force = false) {
         if (!vehicleController.isOccupied) {
             // Attempt to enter vehicle
@@ -405,11 +456,24 @@ window.addEventListener('DOMContentLoaded', async () => {
                     actionPrompt.style.background = '#ef4444';
                     setTimeout(() => actionPrompt.style.display = 'none', 3500);
                 }
+
+                // Milestone 12: Start in-car radio broadcast
+                const st = RADIO_STATIONS[currentRadioIdx];
+                if (st.id !== 'off') {
+                    audioEngine.playTrack(st.id).catch(() => {});
+                    showRadioBanner(st);
+                }
             }
         } else {
             // Exit vehicle
             vehicleController.toggleEntry(characterController.position, audioEngine);
             cameraController.isDriving = false;
+
+            // Silence in-car radio on vehicle exit
+            audioEngine.stopTrack('radio_boosey');
+            audioEngine.stopTrack('radio_kerrang');
+            audioEngine.stopTrack('radio_softly');
+            if (radioBanner) radioBanner.style.display = 'none';
 
             // Place Wei Shen beside the driver door
             const sideX = -Math.cos(vehicleController.rotationY) * 1.6;
@@ -554,6 +618,10 @@ window.addEventListener('DOMContentLoaded', async () => {
             performCombatCounter();
         } else if (e.code === 'KeyQ' || e.key.toLowerCase() === 'q') {
             performHeavyKick();
+        } else if (e.code === 'KeyR' || e.key.toLowerCase() === 'r') {
+            switchRadioStation();
+        } else if (e.code === 'KeyG' || e.key.toLowerCase() === 'g') {
+            honkCarHorn();
         } else if (e.code === 'KeyH' || e.key.toLowerCase() === 'h') {
             const hudEl = document.querySelector('.hud-overlay') as HTMLElement;
             if (hudEl) {
@@ -1024,7 +1092,15 @@ window.addEventListener('DOMContentLoaded', async () => {
     // -------------------------------------------------------------
     // Milestone 6: Hong Kong Mini-Map Radar Renderer
     // -------------------------------------------------------------
-    function renderMiniMapRadar(playerPos: [number, number, number], playerYaw: number) {
+    function renderMiniMapRadar(
+        playerPos: [number, number, number],
+        playerYaw: number,
+        healthPct: number = 100,
+        facePct: number = 25,
+        isFaceSurge: boolean = false,
+        speedKmh: number = 0,
+        isDriving: boolean = false
+    ) {
         radarCtx.clearRect(0, 0, radarCanvas.width, radarCanvas.height);
         const cx = radarCanvas.width / 2;
         const cy = radarCanvas.height / 2;
@@ -1157,7 +1233,68 @@ window.addEventListener('DOMContentLoaded', async () => {
         radarCtx.fill();
         radarCtx.restore();
 
+        // Restore clip so outer meters and cardinal letters draw cleanly
         radarCtx.restore();
+
+        // -------------------------------------------------------------
+        // Sleeping Dogs Signature Scaleform Curved Health & Face Meters
+        // -------------------------------------------------------------
+        const meterRadius = 52.0;
+
+        // Health Arc (Left Side: pi/2 clockwise to 3*pi/2)
+        const hNorm = Math.max(0, Math.min(1, healthPct / 100));
+        radarCtx.beginPath();
+        radarCtx.arc(cx, cy, meterRadius, Math.PI * 0.5, Math.PI * 1.5, false);
+        radarCtx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
+        radarCtx.lineWidth = 3.5;
+        radarCtx.stroke();
+
+        if (hNorm > 0) {
+            radarCtx.beginPath();
+            radarCtx.arc(cx, cy, meterRadius, Math.PI * 0.5, Math.PI * 0.5 + Math.PI * hNorm, false);
+            radarCtx.strokeStyle = hNorm > 0.35 ? '#22c55e' : '#ef4444';
+            radarCtx.lineWidth = 3.5;
+            radarCtx.stroke();
+        }
+
+        // Face Meter Arc (Right Side: pi/2 counter-clockwise to -pi/2)
+        const fNorm = Math.max(0, Math.min(1, facePct / 100));
+        radarCtx.beginPath();
+        radarCtx.arc(cx, cy, meterRadius, Math.PI * 0.5, -Math.PI * 0.5, true);
+        radarCtx.strokeStyle = 'rgba(255, 255, 255, 0.18)';
+        radarCtx.lineWidth = 3.5;
+        radarCtx.stroke();
+
+        if (fNorm > 0) {
+            radarCtx.beginPath();
+            radarCtx.arc(cx, cy, meterRadius, Math.PI * 0.5, Math.PI * 0.5 - Math.PI * fNorm, true);
+            radarCtx.strokeStyle = isFaceSurge ? '#ff0033' : '#eab308';
+            radarCtx.lineWidth = isFaceSurge ? 4.5 : 3.5;
+            radarCtx.stroke();
+        }
+
+        // Cardinal Ticks
+        radarCtx.font = '8px monospace';
+        radarCtx.fillStyle = 'rgba(255, 255, 255, 0.65)';
+        radarCtx.textAlign = 'center';
+        radarCtx.textBaseline = 'middle';
+        radarCtx.fillText('N', cx, cy - radius + 8);
+        radarCtx.fillText('S', cx, cy + radius - 8);
+        radarCtx.fillText('W', cx - radius + 8, cy);
+        radarCtx.fillText('E', cx + radius - 8, cy);
+
+        // Digital Speedometer (when driving)
+        if (isDriving) {
+            radarCtx.fillStyle = 'rgba(11, 14, 20, 0.90)';
+            radarCtx.fillRect(cx + 6, cy + 30, 48, 18);
+            radarCtx.strokeStyle = '#38bdf8';
+            radarCtx.lineWidth = 1;
+            radarCtx.strokeRect(cx + 6, cy + 30, 48, 18);
+
+            radarCtx.font = 'bold 9px monospace';
+            radarCtx.fillStyle = '#38bdf8';
+            radarCtx.fillText(`${Math.round(speedKmh)} KM/H`, cx + 30, cy + 39);
+        }
     }
 
     // Main Engine Render & Animation Loop
@@ -1324,8 +1461,16 @@ window.addEventListener('DOMContentLoaded', async () => {
             cardTrafficCount.textContent = `${trafficSystem.vehicles.length} Vehicles (${trafficSystem.trafficEnabled ? 'Running' : 'Paused'})`;
             cardCrowdCount.textContent = `${crowdSystem.npcs.length} NPCs (${crowdSystem.crowdEnabled ? 'Walking' : 'Paused'})`;
 
-            // 7. Render Mini-Map Radar
-            renderMiniMapRadar(activePos, isDriving ? vehicleController.rotationY : cameraController.yaw);
+            // 7. Render Mini-Map Radar (with Scaleform Curved Health/Face meters & Speedometer)
+            renderMiniMapRadar(
+                activePos,
+                isDriving ? vehicleController.rotationY : cameraController.yaw,
+                (playerHealth / playerMaxHealth) * 100,
+                combatSystem.faceMeter,
+                combatSystem.isFaceSurgeActive,
+                isDriving ? Math.abs(vehicleController.speed * 3.6) : 0,
+                isDriving
+            );
         }
 
         // 2. Advance Skeletal Motion & Update Joint Transforms

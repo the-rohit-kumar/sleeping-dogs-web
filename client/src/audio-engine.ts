@@ -57,6 +57,53 @@ export const AUTHENTIC_TRACKS: Record<string, AudioTrackInfo> = {
     isLoop: false,
     spatialPosition: [-2.2, 1.2, 1.2] // Attached to pedestrian/combatant
   },
+  counter_impact: {
+    id: 'counter_impact',
+    name: 'Martial Arts Counter Bone Crunch',
+    source: 'SFX.pck (Stream 36466185 @ 0x0f01c9e7)',
+    description: 'Authentic Sleeping Dogs bone crunch counter reversal impact',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false,
+    spatialPosition: [-2.2, 1.2, 1.2]
+  },
+  vehicle_horn: {
+    id: 'vehicle_horn',
+    name: 'Vehicle Horn / Tire Screech',
+    source: 'SFX.pck (Stream 16943907 @ 0x0ba87b9b)',
+    description: 'Authentic Hong Kong vehicle traffic horn and tire screech',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false,
+    spatialPosition: [1.8, 0.35, 0.0]
+  },
+  radio_boosey: {
+    id: 'radio_boosey',
+    name: 'Boosey & Hawkes 98.4 FM',
+    source: 'SFX.pck (Stream 11795260 @ 0x0adb78f3)',
+    description: 'Authentic in-game classical radio station broadcast',
+    sampleRate: 48000,
+    channels: 2,
+    isLoop: true
+  },
+  radio_kerrang: {
+    id: 'radio_kerrang',
+    name: 'Kerrang! Radio 105.2 FM',
+    source: 'SFX.pck (Stream 42868061 @ 0x104d5775)',
+    description: 'Authentic in-game high-octane rock radio station broadcast',
+    sampleRate: 48000,
+    channels: 2,
+    isLoop: true
+  },
+  radio_softly: {
+    id: 'radio_softly',
+    name: 'Softly FM Hong Kong Lounge',
+    source: 'SFX.pck (Stream 10361450 @ 0x0a9d941e)',
+    description: 'Authentic in-game smooth lounge & Cantopop radio station broadcast',
+    sampleRate: 48000,
+    channels: 2,
+    isLoop: true
+  },
   hk_dialogue: {
     id: 'hk_dialogue',
     name: 'Hong Kong Pedestrian Voice',

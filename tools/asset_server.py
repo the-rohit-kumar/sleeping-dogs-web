@@ -42,6 +42,36 @@ AUDIO_TRACKS = {
         "size": 14406,
         "name": "Martial Arts Combat Strike"
     },
+    "counter_impact": {
+        "pck": SFX_PCK,
+        "offset": 0x0f01c9e7,
+        "size": 12383,
+        "name": "Martial Arts Counter Bone Crunch"
+    },
+    "vehicle_horn": {
+        "pck": SFX_PCK,
+        "offset": 0x0ba87b9b,
+        "size": 13468,
+        "name": "Vehicle Horn / Tire Screech"
+    },
+    "radio_boosey": {
+        "pck": SFX_PCK,
+        "offset": 0x0adb78f3,
+        "size": 5402087,
+        "name": "Boosey & Hawkes 98.4 FM"
+    },
+    "radio_kerrang": {
+        "pck": SFX_PCK,
+        "offset": 0x104d5775,
+        "size": 4857121,
+        "name": "Kerrang! Radio 105.2 FM"
+    },
+    "radio_softly": {
+        "pck": SFX_PCK,
+        "offset": 0x0a9d941e,
+        "size": 4056277,
+        "name": "Softly FM Hong Kong Lounge"
+    },
     "hk_dialogue": {
         "pck": ENG_PCK,
         "offset": 0x00431f8c,

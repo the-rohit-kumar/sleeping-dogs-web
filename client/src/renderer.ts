@@ -169,6 +169,10 @@ export class Viewport3D {
             uniform sampler2D uTexture;
             uniform bool uHasTexture;
 
+            // Milestone 11: Authentic BC5 Tangent-Space Normal Mapping
+            uniform sampler2D uNormalMap;
+            uniform bool uHasNormalMap;
+
             // Milestone 8: Shadow Depth Map & Contact Occlusion
             uniform sampler2D uShadowMap;
             uniform bool uShadowsEnabled;
@@ -237,6 +241,20 @@ export class Viewport3D {
                 return shadow * 0.25;
             }
 
+            // Cotangent Frame Per-Pixel TBN Generator (Mikkelsen / Schueler WebGL2 Standard)
+            mat3 cotangentFrame(vec3 N, vec3 p, vec2 uv) {
+                vec3 dp1 = dFdx(p);
+                vec3 dp2 = dFdy(p);
+                vec2 duv1 = dFdx(uv);
+                vec2 duv2 = dFdy(uv);
+                vec3 dp2perp = cross(dp2, N);
+                vec3 dp1perp = cross(N, dp1);
+                vec3 T = dp2perp * duv1.x + dp1perp * duv2.x;
+                vec3 B = dp2perp * duv1.y + dp1perp * duv2.y;
+                float invmax = inversesqrt(max(dot(T,T), dot(B,B)));
+                return mat3(T * invmax, B * invmax, N);
+            }
+
             void main() {
                 // Emissive neon signage & lanterns
                 if (uIsEmissive) {
@@ -258,6 +276,16 @@ export class Viewport3D {
 
                 // Directional Sunlight / Streetlamp Light
                 vec3 norm = normalize(vNormal);
+
+                // Milestone 11: Authentic BC5 Tangent-Space Normal Mapping
+                if (uHasNormalMap) {
+                    vec3 mapN = texture(uNormalMap, vUV).xyz * 2.0 - 1.0;
+                    mapN.xy *= 1.35; // Enhance authentic Hong Kong asphalt roughness & vehicle panel seams
+                    mapN = normalize(mapN);
+                    mat3 tbn = cotangentFrame(norm, vFragPos, vUV);
+                    norm = normalize(tbn * mapN);
+                }
+
                 vec3 lightDir = normalize(uLightPos - vFragPos);
                 float diff = max(dot(norm, lightDir), 0.0);
                 vec3 diffuse = diff * uLightColor * 1.35;
@@ -603,6 +631,27 @@ export class Viewport3D {
                 node.texture.gpuTexture = tex;
             }
             node.gpuTexture = node.texture.gpuTexture;
+        }
+
+        // Milestone 11: Upload authentic BC5 tangent-space normal map to GPU
+        if (node.normalMap) {
+            if (!node.normalMap.gpuTexture) {
+                const nTex = gl.createTexture();
+                gl.bindTexture(gl.TEXTURE_2D, nTex);
+                gl.texImage2D(
+                    gl.TEXTURE_2D, 0, gl.RGBA,
+                    node.normalMap.width, node.normalMap.height, 0,
+                    gl.RGBA, gl.UNSIGNED_BYTE,
+                    node.normalMap.rgbaPixels
+                );
+                gl.generateMipmap(gl.TEXTURE_2D);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+                gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+                node.normalMap.gpuTexture = nTex;
+            }
+            node.gpuNormalMap = node.normalMap.gpuTexture;
         }
 
         node.gpuReady = true;
@@ -1037,6 +1086,16 @@ export class Viewport3D {
                     gl.uniform1i(gl.getUniformLocation(this.program, 'uHasTexture'), 1);
                 } else {
                     gl.uniform1i(gl.getUniformLocation(this.program, 'uHasTexture'), 0);
+                }
+
+                // Milestone 11: Bind node-specific authentic BC5 tangent-space normal map
+                gl.activeTexture(gl.TEXTURE2);
+                if (node.gpuNormalMap) {
+                    gl.bindTexture(gl.TEXTURE_2D, node.gpuNormalMap);
+                    gl.uniform1i(gl.getUniformLocation(this.program, 'uNormalMap'), 2);
+                    gl.uniform1i(gl.getUniformLocation(this.program, 'uHasNormalMap'), 1);
+                } else {
+                    gl.uniform1i(gl.getUniformLocation(this.program, 'uHasNormalMap'), 0);
                 }
 
                 const isEmissive = node.id.includes('neon-sign') ||
