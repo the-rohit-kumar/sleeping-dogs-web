@@ -28,6 +28,26 @@ export class CameraController {
   public vehicleSpeed = 0.0;
   public fov = Math.PI / 4.0; // 45 deg vertical / 65 deg horizontal
 
+  // Authentic Sleeping Dogs Cinematic Sequence Director
+  public isCinematic = false;
+  public cinematicEye: [number, number, number] = [0, 1.6, 3];
+  public cinematicTarget: [number, number, number] = [0, 1.45, 0];
+
+  public setCinematicShot(eye: [number, number, number], target: [number, number, number], snap = false): void {
+    this.isCinematic = true;
+    this.cinematicEye = [...eye];
+    this.cinematicTarget = [...target];
+    if (snap) {
+      this.eyePos = [...eye];
+      this.lookAtTarget = [...target];
+    }
+  }
+
+  public endCinematic(): void {
+    this.isCinematic = false;
+    this.smoothedTarget = [...this.targetPos];
+  }
+
   // Spherical Coordinates
   public distance = 3.2; // meters
   public yaw = -0.6;     // radians
@@ -81,6 +101,18 @@ export class CameraController {
    * authentic terrain collision avoidance.
    */
   public update(deltaTimeSec: number, physicsEngine: PhysicsEngine) {
+    if (this.isCinematic) {
+      const cinematicAlpha = Math.min(1.0, deltaTimeSec * 5.0);
+      this.eyePos[0] += (this.cinematicEye[0] - this.eyePos[0]) * cinematicAlpha;
+      this.eyePos[1] += (this.cinematicEye[1] - this.eyePos[1]) * cinematicAlpha;
+      this.eyePos[2] += (this.cinematicEye[2] - this.eyePos[2]) * cinematicAlpha;
+
+      this.lookAtTarget[0] += (this.cinematicTarget[0] - this.lookAtTarget[0]) * cinematicAlpha;
+      this.lookAtTarget[1] += (this.cinematicTarget[1] - this.lookAtTarget[1]) * cinematicAlpha;
+      this.lookAtTarget[2] += (this.cinematicTarget[2] - this.lookAtTarget[2]) * cinematicAlpha;
+      return;
+    }
+
     const dtFactor = Math.min(deltaTimeSec * 60.0, 3.0);
 
     // 1. Vehicle Chase Mode vs On-Foot Follow Mode

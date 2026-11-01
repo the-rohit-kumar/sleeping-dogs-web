@@ -149,6 +149,60 @@ export const AUTHENTIC_TRACKS: Record<string, AudioTrackInfo> = {
     sampleRate: 48000,
     channels: 1,
     isLoop: false
+  },
+  raymond_interrogate: {
+    id: 'raymond_interrogate',
+    name: 'Inspector Raymond Mak Interrogation',
+    source: 'English(US).pck (Stream 346748889 @ 0x0504b727)',
+    description: 'Raymond Mak interrogates Wei Shen in HKPD Central interrogation room',
+    sampleRate: 44100,
+    channels: 1,
+    isLoop: false
+  },
+  pendrew_briefing: {
+    id: 'pendrew_briefing',
+    name: 'Superintendent Pendrew Briefing',
+    source: 'English(US).pck (Stream 432101378 @ 0x0636bfa5)',
+    description: 'Thomas Pendrew briefs Wei Shen on infiltrating Sun On Yee Triad',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  jackie_reunion: {
+    id: 'jackie_reunion',
+    name: 'Jackie Ma Cell Reunion',
+    source: 'English(US).pck (Stream 859502205 @ 0x0c03073d)',
+    description: 'Jackie Ma reconnects with Wei Shen in police holding cells',
+    sampleRate: 44100,
+    channels: 1,
+    isLoop: false
+  },
+  winston_shakedown: {
+    id: 'winston_shakedown',
+    name: 'Winston Chu Extortion Orders',
+    source: 'English(US).pck (Stream 1445816605 @ 0x143cebc4)',
+    description: 'Winston Chu commands Wei to collect protection from night market vendors',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  vendor_argument: {
+    id: 'vendor_argument',
+    name: 'Night Market Vendor Defiance',
+    source: 'English(US).pck (Stream 1794261640 @ 0x18fda27b)',
+    description: 'Drink vendor refuses extortion payment and invokes Dogeyes',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  triad_threat: {
+    id: 'triad_threat',
+    name: 'Dogeyes 18K Ambush Shouts',
+    source: 'English(US).pck (Stream 2810582780 @ 0x271235be)',
+    description: '18K thugs surround Wei Shen in North Point Night Market alley',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
   }
 };
 

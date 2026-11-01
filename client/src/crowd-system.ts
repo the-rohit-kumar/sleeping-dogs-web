@@ -271,6 +271,113 @@ export class CrowdSystem {
   }
 
   /**
+   * Cleans up story-specific combatants and cast members between mission chapters
+   */
+  public clearStoryNPCs(sceneGraph: SceneGraph): void {
+    const storyPrefixes = ['prologue-', 'cell-', 'vendor-', 'ambush-', 'm2-'];
+    const toRemove = this.npcs.filter(n => storyPrefixes.some(pfx => n.id.startsWith(pfx)));
+    for (const npc of toRemove) {
+      sceneGraph.removeNode(npc.nodeId);
+    }
+    this.npcs = this.npcs.filter(n => !storyPrefixes.some(pfx => n.id.startsWith(pfx)));
+  }
+
+  private spawnStoryBatch(sceneGraph: SceneGraph, cast: Array<{
+    id: string;
+    typeId: string;
+    x: number;
+    z: number;
+    hp: number;
+    name: string;
+    hostile: boolean;
+    state: NPCCombatState;
+    color: [number, number, number];
+    scale?: [number, number, number];
+  }>): void {
+    cast.forEach((cfg) => {
+      const cType = AUTHENTIC_CROWD_CATALOG.find(t => t.id === cfg.typeId) || AUTHENTIC_CROWD_CATALOG[0];
+      const mesh = this.characterMeshes.get(cfg.typeId) || this.characterMeshes.values().next().value;
+      if (!mesh) return;
+
+      const nodeId = 'node-' + cfg.id;
+      const scale = cfg.scale || [1, 1, 1];
+      const instance: CrowdNPCInstance = {
+        id: cfg.id,
+        type: cType,
+        mesh,
+        position: [cfg.x, 0.28, cfg.z],
+        rotationY: Math.PI * 0.5,
+        state: cfg.state,
+        walkDirZ: 1,
+        sidewalkX: cfg.x,
+        minZ: cfg.z - 4.0,
+        maxZ: cfg.z + 4.0,
+        walkSpeed: 1.4,
+        staggerTimer: 0.0,
+        health: cfg.hp,
+        maxHealth: cfg.hp,
+        nodeId,
+        isHostile: cfg.hostile,
+        attackCooldown: 1.2 + Math.random() * 1.5,
+        windupTimer: 0.0,
+        isCounterable: false,
+        defeated: false,
+        baseColor: cfg.color
+      };
+
+      const sceneNode: SceneNode = {
+        id: nodeId,
+        name: cfg.name + ' (Characters.big)',
+        mesh,
+        texture: this.triadTexture || this.clothingTexture,
+        position: instance.position,
+        rotation: [0, instance.rotationY, 0],
+        scale,
+        color: cfg.color,
+        visible: true,
+        transform: createTransformMatrix(instance.position, [0, instance.rotationY, 0], scale)
+      };
+
+      sceneGraph.addNode(sceneNode);
+      this.npcs.push(instance);
+    });
+  }
+
+  public spawnPrologueDocksNPCs(sceneGraph: SceneGraph): void {
+    this.clearStoryNPCs(sceneGraph);
+    this.spawnStoryBatch(sceneGraph, [
+      { id: 'prologue-naz', typeId: 'triad-enforcer', x: 28.5, z: 34.5, hp: 120, name: 'Naz Singh (Drug Smuggler)', hostile: false, state: 'talking', color: [0.35, 0.5, 0.2] },
+      { id: 'prologue-ming', typeId: 'sun-on-yee', x: 26.5, z: 33.5, hp: 100, name: 'Ming (Water Street Courier)', hostile: false, state: 'talking', color: [0.8, 0.3, 0.1] },
+      { id: 'prologue-thug-1', typeId: 'triad-enforcer', x: 25.0, z: 37.0, hp: 80, name: 'Dock Brawler', hostile: true, state: 'circling', color: [0.2, 0.2, 0.25] },
+      { id: 'prologue-thug-2', typeId: 'sun-on-yee', x: 29.5, z: 38.5, hp: 85, name: 'Corrupt Dockhand', hostile: true, state: 'circling', color: [0.25, 0.2, 0.2] },
+      { id: 'prologue-thug-3', typeId: 'triad-enforcer', x: 27.0, z: 40.5, hp: 90, name: 'Dock Enforcer', hostile: true, state: 'circling', color: [0.15, 0.15, 0.2] }
+    ]);
+  }
+
+  public spawnHoldingCellsNPCs(sceneGraph: SceneGraph): void {
+    this.clearStoryNPCs(sceneGraph);
+    this.spawnStoryBatch(sceneGraph, [
+      { id: 'cell-jackie', typeId: 'hk-citizen', x: -2.0, z: 2.2, hp: 200, name: 'Jackie Ma (Childhood Friend)', hostile: false, state: 'idle', color: [0.9, 0.9, 0.95], scale: [0.95, 0.95, 0.95] },
+      { id: 'cell-inmate-1', typeId: 'triad-enforcer', x: -3.5, z: 3.8, hp: 80, name: 'Rival Cell Inmate', hostile: true, state: 'circling', color: [0.2, 0.2, 0.2] },
+      { id: 'cell-inmate-2', typeId: 'sun-on-yee', x: -1.0, z: 4.2, hp: 85, name: 'Hostile Prisoner', hostile: true, state: 'circling', color: [0.3, 0.15, 0.15] },
+      { id: 'cell-inmate-3', typeId: 'triad-enforcer', x: -4.0, z: 1.5, hp: 90, name: '18K Inmate Heavy', hostile: true, state: 'circling', color: [0.25, 0.2, 0.2] }
+    ]);
+  }
+
+  public spawnVendorExtortionCast(sceneGraph: SceneGraph): void {
+    this.clearStoryNPCs(sceneGraph);
+    this.spawnStoryBatch(sceneGraph, [
+      { id: 'vendor-watch', typeId: 'night-vendor', x: -9.5, z: -12.0, hp: 100, name: 'Night Market Watch Vendor', hostile: false, state: 'talking', color: [0.85, 0.5, 0.15] },
+      { id: 'vendor-drink', typeId: 'night-vendor', x: 6.8, z: 15.0, hp: 100, name: 'Defiant Drink Vendor', hostile: false, state: 'talking', color: [0.9, 0.3, 0.2] },
+      { id: 'vendor-winston', typeId: 'sun-on-yee', x: -2.2, z: 24.0, hp: 250, name: 'Winston Chu (Water Street Boss)', hostile: false, state: 'idle', color: [0.85, 0.15, 0.15], scale: [1.12, 1.12, 1.12] },
+      { id: 'ambush-18k-1', typeId: 'triad-enforcer', x: -4.5, z: 3.5, hp: 90, name: '18K Street Thug', hostile: true, state: 'circling', color: [0.18, 0.18, 0.22] },
+      { id: 'ambush-18k-2', typeId: 'sun-on-yee', x: -3.8, z: -3.2, hp: 95, name: '18K Cleaver Brawler', hostile: true, state: 'circling', color: [0.22, 0.15, 0.18] },
+      { id: 'ambush-18k-3', typeId: 'triad-enforcer', x: -1.5, z: 5.0, hp: 90, name: '18K Extortion Enforcer', hostile: true, state: 'circling', color: [0.18, 0.18, 0.22] },
+      { id: 'ambush-18k-4', typeId: 'sun-on-yee', x: -5.2, z: 0.5, hp: 100, name: '18K Alley Heavy', hostile: true, state: 'circling', color: [0.25, 0.18, 0.18] }
+    ]);
+  }
+
+  /**
    * Updates crowd locomotion, active brawler combat AI, red-flash windups, and ragdoll knockouts
    */
   public update(

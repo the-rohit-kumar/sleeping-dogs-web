@@ -545,6 +545,90 @@
             margin-top: 2px;
         }
 
+        /* Authentic Sleeping Dogs Cinematic Letterbox & Subtitles */
+        .cinematic-bar-top, .cinematic-bar-bottom {
+            position: absolute;
+            left: 0;
+            width: 100vw;
+            height: 0;
+            background: #000000;
+            z-index: 80;
+            transition: height 0.55s cubic-bezier(0.16, 1, 0.3, 1);
+            pointer-events: none;
+        }
+        .cinematic-bar-top { top: 0; }
+        .cinematic-bar-bottom { bottom: 0; }
+        body.cinematic-active .cinematic-bar-top,
+        body.cinematic-active .cinematic-bar-bottom {
+            height: 12.5vh;
+        }
+
+        .cinematic-overlay {
+            position: absolute;
+            bottom: 14vh;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80%;
+            max-width: 900px;
+            text-align: center;
+            z-index: 90;
+            pointer-events: none;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+        body.cinematic-active .cinematic-overlay {
+            display: flex;
+        }
+
+        .cinematic-speaker {
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: #facc15;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.9);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        .cinematic-subtitles {
+            font-size: 16px;
+            font-weight: 600;
+            line-height: 1.4;
+            color: #ffffff;
+            text-shadow: 0 2px 6px rgba(0, 0, 0, 0.95), 0 0 10px rgba(0, 0, 0, 0.8);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: rgba(0, 0, 0, 0.35);
+            padding: 6px 18px;
+            border-radius: 4px;
+            backdrop-filter: blur(4px);
+        }
+
+        .cinematic-skip {
+            position: absolute;
+            top: 14vh;
+            right: 28px;
+            font-family: monospace;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.7);
+            background: rgba(0, 0, 0, 0.65);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 4px 10px;
+            border-radius: 3px;
+            z-index: 90;
+            display: none;
+        }
+        body.cinematic-active .cinematic-skip {
+            display: block;
+        }
+
+        body.cinematic-active .game-meters,
+        body.cinematic-active .radar-box {
+            opacity: 0.15;
+            transition: opacity 0.4s ease;
+        }
+
         .game-meters {
             position: absolute;
             top: 16px;
@@ -985,6 +1069,17 @@
                     <div class="radio-freq" id="radio-station-freq">98.4 FM • CLASSICAL [R: SWITCH]</div>
                 </div>
             </div>
+
+            <!-- Authentic Sleeping Dogs Widescreen Letterbox Bars -->
+            <div class="cinematic-bar-top" id="cinematic-bar-top"></div>
+            <div class="cinematic-bar-bottom" id="cinematic-bar-bottom"></div>
+
+            <!-- Authentic Subtitles & Speaker Banner -->
+            <div class="cinematic-overlay" id="cinematic-overlay">
+                <div class="cinematic-speaker" id="cinematic-speaker">WEI SHEN</div>
+                <div class="cinematic-subtitles" id="cinematic-subtitles">...</div>
+            </div>
+            <div class="cinematic-skip" id="cinematic-skip">[SPACE] SKIP CUTSCENE</div>
 
             <!-- Milestone 6: Mission Directive Banner -->
             <div class="mission-banner" id="mission-banner">

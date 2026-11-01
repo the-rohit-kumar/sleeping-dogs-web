@@ -39,6 +39,7 @@ import { WorldStreamer, ENVIRONMENTAL_HAZARDS } from './world-streamer';
 import { TrafficSystem } from './traffic-system';
 import { CrowdSystem } from './crowd-system';
 import { WeatherSystem, WeatherMode } from './weather-system';
+import { CampaignStoryEngine } from './campaign-story';
 
 window.addEventListener('DOMContentLoaded', async () => {
     const canvas = document.getElementById('viewport') as HTMLCanvasElement;
@@ -55,6 +56,10 @@ window.addEventListener('DOMContentLoaded', async () => {
     const trafficSystem = new TrafficSystem();
     const crowdSystem = new CrowdSystem();
     const weatherSystem = new WeatherSystem();
+    const campaignStory = new CampaignStoryEngine();
+    (window as any).campaignStory = campaignStory;
+    (window as any).audioEngine = audioEngine;
+    (window as any).renderer = renderer;
 
     // Link weather system to renderer
     renderer.weatherSystem = weatherSystem;
@@ -300,48 +305,9 @@ window.addEventListener('DOMContentLoaded', async () => {
     const playerMaxHealth = 100.0;
     let slowMoTimer = 0.0;
 
-    interface CampaignMissionState {
-        missionId: 1 | 2;
-        stage: 'm1_ambush' | 'm1_carjack' | 'm1_deliver' | 'm1_completed' | 'm2_drive_docks' | 'm2_brawl' | 'm2_interrogate' | 'm2_completed';
-        thugsDefeated: number;
-        thugsTotal: number;
-    }
-
-    const campaignMission: CampaignMissionState = {
-        missionId: 1,
-        stage: 'm1_ambush',
-        thugsDefeated: 0,
-        thugsTotal: 4
-    };
-
+    // Canonical Sleeping Dogs Story Mission Engine
     function updateMissionBanner() {
-        if (campaignMission.stage === 'm1_ambush') {
-            missionTitle.textContent = 'MISSION 1: NIGHT MARKET AMBUSH';
-            missionObjective.textContent = `Defeat 18K Triad ambush brawlers (${campaignMission.thugsDefeated}/${campaignMission.thugsTotal}) [L-Click: Strike, R-Click/E: Counter, F: Env Takedown]`;
-        } else if (campaignMission.stage === 'm1_carjack') {
-            missionTitle.textContent = 'MISSION 1: GETAWAY VEHICLE';
-            missionObjective.textContent = '18K Ambush Cleared! Hijack the Sedan or Taxi [F] to evade Triad reinforcements!';
-        } else if (campaignMission.stage === 'm1_deliver') {
-            const dist = Math.hypot(vehicleController.position[0] - (-9.5), vehicleController.position[2] - (-12.0));
-            missionTitle.textContent = 'MISSION 1: REACH SAFEHOUSE';
-            missionObjective.textContent = `Evade Police pursuit & deliver vehicle to Golden Dragon Teahouse (${Math.round(dist)}m away)`;
-        } else if (campaignMission.stage === 'm1_completed') {
-            missionTitle.textContent = 'MISSION 1 ACCOMPLISHED';
-            missionObjective.textContent = 'SAFEHOUSE SECURED! TRIAD RESPECT +500 • POLICE RESPECT +250 • COP LEVEL 2 UNLOCKED!';
-        } else if (campaignMission.stage === 'm2_drive_docks') {
-            const dist = Math.hypot(vehicleController.position[0] - 28.0, vehicleController.position[2] - 36.0);
-            missionTitle.textContent = 'MISSION 2: DOCKSIDE WAREHOUSE SHAKEDOWN';
-            missionObjective.textContent = `🚨 Drive to Aberdeen Fish Warehouse (${Math.round(dist)}m) - 18K Triad crew is ransacking the docks!`;
-        } else if (campaignMission.stage === 'm2_brawl') {
-            missionTitle.textContent = 'MISSION 2: WAREHOUSE BRAWL';
-            missionObjective.textContent = `Eliminate Dogeyes' dock enforcers (${campaignMission.thugsDefeated}/${campaignMission.thugsTotal}) [Use Environmental Takedowns!]`;
-        } else if (campaignMission.stage === 'm2_interrogate') {
-            missionTitle.textContent = 'MISSION 2: 18K LIEUTENANT';
-            missionObjective.textContent = 'Defeat 18K Lieutenant Dogeyes [BOSS]! Break guard with [Q] Heavy Kick or [F] Environmental Slam!';
-        } else if (campaignMission.stage === 'm2_completed') {
-            missionTitle.textContent = 'MISSION 2 ACCOMPLISHED';
-            missionObjective.textContent = 'ABERDEEN DOCKS LIBERATED! TRIAD RESPECT +1000 • POLICE RESPECT +500 • DRAGON ENFORCER UNLOCKED!';
-        }
+        // Mission banner updated dynamically by campaignStory
     }
 
     // Connect Crowd System Callbacks
@@ -359,61 +325,40 @@ window.addEventListener('DOMContentLoaded', async () => {
     };
 
     crowdSystem.onEnemyDefeated = (npc) => {
-        if (campaignMission.stage === 'm1_ambush') {
-            campaignMission.thugsDefeated++;
-            if (campaignMission.thugsDefeated >= campaignMission.thugsTotal) {
-                campaignMission.stage = 'm1_carjack';
-                updateMissionBanner();
-                actionPrompt.style.display = 'block';
-                actionPrompt.textContent = '⚡ 18K AMBUSH DEFEATED! HIJACK VEHICLE [F] ⚡';
-                actionPrompt.style.background = '#eab308';
-                setTimeout(() => actionPrompt.style.display = 'none', 3000);
-                audioEngine.playTrack('hk_dialogue').catch(() => {});
-            } else {
-                updateMissionBanner();
-            }
-        } else if (campaignMission.stage === 'm2_brawl') {
-            campaignMission.thugsDefeated++;
-            if (campaignMission.thugsDefeated >= campaignMission.thugsTotal) {
-                campaignMission.stage = 'm2_interrogate';
-                updateMissionBanner();
-                actionPrompt.style.display = 'block';
-                actionPrompt.textContent = '⚠️ 18K LIEUTENANT DOGEYES ENTERS THE FIGHT! ⚠️';
-                actionPrompt.style.background = '#ef4444';
-                setTimeout(() => actionPrompt.style.display = 'none', 3500);
-            } else {
-                updateMissionBanner();
-            }
-        } else if (campaignMission.stage === 'm2_interrogate') {
-            if (npc.id.includes('m2-triad-4') || npc.type.name.includes('Lieutenant') || npc.health <= 0) {
-                campaignMission.stage = 'm2_completed';
-                updateMissionBanner();
-                combatSystem.triadScore += 1000;
-                combatSystem.policeScore += 500;
-                audioEngine.playTrack('mission_fanfare').catch(() => {});
-                actionPrompt.style.display = 'block';
-                actionPrompt.textContent = '★ 18K LIEUTENANT DEFEATED! ABERDEEN SECURED! ★';
-                actionPrompt.style.background = '#22c55e';
-                setTimeout(() => actionPrompt.style.display = 'none', 6000);
-            }
-        }
+        if (!renderer.sceneGraph) return;
+        campaignStory.onEnemyDefeated(
+            npc.id,
+            cameraController,
+            audioEngine,
+            renderer.sceneGraph,
+            crowdSystem,
+            combatSystem
+        );
     };
 
     btnNextMission.addEventListener('click', () => {
-        const stageCycle: CampaignMissionState['stage'][] = [
-            'm1_ambush', 'm1_carjack', 'm1_deliver', 'm1_completed',
-            'm2_drive_docks', 'm2_brawl', 'm2_interrogate', 'm2_completed'
-        ];
-        const nextIdx = (stageCycle.indexOf(campaignMission.stage) + 1) % stageCycle.length;
-        campaignMission.stage = stageCycle[nextIdx];
-        campaignMission.missionId = campaignMission.stage.startsWith('m2') ? 2 : 1;
-        campaignMission.thugsDefeated = 0;
-        campaignMission.thugsTotal = (campaignMission.stage === 'm2_brawl') ? 4 : 4;
-
-        if (campaignMission.stage === 'm2_brawl' && renderer.sceneGraph) {
-            crowdSystem.spawnMission2Enemies(renderer.sceneGraph);
+        if (!renderer.sceneGraph) return;
+        if (campaignStory.stage === 'prologue_cinematic') {
+            campaignStory.startPrologueChase(cameraController, audioEngine);
+        } else if (campaignStory.stage === 'prologue_chase') {
+            campaignStory.startPrologueAlleyFight(audioEngine);
+        } else if (campaignStory.stage === 'prologue_alley_fight') {
+            campaignStory.startInterrogationCinematic(renderer.sceneGraph, crowdSystem, cameraController, audioEngine);
+        } else if (campaignStory.stage.startsWith('ch1_interrogation')) {
+            campaignStory.startHoldingCellsBrawl(cameraController, audioEngine);
+        } else if (campaignStory.stage === 'ch1_holding_cells_brawl') {
+            campaignStory.startVendorExtortionGoldenKoi(renderer.sceneGraph, crowdSystem, cameraController, audioEngine);
+        } else if (campaignStory.stage === 'ch1_extortion_watch_vendor') {
+            campaignStory.collectWatchVendorTribute(audioEngine);
+        } else if (campaignStory.stage === 'ch1_extortion_drink_vendor') {
+            campaignStory.triggerDrinkVendorAmbush(audioEngine);
+        } else if (campaignStory.stage === 'ch1_extortion_18k_ambush') {
+            campaignStory.onAmbushThugsDefeated(audioEngine);
+        } else if (campaignStory.stage === 'ch1_extortion_return_golden_koi') {
+            campaignStory.completeVendorExtortion(cameraController, audioEngine);
+        } else {
+            campaignStory.startPrologueCinematic(renderer.sceneGraph, crowdSystem, cameraController, audioEngine);
         }
-        updateMissionBanner();
     });
 
     // -------------------------------------------------------------
@@ -490,14 +435,10 @@ window.addEventListener('DOMContentLoaded', async () => {
                 const charNode = renderer.sceneGraph?.getNode('node-character');
                 if (charNode) charNode.visible = false;
 
-                if (campaignMission.stage === 'm1_carjack') {
-                    campaignMission.stage = 'm1_deliver';
-                    updateMissionBanner();
-                    actionPrompt.style.display = 'block';
-                    actionPrompt.textContent = '🚨 POLICE DISPATCHED! DELIVER TO TEAHOUSE SAFEHOUSE! 🚨';
-                    actionPrompt.style.background = '#ef4444';
-                    setTimeout(() => actionPrompt.style.display = 'none', 3500);
-                }
+                actionPrompt.style.display = 'block';
+                actionPrompt.textContent = '🚨 VEHICLE COMMANDEERED! CRUISE NORTH POINT! [R: RADIO] 🚨';
+                actionPrompt.style.background = '#22c55e';
+                setTimeout(() => actionPrompt.style.display = 'none', 3000);
 
                 // Milestone 12: Start in-car radio broadcast
                 const st = RADIO_STATIONS[currentRadioIdx];
@@ -674,6 +615,13 @@ window.addEventListener('DOMContentLoaded', async () => {
     // Keyboard controls
     window.addEventListener('keydown', (e) => {
         if (e.code === 'KeyF' || e.key.toLowerCase() === 'f') {
+            if (campaignStory.stage === 'ch1_extortion_watch_vendor') {
+                const distToWatch = Math.hypot(characterController.position[0] - (-9.5), characterController.position[2] - (-12.0));
+                if (distToWatch <= 4.5) {
+                    campaignStory.collectWatchVendorTribute(audioEngine);
+                    return;
+                }
+            }
             if (vehicleController.canInteract(characterController.position) || vehicleController.isOccupied) {
                 toggleVehicleEntry();
             } else if (combatSystem.findNearbyHazard(characterController.position) && combatSystem.currentTarget) {
@@ -1042,7 +990,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             cameraController.isDriving = false;
             cameraController.targetPos = [...characterController.position];
             updateCameraModeUI('follow');
-            updateMissionBanner();
+            campaignStory.startCampaign(sceneGraph, crowdSystem, cameraController, audioEngine);
 
             cardStatus.textContent = 'Assembled composite street scene with Havok physics, vehicles & pedestrian crowd';
             cardStatus.style.color = '#4ade80';
@@ -1368,17 +1316,8 @@ window.addEventListener('DOMContentLoaded', async () => {
             }
         }
 
-        // Mission Waypoint Objective Star (Carjack, Safehouse, or Aberdeen Docks)
-        let objectiveWorldPos: [number, number] | null = null;
-        if (campaignMission.stage === 'm1_carjack') {
-            objectiveWorldPos = [vehicleController.position[0], vehicleController.position[2]];
-        } else if (campaignMission.stage === 'm1_deliver') {
-            objectiveWorldPos = [-9.5, -12.0]; // Golden Dragon Teahouse
-        } else if (campaignMission.stage === 'm2_drive_docks') {
-            objectiveWorldPos = [28.0, 36.0]; // Aberdeen Fish Warehouse Docks
-        } else if (campaignMission.stage === 'm2_brawl' || campaignMission.stage === 'm2_interrogate') {
-            objectiveWorldPos = [28.0, 36.0];
-        }
+        // Canonical Story Mission Waypoint Objective Star
+        const objectiveWorldPos = campaignStory.getActiveObjectivePos();
 
         if (objectiveWorldPos) {
             const objRelX = (objectiveWorldPos[0] - playerPos[0]) * scale;
@@ -1392,7 +1331,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             // Draw glowing golden / crimson mission beacon
             radarCtx.beginPath();
             radarCtx.arc(beaconX, beaconZ, 5.5, 0, Math.PI * 2);
-            radarCtx.fillStyle = campaignMission.stage.startsWith('m2') ? '#ef4444' : '#facc15';
+            radarCtx.fillStyle = '#facc15';
             radarCtx.fill();
             radarCtx.strokeStyle = '#ffffff';
             radarCtx.lineWidth = 1.5;
@@ -1646,50 +1585,18 @@ window.addEventListener('DOMContentLoaded', async () => {
                 faceBurstBanner.style.display = 'none';
             }
 
-            // Mission Stage 3 Safehouse Delivery Check
-            if (campaignMission.stage === 'm1_deliver' && isDriving) {
-                const distToTeahouse = Math.hypot(vehicleController.position[0] - (-9.5), vehicleController.position[2] - (-12.0));
-                missionObjective.textContent = `Evade Police pursuit & deliver vehicle to Golden Dragon Teahouse (${Math.round(distToTeahouse)}m away)`;
-                if (distToTeahouse <= 6.5) {
-                    campaignMission.stage = 'm1_completed';
-                    updateMissionBanner();
-                    combatSystem.triadScore += 500;
-                    combatSystem.policeScore += 250;
-                    actionPrompt.style.display = 'block';
-                    actionPrompt.textContent = '★ SAFEHOUSE REACHED! MISSION 1 ACCOMPLISHED! ★';
-                    actionPrompt.style.background = '#22c55e';
-                    audioEngine.playTrack('hk_dialogue').catch(() => {});
-
-                    setTimeout(() => {
-                        audioEngine.playTrack('police_siren').catch(() => {});
-                        campaignMission.missionId = 2;
-                        campaignMission.stage = 'm2_drive_docks';
-                        campaignMission.thugsDefeated = 0;
-                        campaignMission.thugsTotal = 4;
-                        updateMissionBanner();
-                        actionPrompt.style.display = 'block';
-                        actionPrompt.textContent = '🚨 DISPATCH: 18K TRIADS SACKING ABERDEEN WAREHOUSE! INTERVENE! 🚨';
-                        actionPrompt.style.background = '#ef4444';
-                        setTimeout(() => actionPrompt.style.display = 'none', 4500);
-                    }, 3500);
-                }
-            }
-
-            // Mission 2: Drive to Aberdeen Docks Arrival Check
-            if (campaignMission.stage === 'm2_drive_docks') {
-                const distToDocks = Math.hypot(activePos[0] - 28.0, activePos[2] - 36.0);
-                if (distToDocks <= 14.0) {
-                    campaignMission.stage = 'm2_brawl';
-                    campaignMission.thugsDefeated = 0;
-                    campaignMission.thugsTotal = 4;
-                    updateMissionBanner();
-                    crowdSystem.spawnMission2Enemies(renderer.sceneGraph);
-                    audioEngine.playTrack('triad_brawl_shout').catch(() => {});
-                    actionPrompt.style.display = 'block';
-                    actionPrompt.textContent = '⚔️ 18K DOCK SHAKEDOWN! ELIMINATE ENFORCERS! ⚔️';
-                    actionPrompt.style.background = '#ef4444';
-                    setTimeout(() => actionPrompt.style.display = 'none', 3500);
-                }
+            // Canonical Sleeping Dogs Story Mission & Cutscene Pipeline Update
+            if (renderer.sceneGraph) {
+                campaignStory.update(
+                    deltaTimeSec,
+                    activePos,
+                    isDriving,
+                    cameraController,
+                    audioEngine,
+                    renderer.sceneGraph,
+                    crowdSystem,
+                    combatSystem
+                );
             }
 
             // 4. Update Interactive Action Prompt

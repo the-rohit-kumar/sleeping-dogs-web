@@ -101,15 +101,60 @@ AUDIO_TRACKS = {
         "offset": 0x0ce55550,
         "size": 89872,
         "name": "Triad Brawl Shouts & Fight Atmosphere"
+    },
+    "raymond_interrogate": {
+        "pck": ENG_PCK,
+        "offset": 0x0504b727,
+        "size": 32360,
+        "name": "Inspector Raymond Mak Interrogation Dialogue"
+    },
+    "pendrew_briefing": {
+        "pck": ENG_PCK,
+        "offset": 0x0636bfa5,
+        "size": 22169,
+        "name": "Superintendent Thomas Pendrew Undercover Briefing"
+    },
+    "jackie_reunion": {
+        "pck": ENG_PCK,
+        "offset": 0x0c03073d,
+        "size": 21834,
+        "name": "Jackie Ma Holding Cell Reunion Dialogue"
+    },
+    "winston_shakedown": {
+        "pck": ENG_PCK,
+        "offset": 0x143cebc4,
+        "size": 30788,
+        "name": "Winston Chu Water Street Extortion Orders"
+    },
+    "vendor_argument": {
+        "pck": ENG_PCK,
+        "offset": 0x18fda27b,
+        "size": 29679,
+        "name": "Night Market Vendor Refusal & Argument"
+    },
+    "triad_threat": {
+        "pck": ENG_PCK,
+        "offset": 0x271235be,
+        "size": 43786,
+        "name": "Dogeyes 18K Thugs Ambush Threats"
     }
 }
 
 # In-memory WAV cache
 AUDIO_CACHE = {}
+CACHE_DIR = Path(__file__).parent / "audio_cache"
 
 def get_decoded_wav(track_key):
     if track_key in AUDIO_CACHE:
         return AUDIO_CACHE[track_key]
+
+    # Check disk cache first for zero-latency streaming
+    disk_file = CACHE_DIR / f"{track_key}.wav"
+    if disk_file.exists():
+        with open(disk_file, "rb") as f:
+            wav_bytes = f.read()
+        AUDIO_CACHE[track_key] = wav_bytes
+        return wav_bytes
 
     if track_key not in AUDIO_TRACKS:
         return None
