@@ -1156,6 +1156,17 @@ export class CampaignStoryEngine {
           if (sceneGraph && crowdSystem) {
             this.startPopstarSurveillanceFeed(cameraController, audioEngine, sceneGraph, crowdSystem);
           }
+        } else {
+          this.stage = 'ch1_popstar_drive_terminal';
+          this.updateHUD(
+            'CASE: POPSTAR LEAD 1',
+            '📍 Travel to North Point Housing Project & Access Security Camera [24.0, -48.0]'
+          );
+          if (this.actionPrompt) {
+            this.actionPrompt.style.display = 'block';
+            this.actionPrompt.textContent = '🔒 [F] HACK CCTV CAMERA TERMINAL 🔒';
+            this.actionPrompt.style.background = 'rgba(234, 179, 8, 0.95)';
+          }
         }
       });
     }
@@ -1363,6 +1374,17 @@ export class CampaignStoryEngine {
           const crowdSystem = (window as any).crowdSystem;
           if (sceneGraph && crowdSystem) {
             this.plantWiretapInOffice(cameraController, audioEngine, sceneGraph, crowdSystem);
+          }
+        } else {
+          this.stage = 'ch1_listening_in_scaffolding';
+          this.updateHUD(
+            'MISSION 7: LISTENING IN',
+            '📍 Infiltrate Golden Koi Rooftop & Access Kitchen Vent Shaft [-2.2, 24.0]'
+          );
+          if (this.actionPrompt) {
+            this.actionPrompt.style.display = 'block';
+            this.actionPrompt.textContent = '🪜 [F] CLIMB BAMBOO SCAFFOLDING & CALIBRATE WIRETAP 🪜';
+            this.actionPrompt.style.background = 'rgba(56, 189, 248, 0.95)';
           }
         }
       });

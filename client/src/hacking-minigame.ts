@@ -75,8 +75,20 @@ export class HackingMinigame {
         <div style="font-weight: 800; font-size: 15px; letter-spacing: 2px; color: #e5a93c; text-transform: uppercase;">
           HKPD Surveillance Terminal // Breach Protocol
         </div>
-        <div id="hack-attempts-left" style="font-size: 13px; font-weight: 700; color: #ff5252; letter-spacing: 1px;">
-          ATTEMPTS: 5/5
+        <div style="display:flex; align-items:center; gap: 10px;">
+          <div id="hack-attempts-left" style="font-size: 13px; font-weight: 700; color: #ff5252; letter-spacing: 1px;">
+            ATTEMPTS: 5/5
+          </div>
+          <button id="hack-btn-close" title="Close / Cancel [Esc]" style="
+            background: rgba(255,255,255,0.08);
+            border: 1px solid #666;
+            color: #aaa;
+            border-radius: 4px;
+            padding: 2px 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 700;
+          ">✕</button>
         </div>
       </div>
 
@@ -173,6 +185,13 @@ export class HackingMinigame {
       });
     }
 
+    const closeBtn = host.querySelector('#hack-btn-close');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', () => {
+        this.cancelMinigame();
+      });
+    }
+
     const submitBtn = host.querySelector('#hack-btn-submit');
     if (submitBtn) {
       submitBtn.addEventListener('click', () => {
@@ -190,7 +209,11 @@ export class HackingMinigame {
       } else if (e.key === 'Enter') {
         this.submitGuess();
       } else if (e.key === 'Escape') {
-        this.clearInput();
+        if (this.currentGuess.length > 0) {
+          this.clearInput();
+        } else {
+          this.cancelMinigame();
+        }
       }
     });
   }
@@ -427,6 +450,19 @@ export class HackingMinigame {
     this.isActive = false;
     if (this.container) {
       this.container.style.display = 'none';
+    }
+  }
+
+  public cancelMinigame(): void {
+    if (!this.isActive) return;
+    this.closeMinigame();
+    this.audioEngine.playTrack('ui_click_denied');
+    if (this.onCompleteCallback) {
+      this.onCompleteCallback({
+        success: false,
+        attemptsUsed: this.maxAttempts - this.attemptsRemaining,
+        secretCode: this.secretCode
+      });
     }
   }
 

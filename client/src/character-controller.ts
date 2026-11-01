@@ -213,6 +213,13 @@ export class CharacterController {
       }
     }
 
+    // Safety clamp: prevent falling through world into void
+    if (newY < -10.0) {
+      newY = 0.0;
+      this.velocity[1] = 0.0;
+      this.isGrounded = true;
+    }
+
     this.position = [newX, newY, newZ];
 
     // 8. Synchronize SceneGraph Node Transform

@@ -84,3 +84,4 @@ if __name__ == "__main__":
     for name, off, sz in eng_candidates:
         w_sz = decode_and_test(ENG_PCK, off, sz, name)
         print(f"Decoded English {name}: {w_sz} bytes (offset 0x{off:08x})")
+

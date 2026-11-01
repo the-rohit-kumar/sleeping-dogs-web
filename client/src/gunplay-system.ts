@@ -305,6 +305,9 @@ export class GunplaySystem {
           if (ped.health <= 0) {
             ped.defeated = true;
             ped.state = 'knocked_out';
+            if (this.crowdSystem.onEnemyDefeated) {
+              this.crowdSystem.onEnemyDefeated(ped);
+            }
           } else {
             ped.state = 'staggered';
             ped.staggerTimer = 0.5;

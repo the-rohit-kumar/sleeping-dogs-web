@@ -65,8 +65,20 @@ export class FrequencyTunerMinigame {
         <div style="font-weight: 800; font-size: 14px; letter-spacing: 2px; color: #38bdf8; text-transform: uppercase;">
           HKPD Surveillance // Wiretap Frequency Tuner
         </div>
-        <div id="tuner-freq-display" style="font-size: 14px; font-weight: 800; font-family: monospace; color: #facc15;">
-          600.0 MHz
+        <div style="display:flex; align-items:center; gap: 10px;">
+          <div id="tuner-freq-display" style="font-size: 14px; font-weight: 800; font-family: monospace; color: #facc15;">
+            600.0 MHz
+          </div>
+          <button id="tuner-btn-close" title="Close / Cancel [Esc]" style="
+            background: rgba(255,255,255,0.08);
+            border: 1px solid #475569;
+            color: #94a3b8;
+            border-radius: 4px;
+            padding: 2px 8px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 700;
+          ">✕</button>
         </div>
       </div>
 
@@ -135,7 +147,14 @@ export class FrequencyTunerMinigame {
       });
     }
 
-    // Keyboard controls (Left/Right arrow)
+    const btnClose = host.querySelector('#tuner-btn-close');
+    if (btnClose) {
+      btnClose.addEventListener('click', () => {
+        this.cancelTuner();
+      });
+    }
+
+    // Keyboard controls (Left/Right arrow, Enter, Escape)
     window.addEventListener('keydown', (e) => {
       if (!this.isActive) return;
       if (e.key === 'ArrowLeft') {
@@ -148,6 +167,8 @@ export class FrequencyTunerMinigame {
         this.updateFreqDisplay();
       } else if (e.key === 'Enter') {
         this.checkCalibration();
+      } else if (e.key === 'Escape') {
+        this.cancelTuner();
       }
     });
   }
@@ -300,7 +321,17 @@ export class FrequencyTunerMinigame {
     if (this.container) this.container.style.display = 'none';
   }
 
+  public cancelTuner(): void {
+    if (!this.isActive) return;
+    this.closeTuner();
+    this.audioEngine.playTrack('ui_click_denied').catch(() => {});
+    if (this.onCompleteCallback) {
+      this.onCompleteCallback({ success: false, tunedFrequency: this.currentFrequency });
+    }
+  }
+
   public isRunning(): boolean {
     return this.isActive;
   }
 }
+

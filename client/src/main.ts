@@ -81,6 +81,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     renderer.weatherSystem = weatherSystem;
 
     // Expose subsystems on window for verification & inspection
+    (window as any).physicsEngine = physicsEngine;
     (window as any).characterController = characterController;
     (window as any).vehicleController = vehicleController;
     (window as any).pedestrianAI = pedestrianAI;
@@ -327,6 +328,49 @@ window.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Connect Crowd System Callbacks
+    function handlePlayerDefeated() {
+        audioEngine.playTrack('ui_click_denied').catch(() => {});
+        actionPrompt.style.display = 'block';
+        actionPrompt.textContent = '💀 HOSPITAL RECOVERY: CRITICAL INJURIES TREATED • CHECKPOINT RESTORED 💀';
+        actionPrompt.style.background = 'rgba(239, 68, 68, 0.95)';
+        actionPrompt.style.boxShadow = '0 0 30px rgba(255, 0, 50, 0.9)';
+
+        playerHealth = playerMaxHealth;
+        meterHealthFill.style.width = '100%';
+        meterHealthText.textContent = '100%';
+        meterHealthFill.style.background = '#22c55e';
+
+        const objPos = campaignStory.getActiveObjectivePos();
+        if (objPos) {
+            characterController.position = [objPos[0], 0.0, objPos[1] - 3.0];
+        } else {
+            characterController.position = [-2.2, 0.0, 1.2];
+        }
+        characterController.velocity = [0, 0, 0];
+        cameraController.targetPos = [...characterController.position];
+
+        // Restart stage brawlers if in combat stage
+        if (renderer.sceneGraph) {
+            if (campaignStory.stage === 'ch1_holding_cells_brawl') {
+                crowdSystem.spawnHoldingCellsNPCs(renderer.sceneGraph);
+            } else if (campaignStory.stage === 'ch1_extortion_18k_ambush') {
+                crowdSystem.spawnVendorExtortionCast(renderer.sceneGraph);
+            } else if (campaignStory.stage === 'ch1_nmc_rooftop_knife_brawl') {
+                crowdSystem.spawnMingChaseCast(renderer.sceneGraph);
+            } else if (campaignStory.stage === 'ch1_bambam_dancefloor_brawl') {
+                crowdSystem.spawnClubBamBamCast(renderer.sceneGraph);
+            } else if (campaignStory.stage === 'ch1_popstar_ambush_brawl') {
+                crowdSystem.spawnPopstarDrugRingCast(renderer.sceneGraph);
+            } else if (campaignStory.stage === 'ch1_payback_warehouse_firefight') {
+                crowdSystem.spawnWarehouseEnforcers(renderer.sceneGraph);
+            }
+        }
+
+        setTimeout(() => {
+            if (actionPrompt) actionPrompt.style.display = 'none';
+        }, 2500);
+    }
+
     crowdSystem.onPlayerDamaged = (damage: number) => {
         playerHealth = Math.max(0, playerHealth - damage);
         meterHealthFill.style.width = `${(playerHealth / playerMaxHealth) * 100}%`;
@@ -338,6 +382,10 @@ window.addEventListener('DOMContentLoaded', async () => {
         actionPrompt.textContent = `⚠️ TOOK ${damage} DAMAGE! [PRESS R-CLICK / E TO COUNTER]`;
         actionPrompt.style.background = 'rgba(239, 68, 68, 0.95)';
         setTimeout(() => actionPrompt.style.display = 'none', 800);
+
+        if (playerHealth <= 0) {
+            handlePlayerDefeated();
+        }
     };
 
     crowdSystem.onEnemyDefeated = (npc) => {
@@ -685,20 +733,71 @@ window.addEventListener('DOMContentLoaded', async () => {
     // Keyboard controls
     window.addEventListener('keydown', (e) => {
         if (e.code === 'KeyF' || e.key.toLowerCase() === 'f') {
-            if (campaignStory.stage === 'ch1_extortion_watch_vendor') {
+            if (campaignStory.stage === 'prologue_chase') {
+                campaignStory.startPrologueAlleyFight(audioEngine);
+                return;
+            } else if (campaignStory.stage === 'prologue_arrest_cinematic') {
+                campaignStory.startInterrogationCinematic(renderer.sceneGraph!, crowdSystem, cameraController, audioEngine);
+                return;
+            } else if (campaignStory.stage.startsWith('ch1_interrogation')) {
+                campaignStory.startHoldingCellsBrawl(cameraController, audioEngine);
+                return;
+            } else if (campaignStory.stage === 'ch1_bailout_cinematic') {
+                campaignStory.startVendorExtortionGoldenKoi(renderer.sceneGraph!, crowdSystem, cameraController, audioEngine);
+                return;
+            } else if (campaignStory.stage === 'ch1_extortion_watch_vendor') {
                 const distToWatch = Math.hypot(characterController.position[0] - (-9.5), characterController.position[2] - (-12.0));
                 if (distToWatch <= 4.5) {
                     campaignStory.collectWatchVendorTribute(audioEngine);
                     return;
                 }
+            } else if (campaignStory.stage === 'ch1_extortion_drink_vendor') {
+                campaignStory.triggerDrinkVendorAmbush(audioEngine);
+                return;
+            } else if (campaignStory.stage === 'ch1_extortion_completed' || campaignStory.stage === 'ch1_extortion_return_golden_koi') {
+                campaignStory.startNightMarketChaseFindMing(renderer.sceneGraph!, crowdSystem, cameraController, audioEngine);
+                return;
+            } else if (campaignStory.stage === 'ch1_nmc_find_ming_cinematic') {
+                campaignStory.startNightMarketRooftopChase(cameraController, audioEngine);
+                return;
+            } else if (campaignStory.stage === 'ch1_nmc_market_chase' || campaignStory.stage === 'ch1_nmc_rooftop_parkour') {
+                campaignStory.startRooftopKnifeBrawl(cameraController, audioEngine);
+                return;
+            } else if (campaignStory.stage === 'ch1_nmc_arrest_cinematic') {
+                campaignStory.startAmandaTour(renderer.sceneGraph!, crowdSystem, cameraController, audioEngine);
+                return;
+            } else if (campaignStory.stage === 'ch1_amanda_drive_dojo') {
+                campaignStory.startDojoTraining(cameraController, audioEngine);
+                return;
+            } else if (campaignStory.stage === 'ch1_amanda_completed') {
+                campaignStory.startMission5ClubBamBam(renderer.sceneGraph!, crowdSystem, cameraController, audioEngine);
+                return;
+            } else if (campaignStory.stage === 'ch1_bambam_drive') {
+                campaignStory.arriveAtClubBamBam(cameraController, audioEngine, renderer.sceneGraph!, crowdSystem);
+                return;
+            } else if (campaignStory.stage === 'ch1_bambam_dancefloor_brawl') {
+                campaignStory.advanceToVIPLounge(cameraController, audioEngine, renderer.sceneGraph!, crowdSystem);
+                return;
+            } else if (campaignStory.stage === 'ch1_bambam_vip_lounge_brawl') {
+                campaignStory.triggerBathroomRestroomShowdown(cameraController, audioEngine, renderer.sceneGraph!, crowdSystem);
+                return;
+            } else if (campaignStory.stage === 'ch1_bambam_completed' || campaignStory.stage === 'ch1_popstar_phone_call') {
+                campaignStory.startMission6PopstarDrugBust(renderer.sceneGraph!, crowdSystem, cameraController, audioEngine);
+                return;
             } else if (campaignStory.stage === 'ch1_popstar_drive_terminal') {
                 const distToTerminal = Math.hypot(characterController.position[0] - 24.0, characterController.position[2] - (-48.0));
                 if (distToTerminal <= 7.0) {
                     campaignStory.startPopstarCameraHacking(hackingMinigame, cameraController, audioEngine);
                     return;
                 }
+            } else if (campaignStory.stage === 'ch1_popstar_camera_hacking') {
+                campaignStory.startPopstarSurveillanceFeed(cameraController, audioEngine, renderer.sceneGraph!, crowdSystem);
+                return;
             } else if (campaignStory.stage === 'ch1_popstar_surveillance_feed') {
                 campaignStory.startPopstarAmbushBrawl(cameraController, audioEngine, renderer.sceneGraph!, crowdSystem);
+                return;
+            } else if (campaignStory.stage === 'ch1_popstar_bust_completed') {
+                campaignStory.startMission7ListeningIn(renderer.sceneGraph!, crowdSystem, cameraController, audioEngine);
                 return;
             } else if (campaignStory.stage === 'ch1_listening_in_scaffolding') {
                 const distToScaffolding = Math.hypot(characterController.position[0] - (-2.2), characterController.position[2] - 24.0);
@@ -706,8 +805,17 @@ window.addEventListener('DOMContentLoaded', async () => {
                     campaignStory.startWiretapTuning(frequencyTuner, cameraController, audioEngine);
                     return;
                 }
+            } else if (campaignStory.stage === 'ch1_listening_in_tuner') {
+                campaignStory.plantWiretapInOffice(cameraController, audioEngine, renderer.sceneGraph!, crowdSystem);
+                return;
             } else if (campaignStory.stage === 'ch1_listening_in_plant_bug') {
                 campaignStory.completeMission7ListeningIn(cameraController, audioEngine);
+                return;
+            } else if (campaignStory.stage === 'ch1_listening_in_escape') {
+                campaignStory.startMission8ChainOfCommand(renderer.sceneGraph!, crowdSystem, cameraController, audioEngine);
+                return;
+            } else if (campaignStory.stage === 'ch1_chain_command_dialogue') {
+                campaignStory.startMission9Payback(renderer.sceneGraph!, crowdSystem, cameraController, audioEngine);
                 return;
             } else if (campaignStory.stage === 'ch1_payback_warehouse_infiltrate') {
                 const distToWarehouse = Math.hypot(characterController.position[0] - 28.0, characterController.position[2] - 40.0);
@@ -715,8 +823,14 @@ window.addEventListener('DOMContentLoaded', async () => {
                     campaignStory.startWarehouseFirefight(cameraController, audioEngine, renderer.sceneGraph!, crowdSystem);
                     return;
                 }
+            } else if (campaignStory.stage === 'ch1_payback_warehouse_firefight') {
+                campaignStory.startVehicularPursuit(cameraController, audioEngine, vehicleController);
+                return;
             } else if (campaignStory.stage === 'ch1_payback_vehicular_chase') {
                 campaignStory.completeMission9Payback(cameraController, audioEngine);
+                return;
+            } else if (campaignStory.stage === 'ch1_payback_completed') {
+                campaignStory.startMission10UnclePo(renderer.sceneGraph!, crowdSystem, cameraController, audioEngine);
                 return;
             } else if (campaignStory.stage === 'ch1_uncle_po_ceremony') {
                 campaignStory.completeChapter1(cameraController, audioEngine);
@@ -749,7 +863,11 @@ window.addEventListener('DOMContentLoaded', async () => {
         } else if (e.code === 'Digit3' || e.key === '3') {
             applyWeatherPreset('typhoon_storm');
         } else if (e.code === 'Escape' || e.key === 'Escape') {
-            if (asideDrawer.classList.contains('open')) {
+            if (frequencyTuner.isRunning()) {
+                frequencyTuner.cancelTuner();
+            } else if (hackingMinigame.isRunning()) {
+                hackingMinigame.cancelMinigame();
+            } else if (asideDrawer.classList.contains('open')) {
                 asideDrawer.classList.remove('open');
             }
         }
