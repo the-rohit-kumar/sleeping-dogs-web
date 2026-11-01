@@ -74,6 +74,24 @@ export type StoryStage =
   | 'ch1_payback_completed'
   | 'ch1_uncle_po_ceremony'
   | 'ch1_chapter1_completed'
+  | 'ch2_wedding_drive_banquet'
+  | 'ch2_wedding_toast_cinematic'
+  | 'ch2_wedding_ambush_firefight'
+  | 'ch2_wedding_winston_death_cinematic'
+  | 'ch2_wedding_completed'
+  | 'ch2_mrs_chu_kitchen_briefing'
+  | 'ch2_mrs_chu_hunt_ratface'
+  | 'ch2_mrs_chu_ratface_brawl'
+  | 'ch2_mrs_chu_ratface_captured'
+  | 'ch2_mrs_chu_completed'
+  | 'ch2_new_boss_central_drive'
+  | 'ch2_new_boss_council_meeting'
+  | 'ch2_new_boss_wiretap_intercept'
+  | 'ch2_new_boss_completed'
+  | 'ch2_election_yacht_pursuit'
+  | 'ch2_election_dogeyes_boss_fight'
+  | 'ch2_election_dogeyes_defeated'
+  | 'ch2_chapter2_completed'
   | 'free_roam';
 
 export interface DialogueLine {
@@ -1690,7 +1708,463 @@ export class CampaignStoryEngine {
       this.actionPrompt.style.fontWeight = '800';
       setTimeout(() => {
         if (this.actionPrompt) this.actionPrompt.style.display = 'none';
-        this.stage = 'free_roam';
+      }, 7000);
+    }
+  }
+
+  // =========================================================================
+  // CHAPTER 2: CENTRAL / DRAGON HEAD POLITICS & BLOODSHED
+  // =========================================================================
+
+  /**
+   * Chapter 2 Mission 11: "The Wedding"
+   * Stage 1: Arrival & Winston Chu's Banquet Toast
+   */
+  public startMission11TheWedding(
+    sceneGraph: SceneGraph,
+    crowdSystem: CrowdSystem,
+    cameraController: CameraController,
+    audioEngine: AudioEngine
+  ): void {
+    this.stage = 'ch2_wedding_toast_cinematic';
+    this.thugsDefeated = 0;
+    this.thugsTotal = 3;
+
+    crowdSystem.spawnWeddingGuestsAndHitmen(sceneGraph);
+    audioEngine.playTrack('wedding_banquet_music').catch(() => {});
+
+    const script: DialogueLine[] = [
+      {
+        speaker: 'WINSTON CHU (GROOM)',
+        speakerColor: '#ef4444',
+        text: "To Peggy, my beautiful bride, and to my brothers! Wei Shen, you proved blood isn't the only thing that makes family. To the future of Water Street!",
+        audioKey: 'winston_wedding_toast',
+        durationSec: 6.0,
+        cameraEye: [12.0, 1.8, 23.5],
+        cameraTarget: [14.0, 1.5, 25.0]
+      },
+      {
+        speaker: 'PEGGY LI (BRIDE)',
+        speakerColor: '#ec4899',
+        text: "Thank you all for being here on the happiest day of our lives. Ganbei!",
+        durationSec: 4.2,
+        cameraEye: [15.5, 1.7, 26.5],
+        cameraTarget: [14.0, 1.5, 25.0]
+      }
+    ];
+
+    this.playCutscene(script, cameraController, audioEngine, () => {
+      this.triggerWeddingAmbush(cameraController, audioEngine, sceneGraph, crowdSystem);
+    });
+  }
+
+  /**
+   * Mission 11 Stage 2: 18K Banquet Ambush & Gunfire Chaos
+   */
+  public triggerWeddingAmbush(
+    cameraController: CameraController,
+    audioEngine: AudioEngine,
+    sceneGraph: SceneGraph,
+    crowdSystem: CrowdSystem
+  ): void {
+    this.stage = 'ch2_wedding_ambush_firefight';
+    this.endCutscene(cameraController);
+
+    audioEngine.playTrack('wedding_massacre_alarm').catch(() => {});
+    audioEngine.playTrack('machete_blade_slash').catch(() => {});
+
+    this.updateHUD(
+      'MISSION 11: THE WEDDING — MASSACRE',
+      `⚔️ Protect Winston & Peggy! Defeat 18K Assassins (${this.thugsDefeated}/${this.thugsTotal})! [Press G for Handgun / Counters: E]`
+    );
+
+    if (this.actionPrompt) {
+      this.actionPrompt.style.display = 'block';
+      this.actionPrompt.textContent = '🩸 18K AMBUSH! PROTECT WINSTON & PEGGY • ELIMINATE HITMEN 🩸';
+      this.actionPrompt.style.background = 'rgba(239, 68, 68, 0.95)';
+      setTimeout(() => {
+        if (this.actionPrompt) this.actionPrompt.style.display = 'none';
+      }, 4000);
+    }
+  }
+
+  /**
+   * Mission 11 Stage 3: Winston Chu's Tragic Final Words
+   */
+  public triggerWinstonDeathScene(
+    cameraController: CameraController,
+    audioEngine: AudioEngine
+  ): void {
+    this.stage = 'ch2_wedding_winston_death_cinematic';
+
+    audioEngine.playTrack('wedding_massacre_alarm').catch(() => {});
+
+    const script: DialogueLine[] = [
+      {
+        speaker: 'WINSTON CHU',
+        speakerColor: '#ef4444',
+        text: "Wei... they got Peggy... they got me... Don't let Water Street fall... Take the crew... Make Dogeyes bleed for this...",
+        audioKey: 'winston_dying_words',
+        durationSec: 6.5,
+        cameraEye: [13.2, 1.2, 24.2],
+        cameraTarget: [14.0, 0.6, 25.0]
+      },
+      {
+        speaker: 'WEI SHEN',
+        speakerColor: '#facc15',
+        text: "Winston! Stay with me! Winston!! I swear on my life, whoever planned this will pay in blood.",
+        durationSec: 4.5,
+        cameraEye: [14.8, 1.4, 25.8],
+        cameraTarget: [14.0, 0.6, 25.0]
+      }
+    ];
+
+    this.playCutscene(script, cameraController, audioEngine, () => {
+      this.stage = 'ch2_wedding_completed';
+      this.endCutscene(cameraController);
+
+      audioEngine.playTrack('mission_fanfare').catch(() => {});
+
+      this.updateHUD(
+        'MISSION 11 COMPLETED: THE WEDDING',
+        '🏆 WINSTON & PEGGY AVENGED • WATER STREET SUCCESSION CRISIS • COP SCORE +600 • TRIAD SCORE +600'
+      );
+
+      if (this.actionPrompt) {
+        this.actionPrompt.style.display = 'block';
+        this.actionPrompt.textContent = '🏆 MISSION 11 COMPLETED • PROCEED TO GOLDEN KOI: MRS. CHU\'S REVENGE 🏆';
+        this.actionPrompt.style.background = 'rgba(239, 68, 68, 0.95)';
+        setTimeout(() => {
+          if (this.actionPrompt) this.actionPrompt.style.display = 'none';
+        }, 5000);
+      }
+    });
+  }
+
+  /**
+   * Chapter 2 Mission 12: "Mrs. Chu's Revenge"
+   * Stage 1: Golden Koi Kitchen Mandate
+   */
+  public startMission12MrsChusRevenge(
+    sceneGraph: SceneGraph,
+    crowdSystem: CrowdSystem,
+    cameraController: CameraController,
+    audioEngine: AudioEngine
+  ): void {
+    this.stage = 'ch2_mrs_chu_kitchen_briefing';
+    this.thugsDefeated = 0;
+    this.thugsTotal = 2;
+
+    crowdSystem.spawnMrsChuAndRatface(sceneGraph);
+
+    const script: DialogueLine[] = [
+      {
+        speaker: 'MRS. CHU (WATER STREET MATRIARCH)',
+        speakerColor: '#facc15',
+        text: "They butchered my Winston on his wedding day! Johnny Ratface gave the key to Dogeyes' butchers. Bring Ratface to my kitchen alive, Wei. He will answer to me.",
+        audioKey: 'mrs_chu_vengeance',
+        durationSec: 6.5,
+        cameraEye: [-3.8, 1.9, 23.5],
+        cameraTarget: [-2.2, 1.4, 25.0]
+      },
+      {
+        speaker: 'WEI SHEN',
+        speakerColor: '#facc15',
+        text: "I'll track Ratface down in the North Point alleys, Mrs. Chu. He won't leave North Point.",
+        durationSec: 4.0,
+        cameraEye: [-1.2, 1.7, 26.5],
+        cameraTarget: [-2.2, 1.4, 25.0]
+      }
+    ];
+
+    this.playCutscene(script, cameraController, audioEngine, () => {
+      this.stage = 'ch2_mrs_chu_hunt_ratface';
+      this.endCutscene(cameraController);
+
+      this.updateHUD(
+        'MISSION 12: MRS. CHU\'S REVENGE',
+        '📍 Track down Johnny Ratface in North Point Tenement Alley [8.5, -16.0]'
+      );
+
+      if (this.actionPrompt) {
+        this.actionPrompt.style.display = 'block';
+        this.actionPrompt.textContent = '🔪 CORNER JOHNNY RATFACE & CONFRONT TRAITOR ENFORCERS [8.5, -16.0] 🔪';
+        this.actionPrompt.style.background = 'rgba(234, 179, 8, 0.95)';
+        setTimeout(() => {
+          if (this.actionPrompt) this.actionPrompt.style.display = 'none';
+        }, 4000);
+      }
+    });
+  }
+
+  /**
+   * Mission 12 Stage 2: Cornering Johnny Ratface in Tenement Alley
+   */
+  public cornerJohnnyRatface(
+    cameraController: CameraController,
+    audioEngine: AudioEngine,
+    sceneGraph: SceneGraph,
+    crowdSystem: CrowdSystem
+  ): void {
+    this.stage = 'ch2_mrs_chu_ratface_brawl';
+    this.thugsDefeated = 0;
+    this.thugsTotal = 2; // 2 Bodyguards
+
+    audioEngine.playTrack('machete_blade_slash').catch(() => {});
+
+    this.updateHUD(
+      'MISSION 12: MRS. CHU\'S REVENGE — TENEMENT ALLEY',
+      `👊 Defeat Ratface's Enforcers (${this.thugsDefeated}/${this.thugsTotal}) and capture Johnny Ratface!`
+    );
+
+    if (this.actionPrompt) {
+      this.actionPrompt.style.display = 'block';
+      this.actionPrompt.textContent = '⚔️ MELEE BRAWL: DISARM ENFORCERS & PIN RATFACE [F] ⚔️';
+      this.actionPrompt.style.background = 'rgba(239, 68, 68, 0.95)';
+      setTimeout(() => {
+        if (this.actionPrompt) this.actionPrompt.style.display = 'none';
+      }, 3500);
+    }
+  }
+
+  /**
+   * Mission 12 Stage 3: Johnny Ratface Interrogation & Dogeyes Link
+   */
+  public interrogateRatface(
+    cameraController: CameraController,
+    audioEngine: AudioEngine
+  ): void {
+    this.stage = 'ch2_mrs_chu_ratface_captured';
+
+    audioEngine.playTrack('machete_blade_slash').catch(() => {});
+
+    const script: DialogueLine[] = [
+      {
+        speaker: 'JOHNNY RATFACE (CORNERED)',
+        speakerColor: '#f97316',
+        text: "Don't kill me, Wei! It was Dogeyes! He promised me Winston's territory and a mountain of cash if I unlocked the back banquet doors! Don't take me to Mrs. Chu!",
+        audioKey: 'ratface_interrogation',
+        durationSec: 6.0,
+        cameraEye: [7.2, 1.8, -14.8],
+        cameraTarget: [8.5, 1.4, -16.0]
+      },
+      {
+        speaker: 'WEI SHEN',
+        speakerColor: '#facc15',
+        text: "You should have thought of that before you sold out Winston. Mrs. Chu has a butcher knife with your name on it.",
+        durationSec: 4.5,
+        cameraEye: [9.8, 1.8, -17.2],
+        cameraTarget: [8.5, 1.4, -16.0]
+      }
+    ];
+
+    this.playCutscene(script, cameraController, audioEngine, () => {
+      this.stage = 'ch2_mrs_chu_completed';
+      this.endCutscene(cameraController);
+
+      audioEngine.playTrack('mission_fanfare').catch(() => {});
+
+      this.updateHUD(
+        'MISSION 12 COMPLETED: MRS. CHU\'S REVENGE',
+        '🏆 RATFACE DELIVERED TO MRS. CHU • DOGEYES IMPLICATED • TRIAD SCORE +500 • COP SCORE +400'
+      );
+
+      if (this.actionPrompt) {
+        this.actionPrompt.style.display = 'block';
+        this.actionPrompt.textContent = '🏆 MISSION 12 COMPLETED • PROCEED TO CENTRAL DISTRICT: MEET THE NEW BOSS 🏆';
+        this.actionPrompt.style.background = 'rgba(34, 197, 94, 0.95)';
+        setTimeout(() => {
+          if (this.actionPrompt) this.actionPrompt.style.display = 'none';
+        }, 5000);
+      }
+    });
+  }
+
+  /**
+   * Chapter 2 Mission 13: "Meet the New Boss"
+   * Central District Sun On Yee Council Politics
+   */
+  public startMission13MeetTheNewBoss(
+    sceneGraph: SceneGraph,
+    crowdSystem: CrowdSystem,
+    cameraController: CameraController,
+    audioEngine: AudioEngine
+  ): void {
+    this.stage = 'ch2_new_boss_central_drive';
+
+    crowdSystem.spawnCentralCouncil(sceneGraph);
+    audioEngine.playTrack('police_radio_call').catch(() => {});
+
+    const script: DialogueLine[] = [
+      {
+        speaker: 'BROKEN NOSE JIANG (SENIOR RED POLE)',
+        speakerColor: '#38bdf8',
+        text: "Wei Shen, Water Street needs a leader. Uncle Po is in Queen Mary Hospital and Big Smile Lee wants Winston's turf. If you prove you can control Central, I will back you at the Dragon Head election.",
+        audioKey: 'broken_nose_jiang_meeting',
+        durationSec: 6.5,
+        cameraEye: [-13.5, 1.9, -6.5],
+        cameraTarget: [-15.0, 1.5, -8.0]
+      },
+      {
+        speaker: 'TWO-CHIN TSAO (CASINO RED POLE)',
+        speakerColor: '#f97316',
+        text: "Water Street is a sinking ship, Jiang. This boy Wei Shen thinks he's a Dragon Head? He's a street punk playing at being a king.",
+        audioKey: 'two_chin_tsao_arrogance',
+        durationSec: 5.5,
+        cameraEye: [-11.5, 1.8, -11.5],
+        cameraTarget: [-13.0, 1.5, -10.0]
+      },
+      {
+        speaker: 'WEI SHEN',
+        speakerColor: '#facc15',
+        text: "Keep talking, Two-Chin. When I crush Dogeyes, you'll be the first one bowing at the council table.",
+        durationSec: 4.2,
+        cameraEye: [-16.5, 1.7, -7.0],
+        cameraTarget: [-15.0, 1.5, -8.0]
+      }
+    ];
+
+    this.playCutscene(script, cameraController, audioEngine, () => {
+      this.concludeCentralMeeting(cameraController, audioEngine);
+    });
+  }
+
+  public concludeCentralMeeting(
+    cameraController: CameraController,
+    audioEngine: AudioEngine
+  ): void {
+    this.stage = 'ch2_new_boss_completed';
+    this.endCutscene(cameraController);
+
+    audioEngine.playTrack('mission_fanfare').catch(() => {});
+
+    this.updateHUD(
+      'MISSION 13 COMPLETED: MEET THE NEW BOSS',
+      '🏆 JIANG\'S COUNCIL BACKING SECURED • DOGEYES OFFSHORE YACHT TRACKED • COP SCORE +500 • TRIAD SCORE +500'
+    );
+
+    if (this.actionPrompt) {
+      this.actionPrompt.style.display = 'block';
+      this.actionPrompt.textContent = '🏆 MISSION 13 COMPLETED • CHAPTER 2 FINALE: THE ELECTION / FINAL KILL UNLOCKED 🏆';
+      this.actionPrompt.style.background = 'rgba(34, 197, 94, 0.95)';
+      setTimeout(() => {
+        if (this.actionPrompt) this.actionPrompt.style.display = 'none';
+      }, 5000);
+    }
+  }
+
+  /**
+   * Chapter 2 Grand Finale: Mission 14 ("The Election / Final Kill")
+   * High-Speed Sports Car Pursuit & Dogeyes Yacht Showdown
+   */
+  public startMission14TheElection(
+    sceneGraph: SceneGraph,
+    crowdSystem: CrowdSystem,
+    cameraController: CameraController,
+    audioEngine: AudioEngine
+  ): void {
+    this.stage = 'ch2_election_dogeyes_boss_fight';
+    this.thugsDefeated = 0;
+    this.thugsTotal = 3; // 2 bodyguards + Dogeyes boss
+
+    crowdSystem.spawnDogeyesYachtShowdown(sceneGraph);
+    audioEngine.playTrack('sports_car_engine_rev').catch(() => {});
+
+    const script: DialogueLine[] = [
+      {
+        speaker: 'DOGEYES (JADE GANG BOSS)',
+        speakerColor: '#ef4444',
+        text: "You never know when to die, Shen! Winston is worm food, and you're next! Nobody takes North Point from me!",
+        audioKey: 'dogeyes_dock_taunt',
+        durationSec: 5.5,
+        cameraEye: [30.2, 2.0, 44.5],
+        cameraTarget: [32.0, 1.5, 46.0]
+      },
+      {
+        speaker: 'WEI SHEN',
+        speakerColor: '#facc15',
+        text: "This ends tonight, Dogeyes. For Winston, for Peggy, and for the Sun On Yee.",
+        durationSec: 4.0,
+        cameraEye: [33.8, 1.8, 47.5],
+        cameraTarget: [32.0, 1.5, 46.0]
+      }
+    ];
+
+    this.playCutscene(script, cameraController, audioEngine, () => {
+      this.endCutscene(cameraController);
+
+      this.updateHUD(
+        'MISSION 14: THE ELECTION — DOGEYES SHOWDOWN',
+        `⚔️ Defeat Jade Gang Enforcers & Eliminate Dogeyes (${this.thugsDefeated}/${this.thugsTotal})! [Press G for Handgun / Heavy Kick: Q]`
+      );
+
+      if (this.actionPrompt) {
+        this.actionPrompt.style.display = 'block';
+        this.actionPrompt.textContent = '⚓ BOSS FIGHT: DOGEYES SHOWDOWN • ABERDEEN DOCKS YACHT ⚓';
+        this.actionPrompt.style.background = 'rgba(239, 68, 68, 0.95)';
+        setTimeout(() => {
+          if (this.actionPrompt) this.actionPrompt.style.display = 'none';
+        }, 4000);
+      }
+    });
+  }
+
+  /**
+   * Climax of Mission 14: Dogeyes Defeated & Begging for Mercy
+   */
+  public completeDogeyesYachtShowdown(
+    cameraController: CameraController,
+    audioEngine: AudioEngine
+  ): void {
+    this.stage = 'ch2_election_dogeyes_defeated';
+
+    const script: DialogueLine[] = [
+      {
+        speaker: 'DOGEYES (ON KNEES)',
+        speakerColor: '#ef4444',
+        text: "Wait! Please, Wei! Have mercy! I'll give you everything... all my money, all my jade shipments! Just don't deliver me to Mrs. Chu!!",
+        audioKey: 'dogeyes_defeat_confession',
+        durationSec: 6.0,
+        cameraEye: [31.0, 1.2, 45.2],
+        cameraTarget: [32.0, 0.7, 46.0]
+      },
+      {
+        speaker: 'WEI SHEN',
+        speakerColor: '#facc15',
+        text: "Mrs. Chu has been waiting for this dinner for a long time. Get in the trunk.",
+        durationSec: 4.2,
+        cameraEye: [33.2, 1.8, 46.8],
+        cameraTarget: [32.0, 0.7, 46.0]
+      }
+    ];
+
+    this.playCutscene(script, cameraController, audioEngine, () => {
+      this.completeChapter2(cameraController, audioEngine);
+    });
+  }
+
+  /**
+   * Chapter 2 Grand Finale: Red Pole Ascension & Water Street Boss Status
+   */
+  public completeChapter2(cameraController: CameraController, audioEngine: AudioEngine): void {
+    this.stage = 'ch2_chapter2_completed';
+    this.endCutscene(cameraController);
+
+    audioEngine.playTrack('chapter2_finale_fanfare').catch(() => {});
+
+    this.updateHUD(
+      '🏆 CHAPTER 2: CENTRAL DISTRICT COMPLETED 🏆',
+      '👑 WEI SHEN ASCENDS TO WATER STREET RED POLE BOSS • DOGEYES VANQUISHED • PROCEED TO CHAPTER 3 👑'
+    );
+
+    if (this.actionPrompt) {
+      this.actionPrompt.style.display = 'block';
+      this.actionPrompt.textContent = '👑 CHAPTER 2 COMPLETED • WEI SHEN IS THE OFFICIAL BOSS OF WATER STREET 👑';
+      this.actionPrompt.style.background = 'linear-gradient(90deg, #38bdf8, #eab308)';
+      this.actionPrompt.style.color = '#000';
+      this.actionPrompt.style.fontWeight = '800';
+      setTimeout(() => {
+        if (this.actionPrompt) this.actionPrompt.style.display = 'none';
       }, 7000);
     }
   }
@@ -2031,6 +2505,48 @@ export class CampaignStoryEngine {
           this.startVehicularPursuit(cameraController, audioEngine, veh);
         }, 1200);
       }
+    } else if (this.stage === 'ch2_wedding_ambush_firefight') {
+      this.thugsDefeated++;
+      combatSystem.triadScore += 350;
+      combatSystem.policeScore += 250;
+      this.updateHUD(
+        'MISSION 11: THE WEDDING — MASSACRE',
+        `⚔️ Protect Winston & Peggy! Defeat 18K Assassins (${this.thugsDefeated}/${this.thugsTotal})! [Press G for Handgun / Melee]`
+      );
+
+      if (this.thugsDefeated >= this.thugsTotal) {
+        setTimeout(() => {
+          this.triggerWinstonDeathScene(cameraController, audioEngine);
+        }, 1200);
+      }
+    } else if (this.stage === 'ch2_mrs_chu_ratface_brawl') {
+      this.thugsDefeated++;
+      combatSystem.triadScore += 300;
+      combatSystem.policeScore += 200;
+      this.updateHUD(
+        'MISSION 12: MRS. CHU\'S REVENGE — TENEMENT ALLEY',
+        `👊 Defeat Ratface's Enforcers (${this.thugsDefeated}/${this.thugsTotal}) and capture Johnny Ratface!`
+      );
+
+      if (this.thugsDefeated >= this.thugsTotal) {
+        setTimeout(() => {
+          this.interrogateRatface(cameraController, audioEngine);
+        }, 1200);
+      }
+    } else if (this.stage === 'ch2_election_dogeyes_boss_fight') {
+      this.thugsDefeated++;
+      combatSystem.triadScore += 500;
+      combatSystem.policeScore += 500;
+      this.updateHUD(
+        'MISSION 14: THE ELECTION — DOGEYES SHOWDOWN',
+        `⚔️ Defeat Jade Gang Enforcers & Eliminate Dogeyes (${this.thugsDefeated}/${this.thugsTotal})! [Press G for Handgun / Heavy Kick: Q]`
+      );
+
+      if (this.thugsDefeated >= this.thugsTotal) {
+        setTimeout(() => {
+          this.completeDogeyesYachtShowdown(cameraController, audioEngine);
+        }, 1200);
+      }
     }
   }
 
@@ -2064,6 +2580,11 @@ export class CampaignStoryEngine {
     if (this.stage === 'ch1_chain_command_rendezvous') return [-1.2, 2.0];
     if (this.stage === 'ch1_payback_warehouse_infiltrate' || this.stage === 'ch1_payback_warehouse_firefight' || this.stage === 'ch1_payback_vehicular_chase') return [28.0, 40.0];
     if (this.stage === 'ch1_uncle_po_ceremony') return [0.0, 28.0];
+    if (this.stage === 'ch2_wedding_drive_banquet' || this.stage === 'ch2_wedding_toast_cinematic' || this.stage === 'ch2_wedding_ambush_firefight') return [14.0, 25.0];
+    if (this.stage === 'ch2_mrs_chu_kitchen_briefing') return [-2.2, 25.0];
+    if (this.stage === 'ch2_mrs_chu_hunt_ratface' || this.stage === 'ch2_mrs_chu_ratface_brawl') return [8.5, -16.0];
+    if (this.stage === 'ch2_new_boss_central_drive' || this.stage === 'ch2_new_boss_council_meeting') return [-15.0, -8.0];
+    if (this.stage === 'ch2_election_yacht_pursuit' || this.stage === 'ch2_election_dogeyes_boss_fight') return [32.0, 46.0];
     return null;
   }
 

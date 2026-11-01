@@ -448,6 +448,48 @@ export class CrowdSystem {
     ]);
   }
 
+  public spawnWeddingGuestsAndHitmen(sceneGraph: SceneGraph): void {
+    this.clearStoryNPCs(sceneGraph);
+    this.spawnStoryBatch(sceneGraph, [
+      { id: 'winston-groom', typeId: 'sun-on-yee', x: 14.0, z: 25.0, hp: 300, name: 'Winston Chu (Groom)', hostile: false, state: 'talking', color: [0.1, 0.1, 0.15] },
+      { id: 'peggy-bride', typeId: 'pedestrian', x: 15.5, z: 25.0, hp: 200, name: 'Peggy Li (Bride)', hostile: false, state: 'talking', color: [0.95, 0.2, 0.3] },
+      { id: 'jackie-groomsman', typeId: 'pedestrian', x: 12.8, z: 24.2, hp: 250, name: 'Jackie Ma (Groomsman)', hostile: false, state: 'idle', color: [0.2, 0.2, 0.25] },
+      { id: '18k-machete-1', typeId: 'triad-enforcer', x: 16.5, z: 21.0, hp: 130, name: '18K Machete Assassin', hostile: true, state: 'circling', color: [0.8, 0.1, 0.1] },
+      { id: '18k-machete-2', typeId: 'triad-enforcer', x: 11.5, z: 20.5, hp: 125, name: '18K Machete Assassin', hostile: true, state: 'circling', color: [0.8, 0.1, 0.1] },
+      { id: '18k-gun-hitman', typeId: 'triad-enforcer', x: 14.0, z: 18.0, hp: 140, name: '18K Armed Hitman', hostile: true, state: 'circling', color: [0.3, 0.3, 0.35] }
+    ]);
+  }
+
+  public spawnMrsChuAndRatface(sceneGraph: SceneGraph): void {
+    this.clearStoryNPCs(sceneGraph);
+    this.spawnStoryBatch(sceneGraph, [
+      { id: 'mrs-chu', typeId: 'pedestrian', x: -2.2, z: 25.0, hp: 400, name: 'Mrs. Chu (Water Street Matriarch)', hostile: false, state: 'talking', color: [0.85, 0.8, 0.2] },
+      { id: 'johnny-ratface', typeId: 'triad-enforcer', x: 8.5, z: -16.0, hp: 150, name: 'Johnny Ratface (Traitor)', hostile: true, state: 'panicked', color: [0.7, 0.5, 0.2] },
+      { id: 'ratface-guard-1', typeId: 'triad-enforcer', x: 7.2, z: -15.0, hp: 115, name: 'Ratface Bodyguard', hostile: true, state: 'circling', color: [0.2, 0.2, 0.2] },
+      { id: 'ratface-guard-2', typeId: 'sun-on-yee', x: 9.8, z: -17.2, hp: 120, name: 'Ratface Enforcer', hostile: true, state: 'circling', color: [0.3, 0.15, 0.15] }
+    ]);
+  }
+
+  public spawnCentralCouncil(sceneGraph: SceneGraph): void {
+    this.clearStoryNPCs(sceneGraph);
+    this.spawnStoryBatch(sceneGraph, [
+      { id: 'broken-nose-jiang', typeId: 'pedestrian', x: -15.0, z: -8.0, hp: 450, name: 'Broken Nose Jiang (Senior Red Pole)', hostile: false, state: 'talking', color: [0.3, 0.8, 0.9] },
+      { id: 'two-chin-tsao', typeId: 'pedestrian', x: -13.0, z: -10.0, hp: 400, name: 'Two-Chin Tsao (Casino Red Pole)', hostile: false, state: 'talking', color: [0.95, 0.6, 0.2] },
+      { id: 'central-bodyguard-1', typeId: 'triad-enforcer', x: -16.5, z: -6.5, hp: 200, name: 'Central District Suit Guard', hostile: false, state: 'idle', color: [0.1, 0.1, 0.15] },
+      { id: 'central-bodyguard-2', typeId: 'triad-enforcer', x: -12.0, z: -11.5, hp: 200, name: 'Central District Suit Guard', hostile: false, state: 'idle', color: [0.1, 0.1, 0.15] }
+    ]);
+  }
+
+  public spawnDogeyesYachtShowdown(sceneGraph: SceneGraph): void {
+    this.clearStoryNPCs(sceneGraph);
+    this.spawnStoryBatch(sceneGraph, [
+      { id: 'dogeyes-boss', typeId: 'triad-enforcer', x: 32.0, z: 46.0, hp: 350, name: 'Dogeyes (Jade Gang Red Pole)', hostile: true, state: 'circling', color: [0.95, 0.1, 0.1] },
+      { id: 'dogeyes-lieutenant-1', typeId: 'triad-enforcer', x: 30.5, z: 44.0, hp: 160, name: 'Jade Gang Elite Enforcer', hostile: true, state: 'circling', color: [0.2, 0.6, 0.3] },
+      { id: 'dogeyes-lieutenant-2', typeId: 'triad-enforcer', x: 33.5, z: 47.5, hp: 155, name: 'Jade Gang Elite Enforcer', hostile: true, state: 'circling', color: [0.2, 0.6, 0.3] },
+      { id: 'dogeyes-submachine-gunner', typeId: 'triad-enforcer', x: 34.0, z: 43.5, hp: 170, name: 'Jade Gang Gunner', hostile: true, state: 'circling', color: [0.4, 0.2, 0.2] }
+    ]);
+  }
+
   /**
    * Updates crowd locomotion, active brawler combat AI, red-flash windups, and ragdoll knockouts
    */

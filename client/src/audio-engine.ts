@@ -527,6 +527,123 @@ export const AUTHENTIC_TRACKS: Record<string, AudioTrackInfo> = {
     sampleRate: 48000,
     channels: 1,
     isLoop: false
+  },
+  wedding_banquet_music: {
+    id: 'wedding_banquet_music',
+    name: 'Winston & Peggy Wedding Chinese Banquet Theme',
+    source: 'SFX.pck (Stream 0925706b @ 0x0925706b)',
+    description: 'Celebratory Chinese wedding flute and string orchestra at the luxury banquet hall',
+    sampleRate: 48000,
+    channels: 2,
+    isLoop: true
+  },
+  wedding_massacre_alarm: {
+    id: 'wedding_massacre_alarm',
+    name: '18K Banquet Ambush & Gunfire Chaos',
+    source: 'SFX.pck (Stream 0986b230 @ 0x0986b230)',
+    description: 'Glass shattering, screams, and automatic gunfire as 18K hitmen assault the wedding',
+    sampleRate: 48000,
+    channels: 2,
+    isLoop: false
+  },
+  machete_blade_slash: {
+    id: 'machete_blade_slash',
+    name: '18K Machete & Meat Cleaver Combat Strike',
+    source: 'SFX.pck (Stream 19325c91 @ 0x19325c91)',
+    description: 'Brutal high-frequency blade slash and cleaver combat impact',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  sports_car_engine_rev: {
+    id: 'sports_car_engine_rev',
+    name: 'Central Luxury Sports Car Turbo Engine',
+    source: 'SFX.pck (Stream 09e613fd @ 0x09e613fd)',
+    description: 'High-revving twin-turbocharged exotic sports car engine acceleration and turbo blow-off',
+    sampleRate: 48000,
+    channels: 2,
+    isLoop: false
+  },
+  chapter2_finale_fanfare: {
+    id: 'chapter2_finale_fanfare',
+    name: 'Chapter 2 Grand Finale Orchestral Fanfare',
+    source: 'SFX.pck (Stream 0984a0ab @ 0x0984a0ab)',
+    description: 'Dramatic symphonic brass and orchestral climax for Chapter 2 completion',
+    sampleRate: 48000,
+    channels: 2,
+    isLoop: false
+  },
+  winston_wedding_toast: {
+    id: 'winston_wedding_toast',
+    name: 'Winston Chu Wedding Toast',
+    source: 'English(US).pck (Stream 190016c7 @ 0x190016c7)',
+    description: 'Winston Chu raises his glass to Peggy Li, the Water Street crew, and brother Wei Shen',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  winston_dying_words: {
+    id: 'winston_dying_words',
+    name: 'Winston Chu Dying Words',
+    source: 'English(US).pck (Stream 19121f9a @ 0x19121f9a)',
+    description: 'Winston dying in Wei Shen arms, urging him to protect the family and find the killer',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  mrs_chu_vengeance: {
+    id: 'mrs_chu_vengeance',
+    name: 'Mrs. Chu Kitchen Vengeance Mandate',
+    source: 'English(US).pck (Stream 192129a8 @ 0x192129a8)',
+    description: 'Mrs. Chu in the Golden Koi kitchen weeping for Winston and demanding bloody revenge',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  ratface_interrogation: {
+    id: 'ratface_interrogation',
+    name: 'Johnny Ratface Confession',
+    source: 'English(US).pck (Stream 193c01db @ 0x193c01db)',
+    description: 'Johnny Ratface pinned against the wall confessing Dogeyes paid him to open the banquet doors',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  broken_nose_jiang_meeting: {
+    id: 'broken_nose_jiang_meeting',
+    name: 'Broken Nose Jiang Council Guidance',
+    source: 'English(US).pck (Stream 19569713 @ 0x19569713)',
+    description: 'Broken Nose Jiang advising Wei Shen on navigating Central District dragon head politics',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  two_chin_tsao_arrogance: {
+    id: 'two_chin_tsao_arrogance',
+    name: 'Two-Chin Tsao Triad Politics',
+    source: 'English(US).pck (Stream 1961ce50 @ 0x1961ce50)',
+    description: 'Two-Chin Tsao arrogantly boasting of his casino revenue and dismissing Water Street',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  dogeyes_dock_taunt: {
+    id: 'dogeyes_dock_taunt',
+    name: 'Dogeyes Dockside Yacht Showdown',
+    source: 'English(US).pck (Stream 19734cd9 @ 0x19734cd9)',
+    description: 'Dogeyes cornered at his luxury yacht screaming defiance at Wei Shen',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  dogeyes_defeat_confession: {
+    id: 'dogeyes_defeat_confession',
+    name: 'Dogeyes Defeat & Plea for Mercy',
+    source: 'English(US).pck (Stream 1987c01a @ 0x1987c01a)',
+    description: 'Dogeyes broken on his knees begging Wei not to take him back to Mrs. Chu',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
   }
 };
 

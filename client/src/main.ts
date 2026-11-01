@@ -363,6 +363,12 @@ window.addEventListener('DOMContentLoaded', async () => {
                 crowdSystem.spawnPopstarDrugRingCast(renderer.sceneGraph);
             } else if (campaignStory.stage === 'ch1_payback_warehouse_firefight') {
                 crowdSystem.spawnWarehouseEnforcers(renderer.sceneGraph);
+            } else if (campaignStory.stage === 'ch2_wedding_ambush_firefight') {
+                crowdSystem.spawnWeddingGuestsAndHitmen(renderer.sceneGraph);
+            } else if (campaignStory.stage === 'ch2_mrs_chu_ratface_brawl') {
+                crowdSystem.spawnMrsChuAndRatface(renderer.sceneGraph);
+            } else if (campaignStory.stage === 'ch2_election_dogeyes_boss_fight') {
+                crowdSystem.spawnDogeyesYachtShowdown(renderer.sceneGraph);
             }
         }
 
@@ -472,7 +478,29 @@ window.addEventListener('DOMContentLoaded', async () => {
             campaignStory.startMission10UnclePo(renderer.sceneGraph, crowdSystem, cameraController, audioEngine);
         } else if (campaignStory.stage === 'ch1_uncle_po_ceremony') {
             campaignStory.completeChapter1(cameraController, audioEngine);
-        } else if (campaignStory.stage === 'ch1_chapter1_completed') {
+        } else if (campaignStory.stage === 'ch1_chapter1_completed' || campaignStory.stage === 'ch2_wedding_drive_banquet') {
+            campaignStory.startMission11TheWedding(renderer.sceneGraph!, crowdSystem, cameraController, audioEngine);
+        } else if (campaignStory.stage === 'ch2_wedding_toast_cinematic') {
+            campaignStory.triggerWeddingAmbush(cameraController, audioEngine, renderer.sceneGraph!, crowdSystem);
+        } else if (campaignStory.stage === 'ch2_wedding_ambush_firefight') {
+            campaignStory.triggerWinstonDeathScene(cameraController, audioEngine);
+        } else if (campaignStory.stage === 'ch2_wedding_completed' || campaignStory.stage === 'ch2_mrs_chu_kitchen_briefing') {
+            campaignStory.startMission12MrsChusRevenge(renderer.sceneGraph!, crowdSystem, cameraController, audioEngine);
+        } else if (campaignStory.stage === 'ch2_mrs_chu_hunt_ratface') {
+            campaignStory.cornerJohnnyRatface(cameraController, audioEngine, renderer.sceneGraph!, crowdSystem);
+        } else if (campaignStory.stage === 'ch2_mrs_chu_ratface_brawl') {
+            campaignStory.interrogateRatface(cameraController, audioEngine);
+        } else if (campaignStory.stage === 'ch2_mrs_chu_completed' || campaignStory.stage === 'ch2_new_boss_central_drive') {
+            campaignStory.startMission13MeetTheNewBoss(renderer.sceneGraph!, crowdSystem, cameraController, audioEngine);
+        } else if (campaignStory.stage === 'ch2_new_boss_council_meeting') {
+            campaignStory.concludeCentralMeeting(cameraController, audioEngine);
+        } else if (campaignStory.stage === 'ch2_new_boss_completed' || campaignStory.stage === 'ch2_election_yacht_pursuit') {
+            campaignStory.startMission14TheElection(renderer.sceneGraph!, crowdSystem, cameraController, audioEngine);
+        } else if (campaignStory.stage === 'ch2_election_dogeyes_boss_fight') {
+            campaignStory.completeDogeyesYachtShowdown(cameraController, audioEngine);
+        } else if (campaignStory.stage === 'ch2_election_dogeyes_defeated') {
+            campaignStory.completeChapter2(cameraController, audioEngine);
+        } else if (campaignStory.stage === 'ch2_chapter2_completed') {
             campaignStory.startPrologueCinematic(renderer.sceneGraph, crowdSystem, cameraController, audioEngine);
         } else {
             campaignStory.startPrologueCinematic(renderer.sceneGraph, crowdSystem, cameraController, audioEngine);
@@ -834,6 +862,24 @@ window.addEventListener('DOMContentLoaded', async () => {
                 return;
             } else if (campaignStory.stage === 'ch1_uncle_po_ceremony') {
                 campaignStory.completeChapter1(cameraController, audioEngine);
+                return;
+            } else if (campaignStory.stage === 'ch1_chapter1_completed' || campaignStory.stage === 'ch2_wedding_drive_banquet') {
+                campaignStory.startMission11TheWedding(renderer.sceneGraph!, crowdSystem, cameraController, audioEngine);
+                return;
+            } else if (campaignStory.stage === 'ch2_wedding_completed') {
+                campaignStory.startMission12MrsChusRevenge(renderer.sceneGraph!, crowdSystem, cameraController, audioEngine);
+                return;
+            } else if (campaignStory.stage === 'ch2_mrs_chu_hunt_ratface') {
+                campaignStory.cornerJohnnyRatface(cameraController, audioEngine, renderer.sceneGraph!, crowdSystem);
+                return;
+            } else if (campaignStory.stage === 'ch2_mrs_chu_completed') {
+                campaignStory.startMission13MeetTheNewBoss(renderer.sceneGraph!, crowdSystem, cameraController, audioEngine);
+                return;
+            } else if (campaignStory.stage === 'ch2_new_boss_completed') {
+                campaignStory.startMission14TheElection(renderer.sceneGraph!, crowdSystem, cameraController, audioEngine);
+                return;
+            } else if (campaignStory.stage === 'ch2_election_dogeyes_defeated') {
+                campaignStory.completeChapter2(cameraController, audioEngine);
                 return;
             }
             if (vehicleController.canInteract(characterController.position) || vehicleController.isOccupied) {

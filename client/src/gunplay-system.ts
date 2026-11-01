@@ -277,19 +277,21 @@ export class GunplaySystem {
     const len = Math.hypot(dir[0], dir[1], dir[2]);
     const normDir: [number, number, number] = [dir[0] / len, dir[1] / len, dir[2] / len];
 
-    // Origin: player head / vehicle window
-    const origin: [number, number, number] = this.vehicleController.isOccupied
-      ? [this.vehicleController.position[0], this.vehicleController.position[1] + 1.2, this.vehicleController.position[2]]
-      : [this.character.position[0], this.character.position[1] + 1.5, this.character.position[2]];
+    // Origin: camera eye (direct line-of-sight matching the center-screen aiming reticle)
+    const origin: [number, number, number] = [
+      this.cameraController.eyePos[0],
+      this.cameraController.eyePos[1],
+      this.cameraController.eyePos[2]
+    ];
 
-    const range = 75.0; // max bullet range
+    const range = 100.0; // max bullet range
     let hitTarget = false;
 
     // Check hit against crowd entities
     for (const ped of this.crowdSystem.npcs) {
       if (ped.defeated) continue;
-      // Distance from ray to pedestrian position
-      const toPed = [ped.position[0] - origin[0], (ped.position[1] + 1.0) - origin[1], ped.position[2] - origin[2]];
+      // Distance from ray to pedestrian torso/chest position
+      const toPed = [ped.position[0] - origin[0], (ped.position[1] + 0.9) - origin[1], ped.position[2] - origin[2]];
       const proj = toPed[0] * normDir[0] + toPed[1] * normDir[1] + toPed[2] * normDir[2];
       if (proj > 0 && proj < range) {
         const perpDist = Math.hypot(
@@ -297,7 +299,7 @@ export class GunplaySystem {
           toPed[1] - proj * normDir[1],
           toPed[2] - proj * normDir[2]
         );
-        if (perpDist < 0.65) {
+        if (perpDist < 0.95) {
           // HIT ENEMY!
           hitTarget = true;
           ped.health -= this.currentWeapon.damage;

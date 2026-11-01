@@ -20,15 +20,9 @@ flowchart LR
     M7 --> M8["Milestone 8: Shadows & ACES<br/>(Done)"]
     M8 --> M9["Milestone 9: Authentic Materials<br/>(Done)"]
     M9 --> M10["Milestone 10: Wet Asphalt Reflections<br/>(Done)"]
-    M10 --> P1["Phase 1: Martial Arts & Counters<br/>(Done)"]
-    P1 --> P2["Phase 2: Street Props & Normal Maps<br/>(Done)"]
-    P2 --> P3["Phase 3: Canvas HUD & In-Car Radios<br/>(Done)"]
-    P3 --> P4["Phase 4: Env Takedowns, Drift & Mission 2<br/>(Done)"]
-    P4 --> P5["Phase 5: Story Missions 3 & 4<br/>(Done)"]
-    P5 --> P6["Phase 6: Mission 5 Club Bam Bam<br/>(Done)"]
-    P6 --> P7["Phase 7: Mission 6 Popstar & Gunplay<br/>(Done)"]
-    P7 --> M11["Milestone 11: Havok Chassis Geometry<br/>(Done)"]
-    M11 --> M12["Upcoming: Mission 7 Listening In<br/>(Next)"]
+    M10 --> CH1["Chapter 1: North Point & Initiation<br/>Missions 0–10 (100% Done)"]
+    CH1 --> CH2["Chapter 2: Central District & Politics<br/>Missions 11–14 (100% Done)"]
+    CH2 --> CH3["Upcoming: Chapter 3 Kennedy Town<br/>Missions 15–18 (Next)"]
 ```
 
 ---
@@ -370,11 +364,91 @@ flowchart LR
 
 ---
 
-## Upcoming Chapter: CHAPTER 2 "CENTRAL / DRAGON HEAD POLITICS & BLOODSHED"
+## Milestone 16: Chapter 2 Mission 11 ("The Wedding" — Banquet Ambush & Tragedy) (Completed)
 
-### Chapter 2 Overview:
-Wei Shen expands operations into Central District, navigating escalating tensions between Water Street (Winston Chu), Jade Gang (Dogeyes / Big Smile Lee), and the Sun On Yee Dragon Head council:
-- **Mission 11: "The Wedding"** — Escort Winston Chu & Peggy Li to the banquet; defend against sudden 18K mass assault.
-- **Mission 12: "Mrs. Chu's Revenge"** — Hunt down Johnny Ratface and track down the culprits behind the wedding bloodbath.
-- **Mission 13: "Meet the New Boss"** — High-stakes council politics with Broken Nose Jiang and Two-Chin Tsao in Central District.
-- **Mission 14: "The Election"** — Dragon Head succession war, police wiretaps, and luxury sports car pursuits across Hong Kong island.
+- [X] **Winston Chu & Peggy Li Banquet Toast**:
+  - Lavish Chinese wedding banquet with authentic banquet score (`SFX.pck` 0x0925706b, 3.08MB 48kHz stereo WAV).
+  - Winston Chu's heartfelt toast to Peggy and brotherhood with Wei Shen (`English(US).pck` 0x190016c7).
+  - Full wedding guest cast including Jackie Ma, Uncle Po, and Triad elders (`crowdSystem.spawnWeddingGuestsAndHitmen`).
+- [X] **18K Sudden Mass Assault & Hall Defense**:
+  - Red klaxon wedding massacre alarm (`SFX.pck` 0x0986b230, 1.20MB 48kHz stereo WAV).
+  - 18K machete hitmen storming banquet doors with blade slashes (`SFX.pck` 0x19325c91).
+  - Hand-to-hand melee combat defending the wedding hall.
+- [X] **Winston Chu Tragic Death Scene**:
+  - Tragic cinematic cutscene framing Winston's mortal wound.
+  - Winston's dying words begging Wei Shen to protect Mrs. Chu and Water Street (`English(US).pck` 0x19121f9a).
+  - Tragic violin / score transition setting the revenge arc in motion.
+
+---
+
+## Milestone 17: Chapter 2 Mission 12 ("Mrs. Chu's Revenge" — Johnny Ratface Interrogation) (Completed)
+
+- [X] **Golden Koi Kitchen Cleaver Mandate**:
+  - Heartbroken and vengeful Mrs. Chu sharpening kitchen cleavers in the Golden Koi back kitchen (`crowdSystem.spawnMrsChuAndRatface`).
+  - Mrs. Chu dialogue commanding Wei Shen to bring her Winston's killers alive (`English(US).pck` 0x192129a8).
+- [X] **Tracking Johnny Ratface in Tenement Alleys**:
+  - Trailing 18K lookout Johnny Ratface through dark Central alleyways.
+  - High-intensity pursuit and cornering in a dead-end alley behind neon market signs.
+- [X] **Alley Interrogation & Extraction**:
+  - Interrogation sequence extracting Ratface's confession implicating Dogeyes and the Jade Gang (`English(US).pck` 0x193c01db).
+  - Subduing Ratface and delivering him to the Golden Koi for Mrs. Chu's justice.
+
+---
+
+## Milestone 18: Chapter 2 Mission 13 ("Meet the New Boss" — Central Council Politics) (Completed)
+
+- [X] **Central District Dragon Head Council Meeting**:
+  - Secret high-rise meeting room with Sun On Yee leadership (`crowdSystem.spawnCentralCouncil`).
+  - Formal meeting with Broken Nose Jiang discussing the power vacuum created by Winston's death (`English(US).pck` 0x19569713).
+  - Arrogant confrontation with Two-Chin Tsao scheming for control of Water Street turf (`English(US).pck` 0x1961ce50).
+- [X] **Turf Defense & Leadership Consolidation**:
+  - Wei Shen stands firm against Two-Chin Tsao's enforcers, securing Broken Nose Jiang's alliance and backing.
+
+---
+
+## Milestone 19: Chapter 2 Grand Finale — Mission 14 ("The Election / Final Kill" — Dogeyes Yacht Showdown) (Completed)
+
+- [X] **High-Speed Sports Car Pursuit to Aberdeen Docks**:
+  - Luxury sports car handling with roaring engine revs (`SFX.pck` 0x09e613fd, 1.32MB 48kHz stereo WAV).
+  - Chasing Dogeyes' convoy across Central highways to Aberdeen luxury marina.
+- [X] **Dogeyes Luxury Yacht Boss Showdown**:
+  - Dogeyes boss encounter with 350 HP and Jade Gang elite bodyguards (`crowdSystem.spawnDogeyesYachtShowdown`).
+  - Dogeyes dockside taunts boasting of Winston's downfall (`English(US).pck` 0x19734cd9).
+  - Multi-phase boss fight with heavy strikes, counter-attacks, and environmental boat deck takedowns.
+- [X] **Dogeyes Vanquished & Confession**:
+  - Dogeyes defeated on the yacht deck, pleading for mercy and confessing Big Smile Lee's master conspiracy (`English(US).pck` 0x1987c01a).
+  - Wei Shen packages Dogeyes for Mrs. Chu's ultimate revenge.
+- [X] **Wei Shen Ascension & Chapter 2 Grand Finale**:
+  - Grand orchestral fanfare (`SFX.pck` 0x0984a0ab, 1.02MB 48kHz stereo WAV).
+  - Wei Shen elevated to undisputed **Water Street Red Pole Boss**.
+  - Campaign state transition to `ch2_chapter2_completed`.
+- [X] **Automated Browser Test Suite Verified (`tools/verify_chapter2_full.js`)**:
+  - Verified Missions 11, 12, 13, and 14 in headless Chrome with **0 page errors and 0 network failures**.
+  - Generated visual verification proof artifacts:
+    - `01_mission11_wedding_banquet_toast.png`
+    - `02_mission11_winston_chu_dying_words.png`
+    - `03_mission12_mrs_chu_ratface_interrogation.png`
+    - `04_mission13_central_council_meeting.png`
+    - `05_mission14_dogeyes_yacht_showdown_victory.png`
+
+---
+
+## Chapter Summary: CHAPTER 2 "CENTRAL / DRAGON HEAD POLITICS & BLOODSHED" — 100% COMPLETE!
+
+| # | Mission Title | Key Mechanics / Assets | Status |
+|---|---|---|---|
+| **11** | **The Wedding** | Banquet toast, 18K banquet assault, Winston dying cutscene, banquet music & klaxon | **Completed** |
+| **12** | **Mrs. Chu's Revenge** | Golden Koi kitchen cleaver mandate, Johnny Ratface alley hunt & interrogation | **Completed** |
+| **13** | **Meet the New Boss** | Central District council chamber, Broken Nose Jiang & Two-Chin Tsao politics | **Completed** |
+| **14** | **The Election / Final Kill** | Aberdeen docks sports car pursuit, Dogeyes yacht boss fight (350 HP), Wei Shen Red Pole Boss ascension | **Completed** |
+
+---
+
+## Upcoming Chapter: CHAPTER 3 "KENNEDY TOWN / TRIAD WAR & GRAND FINALE"
+
+### Chapter 3 Overview:
+The explosive climax of Sleeping Dogs: Big Smile Lee launches an all-out civil war to seize absolute power over the Sun On Yee following Uncle Po's hospitalization:
+- **Mission 15: "Civil War / Hospital Defense"** — Protect Uncle Po in Queen Mary Hospital against hit squads sent by Big Smile Lee.
+- **Mission 16: "The Funeral"** — Uncle Po's state funeral at the cemetery; massive 18K ambush and firefight amidst grave markers.
+- **Mission 17: "The Kidnapping of Jackie Ma"** — Desperate hunt through Kennedy Town to rescue Jackie from Mr. Tong's torture den.
+- **Mission 18: "Big Smile Lee (Grand Campaign Finale)"** — Infiltrate Big Smile Lee's compound, icehouse knife duel with Mr. Tong, and final harbor crane showdown with Big Smile Lee.

@@ -218,9 +218,10 @@ async function run() {
     const targetNpc = crowd.npcs[0];
     targetNpc.health = 20; // 1 shot kill
 
-    // Align camera toward target
-    window.cameraController.eyePos = [targetNpc.position[0], targetNpc.position[1] + 1.2, targetNpc.position[2] - 3.0];
-    window.cameraController.lookAtTarget = [...targetNpc.position];
+    // Position character and align camera directly toward target
+    window.characterController.position = [targetNpc.position[0], targetNpc.position[1], targetNpc.position[2] - 3.0];
+    window.cameraController.eyePos = [targetNpc.position[0], targetNpc.position[1] + 0.9, targetNpc.position[2] - 3.0];
+    window.cameraController.lookAtTarget = [targetNpc.position[0], targetNpc.position[1] + 0.9, targetNpc.position[2]];
 
     gun.equipWeapon();
     gun.startAiming();

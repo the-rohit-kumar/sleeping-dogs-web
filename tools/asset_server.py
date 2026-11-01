@@ -353,6 +353,84 @@ AUDIO_TRACKS = {
         "offset": 0x1808e0dc,
         "size": 46532,
         "name": "Sun On Yee Mountain Master Uncle Po Tea Ceremony"
+    },
+    "wedding_banquet_music": {
+        "pck": SFX_PCK,
+        "offset": 0x0925706b,
+        "size": 135081,
+        "name": "Winston & Peggy Wedding Chinese Banquet Theme"
+    },
+    "wedding_massacre_alarm": {
+        "pck": SFX_PCK,
+        "offset": 0x0986b230,
+        "size": 109113,
+        "name": "18K Banquet Ambush & Gunfire Chaos"
+    },
+    "machete_blade_slash": {
+        "pck": SFX_PCK,
+        "offset": 0x19325c91,
+        "size": 4902,
+        "name": "18K Machete & Meat Cleaver Combat Strike"
+    },
+    "sports_car_engine_rev": {
+        "pck": SFX_PCK,
+        "offset": 0x09e613fd,
+        "size": 122984,
+        "name": "Central Luxury Sports Car Turbo Engine"
+    },
+    "chapter2_finale_fanfare": {
+        "pck": SFX_PCK,
+        "offset": 0x0984a0ab,
+        "size": 78252,
+        "name": "Chapter 2 Grand Finale Orchestral Fanfare"
+    },
+    "winston_wedding_toast": {
+        "pck": ENG_PCK,
+        "offset": 0x190016c7,
+        "size": 33333,
+        "name": "Winston Chu Wedding Toast to Wei Shen & Family"
+    },
+    "winston_dying_words": {
+        "pck": ENG_PCK,
+        "offset": 0x19121f9a,
+        "size": 35957,
+        "name": "Winston Chu Dying Words & Vengeance Order"
+    },
+    "mrs_chu_vengeance": {
+        "pck": ENG_PCK,
+        "offset": 0x192129a8,
+        "size": 51103,
+        "name": "Mrs. Chu Kitchen Vengeance Mandate"
+    },
+    "ratface_interrogation": {
+        "pck": ENG_PCK,
+        "offset": 0x193c01db,
+        "size": 33234,
+        "name": "Johnny Ratface Confession & Dogeyes Link"
+    },
+    "broken_nose_jiang_meeting": {
+        "pck": ENG_PCK,
+        "offset": 0x19569713,
+        "size": 39079,
+        "name": "Broken Nose Jiang Council Guidance in Central"
+    },
+    "two_chin_tsao_arrogance": {
+        "pck": ENG_PCK,
+        "offset": 0x1961ce50,
+        "size": 52864,
+        "name": "Two-Chin Tsao Triad Politics & Casino Boast"
+    },
+    "dogeyes_dock_taunt": {
+        "pck": ENG_PCK,
+        "offset": 0x19734cd9,
+        "size": 28411,
+        "name": "Dogeyes Dockside Yacht Showdown Taunt"
+    },
+    "dogeyes_defeat_confession": {
+        "pck": ENG_PCK,
+        "offset": 0x1987c01a,
+        "size": 25072,
+        "name": "Dogeyes Defeat & Plea for Mercy"
     }
 }
 
