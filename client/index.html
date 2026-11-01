@@ -613,6 +613,68 @@
             z-index: 10;
             letter-spacing: 0.5px;
         }
+
+        /* Sleeping Dogs Signature Red Counter Alert */
+        .counter-alert {
+            position: absolute;
+            top: 42%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            z-index: 25;
+            animation: counterThrob 0.22s infinite alternate;
+        }
+
+        @keyframes counterThrob {
+            0% { transform: translate(-50%, -50%) scale(0.98); }
+            100% { transform: translate(-50%, -50%) scale(1.08); }
+        }
+
+        .counter-key {
+            background: #ff0033;
+            color: #ffffff;
+            font-family: monospace;
+            font-size: 15px;
+            font-weight: 900;
+            padding: 6px 22px;
+            border-radius: 4px;
+            box-shadow: 0 0 25px #ff0033, 0 0 50px rgba(255, 0, 51, 0.8);
+            letter-spacing: 1px;
+            border: 2px solid #ffffff;
+        }
+
+        .counter-label {
+            color: #ffcccc;
+            font-family: monospace;
+            font-size: 11px;
+            font-weight: 800;
+            margin-top: 5px;
+            text-shadow: 0 2px 8px #000000;
+            letter-spacing: 2px;
+        }
+
+        .face-burst-banner {
+            position: absolute;
+            top: 75px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(90deg, rgba(234, 179, 8, 0.95), rgba(217, 38, 56, 0.95));
+            color: #ffffff;
+            font-family: monospace;
+            font-size: 12px;
+            font-weight: 900;
+            padding: 6px 24px;
+            border-radius: 20px;
+            box-shadow: 0 0 20px rgba(234, 179, 8, 0.8);
+            border: 1px solid #ffffff;
+            display: none;
+            z-index: 20;
+            letter-spacing: 1px;
+        }
     </style>
 </head>
 <body>
@@ -848,11 +910,11 @@
                         <div class="start-ctrl-item"><span>[W][A][S][D]</span> Move Wei Shen / Steer Vehicle</div>
                         <div class="start-ctrl-item"><span>[SHIFT]</span> Sprint / Handbrake Drift</div>
                         <div class="start-ctrl-item"><span>[SPACE]</span> Jump / Vault Obstacles</div>
-                        <div class="start-ctrl-item"><span>[E]</span> Hijack &amp; Enter / Exit Vehicle</div>
-                        <div class="start-ctrl-item"><span>[L-CLICK]</span> Martial Arts Strike &amp; Combo</div>
+                        <div class="start-ctrl-item"><span>[L-CLICK]</span> Martial Arts Combo Strikes (Jab/Cross/Kick)</div>
+                        <div class="start-ctrl-item"><span>[R-CLICK / E]</span> Red-Flash Counter Reversal</div>
+                        <div class="start-ctrl-item"><span>[Q]</span> Heavy Guard-Break Roundhouse Kick</div>
+                        <div class="start-ctrl-item"><span>[F]</span> Jack Car / Melee Collar Grapple</div>
                         <div class="start-ctrl-item"><span>[MOUSE DRAG]</span> Orbit 3rd Person Follow Camera</div>
-                        <div class="start-ctrl-item"><span>[1 / 2 / 3]</span> Hong Kong Rain &amp; Neon Shading</div>
-                        <div class="start-ctrl-item"><span>[H]</span> Toggle Debug HUD &amp; Engine Stats</div>
                     </div>
                     <div style="margin-top: 12px; font-size: 10px; color: #4ade80; text-align: center; border-top: 1px solid rgba(255,255,255,0.06); padding-top: 6px;">
                         ✓ 100% Authentic Assets Streamed Directly via HTTP 206 • ZERO Synthetic Models
@@ -860,21 +922,32 @@
                 </div>
             </div>
 
+            <!-- Sleeping Dogs Signature Red-Flash Counter Cue -->
+            <div class="counter-alert" id="counter-alert">
+                <span class="counter-key">⚡ COUNTER [R-CLICK / E] ⚡</span>
+                <span class="counter-label">DEFLECT &amp; REVERSE ATTACK!</span>
+            </div>
+
+            <!-- Face Meter Burst Adrenaline Banner -->
+            <div class="face-burst-banner" id="face-burst-banner">
+                🐲 FACE METER BURST ACTIVE! (2.2x DAMAGE • RAPID HEALTH REGEN) 🐲
+            </div>
+
             <!-- Milestone 6: Mission Directive Banner -->
             <div class="mission-banner" id="mission-banner">
-                <div class="mission-title">MISSION: NORTH POINT INVESTIGATION</div>
-                <div class="mission-text" id="mission-objective">Approach the Sedan chassis [E] or patrol Hong Kong market sidewalk</div>
+                <div class="mission-title" id="mission-title">MISSION 1: NIGHT MARKET AMBUSH</div>
+                <div class="mission-text" id="mission-objective">Defeat the 18K Triad ambush brawlers (0/4 Defeated) [L-Click: Strike, R-Click/E: Counter]</div>
             </div>
 
             <!-- Milestone 6: Authentic Health & Face Meter HUD -->
             <div class="game-meters">
                 <div class="info-row"><span class="info-label">HEALTH</span><span id="meter-health-text" style="color: #22c55e;">100%</span></div>
                 <div class="meter-bar-container"><div class="meter-bar-fill" id="meter-health-fill" style="width: 100%; background: #22c55e;"></div></div>
-                <div class="info-row"><span class="info-label">FACE METER</span><span id="meter-face-text" style="color: #eab308;">20%</span></div>
-                <div class="meter-bar-container"><div class="meter-bar-fill" id="meter-face-fill" style="width: 20%; background: #eab308;"></div></div>
+                <div class="info-row"><span class="info-label">FACE METER</span><span id="meter-face-text" style="color: #eab308;">25%</span></div>
+                <div class="meter-bar-container"><div class="meter-bar-fill" id="meter-face-fill" style="width: 25%; background: #eab308;"></div></div>
                 <div class="info-row" style="margin-top: 4px;">
-                    <span style="color: #60a5fa;" id="meter-police">POLICE: 300</span>
-                    <span style="color: #f87171;" id="meter-triad">TRIAD: 150</span>
+                    <span style="color: #60a5fa;" id="meter-police">POLICE: 350</span>
+                    <span style="color: #f87171;" id="meter-triad">TRIAD: 200</span>
                 </div>
             </div>
 
@@ -884,7 +957,7 @@
             </div>
 
             <!-- Milestone 6: Interactive Action Prompt -->
-            <div class="action-prompt" id="action-prompt">[E] ENTER SEDAN CHASSIS</div>
+            <div class="action-prompt" id="action-prompt">[F] JACK SEDAN</div>
 
             <div class="hud-overlay">
                 <div class="hud-title">AUTHENTIC ENGINE PIPELINE HUD</div>

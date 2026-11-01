@@ -127,7 +127,8 @@ window.addEventListener('DOMContentLoaded', async () => {
     const cardTrafficCount = document.getElementById('card-traffic-count')!;
     const cardCrowdCount = document.getElementById('card-crowd-count')!;
 
-    // Milestone 6: Sleeping Dogs Mission & In-Game HUD
+    // Sleeping Dogs Gameplay HUD & Mission System
+    const missionTitle = document.getElementById('mission-title') || document.querySelector('.mission-title')!;
     const missionObjective = document.getElementById('mission-objective')!;
     const meterHealthText = document.getElementById('meter-health-text')!;
     const meterHealthFill = document.getElementById('meter-health-fill')!;
@@ -136,6 +137,8 @@ window.addEventListener('DOMContentLoaded', async () => {
     const meterPolice = document.getElementById('meter-police')!;
     const meterTriad = document.getElementById('meter-triad')!;
     const actionPrompt = document.getElementById('action-prompt')!;
+    const counterAlert = document.getElementById('counter-alert') as HTMLElement;
+    const faceBurstBanner = document.getElementById('face-burst-banner') as HTMLElement;
     const radarCanvas = document.getElementById('radar-canvas') as HTMLCanvasElement;
     const radarCtx = radarCanvas.getContext('2d')!;
 
@@ -291,23 +294,84 @@ window.addEventListener('DOMContentLoaded', async () => {
     });
 
     // -------------------------------------------------------------
-    // Milestone 6: Gameplay, NPCs & Vehicle Simulation Wiring
+    // Sleeping Dogs Campaign Mission 1: "Night Market Ambush"
     // -------------------------------------------------------------
-    const MISSION_OBJECTIVES = [
-        "Approach the Sedan chassis [E] or patrol Hong Kong market sidewalk",
-        "Drive Sedan through North Point sector [W/A/S/D] and test suspension dynamics",
-        "Confront Triad pedestrian suspects on the sidewalk [L-Click Combo Strike]",
-        "Perform a 3-hit martial arts combo to max out Face Meter and gain Triad Respect"
-    ];
-    let currentMissionIndex = 0;
+    let playerHealth = 100.0;
+    const playerMaxHealth = 100.0;
+    let slowMoTimer = 0.0;
 
-    function setMissionObjective(index: number) {
-        currentMissionIndex = index % MISSION_OBJECTIVES.length;
-        missionObjective.textContent = MISSION_OBJECTIVES[currentMissionIndex];
+    interface CampaignMissionState {
+        stage: 'ambush' | 'carjack' | 'deliver' | 'completed';
+        thugsDefeated: number;
+        thugsTotal: number;
     }
 
+    const campaignMission: CampaignMissionState = {
+        stage: 'ambush',
+        thugsDefeated: 0,
+        thugsTotal: 4
+    };
+
+    function updateMissionBanner() {
+        if (campaignMission.stage === 'ambush') {
+            missionTitle.textContent = 'MISSION 1: NIGHT MARKET AMBUSH';
+            missionObjective.textContent = `Defeat the 18K Triad ambush brawlers (${campaignMission.thugsDefeated}/${campaignMission.thugsTotal} Defeated) [L-Click: Strike, R-Click/E: Counter]`;
+        } else if (campaignMission.stage === 'carjack') {
+            missionTitle.textContent = 'MISSION 1: GETAWAY VEHICLE';
+            missionObjective.textContent = '18K Ambush Cleared! Hijack the Sedan or Taxi [F] to evade Triad reinforcements!';
+        } else if (campaignMission.stage === 'deliver') {
+            const dist = Math.hypot(vehicleController.position[0] - (-9.5), vehicleController.position[2] - (-12.0));
+            missionTitle.textContent = 'MISSION 1: REACH SAFEHOUSE';
+            missionObjective.textContent = `Evade Police pursuit & deliver vehicle to Golden Dragon Teahouse (${Math.round(dist)}m away)`;
+        } else if (campaignMission.stage === 'completed') {
+            missionTitle.textContent = 'MISSION ACCOMPLISHED';
+            missionObjective.textContent = 'SAFEHOUSE SECURED! TRIAD RESPECT +500 • POLICE RESPECT +250 • COP LEVEL 2 UNLOCKED!';
+        }
+    }
+
+    // Connect Crowd System Callbacks
+    crowdSystem.onPlayerDamaged = (damage: number) => {
+        playerHealth = Math.max(0, playerHealth - damage);
+        meterHealthFill.style.width = `${(playerHealth / playerMaxHealth) * 100}%`;
+        meterHealthText.textContent = `${Math.round(playerHealth)}%`;
+        meterHealthFill.style.background = playerHealth < 30 ? '#ef4444' : '#22c55e';
+
+        cameraController.pitch += 0.04;
+        actionPrompt.style.display = 'block';
+        actionPrompt.textContent = `⚠️ TOOK ${damage} DAMAGE! [PRESS R-CLICK / E TO COUNTER]`;
+        actionPrompt.style.background = 'rgba(239, 68, 68, 0.95)';
+        setTimeout(() => actionPrompt.style.display = 'none', 800);
+    };
+
+    crowdSystem.onEnemyDefeated = (_npc) => {
+        if (campaignMission.stage === 'ambush') {
+            campaignMission.thugsDefeated++;
+            if (campaignMission.thugsDefeated >= campaignMission.thugsTotal) {
+                campaignMission.stage = 'carjack';
+                updateMissionBanner();
+                actionPrompt.style.display = 'block';
+                actionPrompt.textContent = '⚡ 18K AMBUSH DEFEATED! HIJACK VEHICLE [F] ⚡';
+                actionPrompt.style.background = '#eab308';
+                setTimeout(() => actionPrompt.style.display = 'none', 3000);
+                audioEngine.playTrack('hk_dialogue').catch(() => {});
+            } else {
+                updateMissionBanner();
+            }
+        }
+    };
+
     btnNextMission.addEventListener('click', () => {
-        setMissionObjective(currentMissionIndex + 1);
+        if (campaignMission.stage === 'ambush') {
+            campaignMission.stage = 'carjack';
+        } else if (campaignMission.stage === 'carjack') {
+            campaignMission.stage = 'deliver';
+        } else if (campaignMission.stage === 'deliver') {
+            campaignMission.stage = 'completed';
+        } else {
+            campaignMission.stage = 'ambush';
+            campaignMission.thugsDefeated = 0;
+        }
+        updateMissionBanner();
     });
 
     function toggleVehicleEntry(force = false) {
@@ -326,14 +390,21 @@ window.addEventListener('DOMContentLoaded', async () => {
                 cameraController.isDriving = true;
                 badgeGameplayMode.textContent = 'Driving Sedan';
                 badgeGameplayMode.style.color = '#e11d48';
-                btnEnterCar.textContent = 'Exit Car [E]';
+                btnEnterCar.textContent = 'Exit Car [F]';
                 btnEnterCar.classList.add('active');
 
                 // Hide on-foot character mesh while inside car cabin
                 const charNode = renderer.sceneGraph?.getNode('node-character');
                 if (charNode) charNode.visible = false;
 
-                setMissionObjective(1);
+                if (campaignMission.stage === 'carjack') {
+                    campaignMission.stage = 'deliver';
+                    updateMissionBanner();
+                    actionPrompt.style.display = 'block';
+                    actionPrompt.textContent = '🚨 POLICE DISPATCHED! DELIVER TO TEAHOUSE SAFEHOUSE! 🚨';
+                    actionPrompt.style.background = '#ef4444';
+                    setTimeout(() => actionPrompt.style.display = 'none', 3500);
+                }
             }
         } else {
             // Exit vehicle
@@ -357,20 +428,132 @@ window.addEventListener('DOMContentLoaded', async () => {
 
             badgeGameplayMode.textContent = 'On Foot';
             badgeGameplayMode.style.color = '#38bdf8';
-            btnEnterCar.textContent = 'Enter Car [E]';
+            btnEnterCar.textContent = 'Enter Car [F]';
             btnEnterCar.classList.remove('active');
 
             // Switch audio back to city ambience
             audioEngine.playTrack('hk_ambience').catch(() => {});
-            setMissionObjective(0);
         }
     }
 
     btnEnterCar.addEventListener('click', () => toggleVehicleEntry(true));
 
+    // -------------------------------------------------------------
+    // Martial Arts Combat Actions
+    // -------------------------------------------------------------
+    function performCombatStrike() {
+        if (vehicleController.isOccupied) return;
+
+        const res = combatSystem.executeStrike(
+            characterController.position,
+            characterController.rotationY,
+            animPlayer,
+            audioEngine,
+            crowdSystem
+        );
+        characterController.triggerAttack(animPlayer, audioEngine);
+
+        if (res.hitLanded) {
+            actionPrompt.style.display = 'block';
+            actionPrompt.textContent = `COMBO STRIKE ${res.comboStep}/3 (+${res.damage} DMG)!`;
+            actionPrompt.style.background = res.comboStep === 3 ? '#eab308' : '#d92638';
+            setTimeout(() => {
+                actionPrompt.style.display = 'none';
+            }, 700);
+        }
+    }
+
+    function performCombatCounter() {
+        if (vehicleController.isOccupied) return;
+
+        const res = combatSystem.executeCounter(
+            characterController.position,
+            animPlayer,
+            audioEngine,
+            crowdSystem
+        );
+
+        if (res.counterSuccess) {
+            // Sleeping Dogs Signature Cinematic Counter
+            slowMoTimer = 0.40; // 400ms slow-motion!
+            cameraController.pitch += 0.08;
+            cameraController.distance = Math.max(1.8, cameraController.distance - 0.5);
+
+            actionPrompt.style.display = 'block';
+            actionPrompt.innerHTML = `⚡ <strong style="color:#facc15">BRUTAL COUNTER REVERSAL!</strong> (+${res.damage} DMG, +150 TRIAD XP) ⚡`;
+            actionPrompt.style.background = 'rgba(217, 38, 56, 0.95)';
+            actionPrompt.style.boxShadow = '0 0 25px rgba(255, 0, 50, 0.8)';
+            setTimeout(() => {
+                actionPrompt.style.display = 'none';
+            }, 1200);
+        } else {
+            actionPrompt.style.display = 'block';
+            actionPrompt.textContent = `DEFENSIVE PARRY GUARD [READY]`;
+            actionPrompt.style.background = 'rgba(56, 189, 248, 0.85)';
+            setTimeout(() => {
+                actionPrompt.style.display = 'none';
+            }, 500);
+        }
+    }
+
+    function performHeavyKick() {
+        if (vehicleController.isOccupied) return;
+        const res = combatSystem.executeHeavyKick(
+            characterController.position,
+            characterController.rotationY,
+            animPlayer,
+            audioEngine,
+            crowdSystem
+        );
+        if (res.hitLanded) {
+            actionPrompt.style.display = 'block';
+            actionPrompt.textContent = `💥 HEAVY ROUNDHOUSE KICK (+${res.damage} DMG, GUARD BROKEN)!`;
+            actionPrompt.style.background = '#eab308';
+            setTimeout(() => {
+                actionPrompt.style.display = 'none';
+            }, 900);
+        }
+    }
+
+    function performGrapple() {
+        if (vehicleController.isOccupied) return;
+        const res = combatSystem.executeGrapple(
+            characterController.position,
+            characterController.rotationY,
+            animPlayer,
+            audioEngine,
+            crowdSystem
+        );
+        if (res.grappleSuccess) {
+            actionPrompt.style.display = 'block';
+            actionPrompt.textContent = `🤼 GRAPPLE & SIDEWALK SLAM (+${res.damage} DMG)!`;
+            actionPrompt.style.background = '#a855f7';
+            setTimeout(() => {
+                actionPrompt.style.display = 'none';
+            }, 900);
+        }
+    }
+
+    btnComboStrike.addEventListener('click', performCombatStrike);
+
+    btnPedPanic.addEventListener('click', () => {
+        pedestrianAI.state = 'FLEE';
+        pedestrianAI.stateTimer = 5.0;
+        audioEngine.playTrack('hk_dialogue').catch(() => {});
+    });
+
+    // Keyboard controls
     window.addEventListener('keydown', (e) => {
-        if (e.code === 'KeyE' || e.code === 'KeyF' || e.key.toLowerCase() === 'e' || e.key.toLowerCase() === 'f') {
-            toggleVehicleEntry();
+        if (e.code === 'KeyF' || e.key.toLowerCase() === 'f') {
+            if (vehicleController.canInteract(characterController.position) || vehicleController.isOccupied) {
+                toggleVehicleEntry();
+            } else {
+                performGrapple();
+            }
+        } else if (e.code === 'KeyE' || e.key.toLowerCase() === 'e') {
+            performCombatCounter();
+        } else if (e.code === 'KeyQ' || e.key.toLowerCase() === 'q') {
+            performHeavyKick();
         } else if (e.code === 'KeyH' || e.key.toLowerCase() === 'h') {
             const hudEl = document.querySelector('.hud-overlay') as HTMLElement;
             if (hudEl) {
@@ -389,42 +572,16 @@ window.addEventListener('DOMContentLoaded', async () => {
         }
     });
 
-    function performCombatStrike() {
-        if (vehicleController.isOccupied) return;
+    // Mouse Controls (Disable native right-click context menu for Counter mechanic)
+    canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 
-        const res = combatSystem.executeStrike(characterController.position, animPlayer, audioEngine);
-        characterController.triggerAttack(animPlayer, audioEngine);
+    canvas.addEventListener('mousedown', (e) => {
+        if (renderer.cameraMode !== 'follow' || vehicleController.isOccupied) return;
 
-        // Apply hit to nearby crowd NPCs or pedestrian AI
-        const closestCrowdTarget = crowdSystem.findClosestCombatTarget(characterController.position);
-        if (closestCrowdTarget) {
-            const kbX = Math.sin(characterController.rotationY);
-            const kbZ = Math.cos(characterController.rotationY);
-            crowdSystem.applyCombatHit(closestCrowdTarget.id, res.damage, [kbX, 0, kbZ], audioEngine);
-        }
-
-        if (res.hitLanded || closestCrowdTarget) {
-            actionPrompt.style.display = 'block';
-            actionPrompt.textContent = `COMBO HIT ${res.comboStep} (${res.damage} DMG)!`;
-            actionPrompt.style.background = res.comboStep === 3 ? '#eab308' : '#d92638';
-            setTimeout(() => {
-                actionPrompt.style.display = 'none';
-            }, 800);
-        }
-    }
-
-    btnComboStrike.addEventListener('click', performCombatStrike);
-
-    btnPedPanic.addEventListener('click', () => {
-        pedestrianAI.state = 'FLEE';
-        pedestrianAI.stateTimer = 5.0;
-        audioEngine.playTrack('hk_dialogue').catch(() => {});
-    });
-
-    // Viewport click triggers combat strike in follow camera mode when on foot
-    canvas.addEventListener('click', (e) => {
-        if (renderer.cameraMode === 'follow' && e.button === 0 && !vehicleController.isOccupied) {
+        if (e.button === 0) {
             performCombatStrike();
+        } else if (e.button === 2) {
+            performCombatCounter();
         }
     });
 
@@ -655,7 +812,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             cameraController.isDriving = false;
             cameraController.targetPos = [...characterController.position];
             updateCameraModeUI('follow');
-            setMissionObjective(0);
+            updateMissionBanner();
 
             cardStatus.textContent = 'Assembled composite street scene with Havok physics, vehicles & pedestrian crowd';
             cardStatus.style.color = '#4ade80';
@@ -940,14 +1097,50 @@ window.addEventListener('DOMContentLoaded', async () => {
 
         // Milestone 7B: Crowd NPCs Blips
         for (const npc of crowdSystem.npcs) {
+            if (npc.defeated) continue;
             const npcRelX = (npc.position[0] - playerPos[0]) * scale;
             const npcRelZ = (npc.position[2] - playerPos[2]) * scale;
             if (Math.hypot(npcRelX, npcRelZ) < radius) {
                 radarCtx.beginPath();
-                radarCtx.arc(cx + npcRelX, cy + npcRelZ, 3, 0, Math.PI * 2);
-                radarCtx.fillStyle = npc.type.role === 'triad' ? '#f87171' : '#fde047';
+                radarCtx.arc(cx + npcRelX, cy + npcRelZ, npc.isHostile ? 4 : 3, 0, Math.PI * 2);
+                radarCtx.fillStyle = npc.isHostile ? '#ef4444' : '#fde047';
                 radarCtx.fill();
+
+                if (npc.isCounterable) {
+                    radarCtx.beginPath();
+                    radarCtx.arc(cx + npcRelX, cy + npcRelZ, 8, 0, Math.PI * 2);
+                    radarCtx.strokeStyle = '#ff0033';
+                    radarCtx.lineWidth = 2;
+                    radarCtx.stroke();
+                }
             }
+        }
+
+        // Mission Waypoint Objective Star (Carjack or Safehouse)
+        let objectiveWorldPos: [number, number] | null = null;
+        if (campaignMission.stage === 'carjack') {
+            objectiveWorldPos = [vehicleController.position[0], vehicleController.position[2]];
+        } else if (campaignMission.stage === 'deliver') {
+            objectiveWorldPos = [-9.5, -12.0]; // Golden Dragon Teahouse
+        }
+
+        if (objectiveWorldPos) {
+            const objRelX = (objectiveWorldPos[0] - playerPos[0]) * scale;
+            const objRelZ = (objectiveWorldPos[1] - playerPos[2]) * scale;
+            const dist = Math.hypot(objRelX, objRelZ);
+            const clampedDist = Math.min(dist, radius - 8);
+            const angle = Math.atan2(objRelZ, objRelX);
+            const beaconX = cx + Math.cos(angle) * clampedDist;
+            const beaconZ = cy + Math.sin(angle) * clampedDist;
+
+            // Draw glowing golden mission beacon
+            radarCtx.beginPath();
+            radarCtx.arc(beaconX, beaconZ, 5, 0, Math.PI * 2);
+            radarCtx.fillStyle = '#facc15';
+            radarCtx.fill();
+            radarCtx.strokeStyle = '#ffffff';
+            radarCtx.lineWidth = 1.5;
+            radarCtx.stroke();
         }
 
         // Player orientation needle at center
@@ -971,8 +1164,15 @@ window.addEventListener('DOMContentLoaded', async () => {
     let lastLoopTime = performance.now();
     function loop() {
         const now = performance.now();
-        const deltaTimeSec = Math.min((now - lastLoopTime) / 1000.0, 0.1);
+        let rawDeltaTime = Math.min((now - lastLoopTime) / 1000.0, 0.1);
         lastLoopTime = now;
+
+        // Cinematic slow-motion counter timescale
+        if (slowMoTimer > 0) {
+            slowMoTimer -= rawDeltaTime;
+            rawDeltaTime *= 0.35;
+        }
+        const deltaTimeSec = rawDeltaTime;
 
         // 1. Advance Simulation & Kinematics (Milestone 6)
         const isDriving = vehicleController.isOccupied;
@@ -1027,23 +1227,50 @@ window.addEventListener('DOMContentLoaded', async () => {
 
             // Milestone 7B: Traffic & Crowd Simulation Update
             trafficSystem.update(deltaTimeSec, renderer.sceneGraph, activePos, isDriving ? vehicleController.position : undefined);
-            crowdSystem.update(deltaTimeSec, renderer.sceneGraph, activePos, characterController.isAttacking);
+            crowdSystem.update(deltaTimeSec, renderer.sceneGraph, activePos, isDriving, audioEngine);
 
             // Milestone 7C: Dynamic Rain & Weather Update
             weatherSystem.update(deltaTimeSec, activePos);
 
-            // 3. Advance Melee Combat System with Crowd Targets
-            combatSystem.update(deltaTimeSec);
-            let targetInfo = combatSystem.updateTargeting(activePos, activeHeading, [pedestrianAI]);
-            if (!targetInfo.hasTarget) {
-                const crowdTarget = crowdSystem.findClosestCombatTarget(activePos, combatSystem.targetReach);
-                if (crowdTarget) {
-                    targetInfo = {
-                        hasTarget: true,
-                        distance: Math.hypot(crowdTarget.position[0] - activePos[0], crowdTarget.position[2] - activePos[2]),
-                        targetHealth: crowdTarget.health,
-                        targetState: crowdTarget.state.toUpperCase()
-                    };
+            // 3. Advance Melee Combat System with Active Brawlers
+            combatSystem.update(deltaTimeSec, (regen) => {
+                playerHealth = Math.min(playerMaxHealth, playerHealth + regen);
+                meterHealthFill.style.width = `${(playerHealth / playerMaxHealth) * 100}%`;
+                meterHealthText.textContent = `${Math.round(playerHealth)}%`;
+            });
+
+            const targetInfo = combatSystem.updateTargeting(activePos, activeHeading, crowdSystem);
+
+            // Red-Flash Counter Cue
+            const counterAttacker = crowdSystem.getCounterableAttacker(activePos, 3.4);
+            if (counterAttacker && !isDriving) {
+                counterAlert.style.display = 'flex';
+            } else {
+                counterAlert.style.display = 'none';
+            }
+
+            // Face Meter Burst Banner
+            if (combatSystem.isFaceSurgeActive) {
+                faceBurstBanner.style.display = 'block';
+                faceBurstBanner.textContent = `🐲 FACE METER BURST ACTIVE (${Math.round(combatSystem.faceSurgeTimer)}s) • 2.2x DAMAGE • RAPID REGEN 🐲`;
+            } else {
+                faceBurstBanner.style.display = 'none';
+            }
+
+            // Mission Stage 3 Safehouse Delivery Check
+            if (campaignMission.stage === 'deliver' && isDriving) {
+                const distToTeahouse = Math.hypot(vehicleController.position[0] - (-9.5), vehicleController.position[2] - (-12.0));
+                missionObjective.textContent = `Evade Police pursuit & deliver vehicle to Golden Dragon Teahouse (${Math.round(distToTeahouse)}m away)`;
+                if (distToTeahouse <= 6.5) {
+                    campaignMission.stage = 'completed';
+                    updateMissionBanner();
+                    combatSystem.triadScore += 500;
+                    combatSystem.policeScore += 250;
+                    actionPrompt.style.display = 'block';
+                    actionPrompt.textContent = '★ SAFEHOUSE REACHED! MISSION ACCOMPLISHED! ★';
+                    actionPrompt.style.background = '#22c55e';
+                    setTimeout(() => actionPrompt.style.display = 'none', 6000);
+                    audioEngine.playTrack('hk_dialogue').catch(() => {});
                 }
             }
 
@@ -1051,25 +1278,31 @@ window.addEventListener('DOMContentLoaded', async () => {
             const nearbyTraffic = trafficSystem.findNearbyVehicle(activePos);
             if (isDriving) {
                 actionPrompt.style.display = 'block';
-                actionPrompt.textContent = '[E] EXIT SEDAN CHASSIS';
+                actionPrompt.textContent = '[F] EXIT SEDAN CHASSIS';
                 actionPrompt.style.background = 'rgba(217, 38, 56, 0.95)';
             } else if (vehicleController.canInteract(activePos)) {
                 actionPrompt.style.display = 'block';
-                actionPrompt.textContent = '[E] ENTER SEDAN CHASSIS';
+                actionPrompt.textContent = '[F] JACK SEDAN';
                 actionPrompt.style.background = 'rgba(0, 210, 255, 0.95)';
             } else if (nearbyTraffic) {
                 actionPrompt.style.display = 'block';
-                actionPrompt.textContent = `[E] HIJACK ${nearbyTraffic.type.name.split('(')[0].trim().toUpperCase()}`;
+                actionPrompt.textContent = `[F] HIJACK ${nearbyTraffic.type.name.split('(')[0].trim().toUpperCase()}`;
                 actionPrompt.style.background = 'rgba(239, 68, 68, 0.95)';
+            } else if (targetInfo.canCounter) {
+                actionPrompt.style.display = 'block';
+                actionPrompt.textContent = `⚡ [R-CLICK / E] COUNTER INCOMING STRIKE! ⚡`;
+                actionPrompt.style.background = '#ef4444';
             } else if (targetInfo.hasTarget && targetInfo.distance <= combatSystem.strikeReach) {
                 actionPrompt.style.display = 'block';
-                actionPrompt.textContent = `[L-CLICK] STRIKE TARGET (${targetInfo.targetHealth} HP)`;
+                actionPrompt.textContent = `[L-CLICK] STRIKE (${targetInfo.targetHealth} HP) • [Q] HEAVY KICK • [F] GRAPPLE`;
                 actionPrompt.style.background = 'rgba(234, 179, 8, 0.95)';
             } else {
                 actionPrompt.style.display = 'none';
             }
 
             // 5. Update Health, Face Meter & Scores
+            meterHealthFill.style.width = `${(playerHealth / playerMaxHealth) * 100}%`;
+            meterHealthText.textContent = `${Math.round(playerHealth)}%`;
             meterFaceFill.style.width = `${combatSystem.faceMeter}%`;
             meterFaceText.textContent = `${Math.round(combatSystem.faceMeter)}%`;
             meterTriad.textContent = `TRIAD: ${combatSystem.triadScore}`;
