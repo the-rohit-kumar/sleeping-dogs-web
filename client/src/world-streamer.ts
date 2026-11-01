@@ -377,6 +377,88 @@ export class WorldStreamer {
       };
       sceneGraph.addNode(lampE);
     });
+
+    // 5. Authentic Hong Kong Sidewalk Guardrails (Pedestrian safety barriers)
+    const guardrailMesh = this.generateGuardrailMesh(3.8);
+    const railZ = [-30, -20, 2, 14, 26];
+    railZ.forEach((z, idx) => {
+      const railW: SceneNode = {
+        id: `node-rail-w-${idx}`,
+        name: `North Point Guardrail W${idx + 1}`,
+        mesh: guardrailMesh,
+        position: [-5.45, 0.28, z],
+        rotation: [0, Math.PI / 2, 0],
+        scale: [1, 1, 1],
+        color: [0.28, 0.58, 0.38], // Classic Hong Kong transport green railing
+        visible: true,
+        transform: createTransformMatrix([-5.45, 0.28, z], [0, Math.PI / 2, 0], [1, 1, 1])
+      };
+      sceneGraph.addNode(railW);
+
+      const railE: SceneNode = {
+        id: `node-rail-e-${idx}`,
+        name: `North Point Guardrail E${idx + 1}`,
+        mesh: guardrailMesh,
+        position: [5.45, 0.28, z],
+        rotation: [0, -Math.PI / 2, 0],
+        scale: [1, 1, 1],
+        color: [0.28, 0.58, 0.38],
+        visible: true,
+        transform: createTransformMatrix([5.45, 0.28, z], [0, -Math.PI / 2, 0], [1, 1, 1])
+      };
+      sceneGraph.addNode(railE);
+    });
+
+    // 6. Night Market Stalls & Food Vendor Counters
+    const stallMesh = this.generateMarketStallMesh();
+    const stallConfigs = [
+      { x: -7.2, z: -6.0, rotY: Math.PI / 2, color: [0.95, 0.25, 0.15] as [number, number, number] }, // Red fabric awning
+      { x: -7.2, z:  6.0, rotY: Math.PI / 2, color: [0.15, 0.75, 0.45] as [number, number, number] }, // Green seafood stall
+      { x:  7.2, z:  0.0, rotY: -Math.PI / 2, color: [0.95, 0.75, 0.15] as [number, number, number] }, // Gold roast duck cart
+      { x:  7.2, z: 18.0, rotY: -Math.PI / 2, color: [0.25, 0.65, 0.95] as [number, number, number] }  // Blue fruit stall
+    ];
+    stallConfigs.forEach((cfg, idx) => {
+      const stallNode: SceneNode = {
+        id: `node-market-stall-${idx}`,
+        name: `Night Market Stall #${idx + 1}`,
+        mesh: stallMesh,
+        texture: this.buildingTexture,
+        position: [cfg.x, 0.28, cfg.z],
+        rotation: [0, cfg.rotY, 0],
+        scale: [1, 1, 1],
+        color: cfg.color,
+        visible: true,
+        transform: createTransformMatrix([cfg.x, 0.28, cfg.z], [0, cfg.rotY, 0], [1, 1, 1])
+      };
+      sceneGraph.addNode(stallNode);
+    });
+
+    // 7. Protruding Air Conditioner Condenser Units on Building Facades
+    const acMesh = this.generateACUnitMesh();
+    const acPlacements = [
+      { x: -8.6, y: 4.8, z: -15.0 },
+      { x: -8.6, y: 7.2, z: -10.0 },
+      { x: -8.6, y: 4.8, z:  12.0 },
+      { x: -8.6, y: 8.5, z:  28.0 },
+      { x:  8.6, y: 5.2, z:  -8.0 },
+      { x:  8.6, y: 7.8, z:   4.0 },
+      { x:  8.6, y: 4.5, z:  16.0 }
+    ];
+    acPlacements.forEach((p, idx) => {
+      const acNode: SceneNode = {
+        id: `node-ac-unit-${idx}`,
+        name: `Hong Kong AC Condenser Unit #${idx + 1}`,
+        mesh: acMesh,
+        texture: this.buildingTexture,
+        position: [p.x, p.y, p.z],
+        rotation: [0, p.x < 0 ? Math.PI / 2 : -Math.PI / 2, 0],
+        scale: [1, 1, 1],
+        color: [0.75, 0.75, 0.72],
+        visible: true,
+        transform: createTransformMatrix([p.x, p.y, p.z], [0, p.x < 0 ? Math.PI / 2 : -Math.PI / 2, 0], [1, 1, 1])
+      };
+      sceneGraph.addNode(acNode);
+    });
   }
 
   /**
@@ -533,6 +615,107 @@ export class WorldStreamer {
         size: [armL + 0.3, postH, 0.4]
       }
     };
+  }
+
+  /**
+   * Procedural Hong Kong Night Market Vendor Stall Mesh
+   */
+  private generateMarketStallMesh(): DecodedMesh {
+    const w = 2.4, d = 1.6, h = 2.3;
+    const hw = w / 2, hd = d / 2;
+    const positions = new Float32Array([
+      // Canopy (Slanted awning)
+      -hw, h, -hd,   hw, h, -hd,   hw, h - 0.35, hd,  -hw, h - 0.35, hd,
+      // Counter Table Top
+      -hw, 0.9, -hd,  hw, 0.9, -hd,  hw, 0.9, hd,  -hw, 0.9, hd,
+      // Front Skirt
+      -hw, 0.0, hd,   hw, 0.0, hd,   hw, 0.9, hd,  -hw, 0.9, hd,
+      // Left Support Leg
+      -hw, 0.0, hd,  -hw + 0.1, 0.0, hd,  -hw + 0.1, h - 0.35, hd,  -hw, h - 0.35, hd,
+      // Right Support Leg
+      hw - 0.1, 0.0, hd,  hw, 0.0, hd,  hw, h - 0.35, hd,  hw - 0.1, h - 0.35, hd
+    ]);
+
+    const normals = new Float32Array(positions.length);
+    for (let i = 0; i < normals.length; i += 3) {
+      normals[i + 1] = 1.0;
+    }
+    const uvs = new Float32Array((positions.length / 3) * 2);
+    for (let i = 0; i < uvs.length; i += 2) {
+      uvs[i] = (i % 4 < 2) ? 0 : 1;
+      uvs[i + 1] = (i % 2 === 0) ? 0 : 1;
+    }
+
+    const indices = new Uint16Array([
+      0, 1, 2,  0, 2, 3,
+      4, 5, 6,  4, 6, 7,
+      8, 9, 10, 8, 10, 11,
+      12, 13, 14, 12, 14, 15,
+      16, 17, 18, 16, 18, 19
+    ]);
+
+    return {
+      name: 'HongKong_MarketStall',
+      positions,
+      normals,
+      uvs,
+      indices,
+      vertexCount: positions.length / 3,
+      triangleCount: indices.length / 3,
+      bounds: {
+        min: [-hw, 0, -hd],
+        max: [hw, h, hd],
+        center: [0, h / 2, 0],
+        size: [w, h, d]
+      }
+    };
+  }
+
+  /**
+   * Procedural Hong Kong Sidewalk Guardrail Mesh
+   */
+  private generateGuardrailMesh(length = 3.6): DecodedMesh {
+    const h = 0.95;
+    const hl = length / 2;
+    const positions = new Float32Array([
+      // Top Rail
+      -hl, h - 0.05, 0,  hl, h - 0.05, 0,  hl, h, 0,  -hl, h, 0,
+      // Bottom Rail
+      -hl, 0.45, 0,  hl, 0.45, 0,  hl, 0.50, 0,  -hl, 0.50, 0,
+      // Left Post
+      -hl, 0, 0,  -hl + 0.06, 0, 0,  -hl + 0.06, h, 0,  -hl, h, 0,
+      // Center Post
+      -0.03, 0, 0,  0.03, 0, 0,  0.03, h, 0,  -0.03, h, 0,
+      // Right Post
+      hl - 0.06, 0, 0,  hl, 0, 0,  hl, h, 0,  hl - 0.06, h, 0
+    ]);
+    const normals = new Float32Array(positions.length);
+    for (let i = 0; i < normals.length; i += 3) normals[i + 2] = 1.0;
+    const uvs = new Float32Array((positions.length / 3) * 2);
+    const indices = new Uint16Array([
+      0, 1, 2,  0, 2, 3,
+      4, 5, 6,  4, 6, 7,
+      8, 9, 10, 8, 10, 11,
+      12, 13, 14, 12, 14, 15,
+      16, 17, 18, 16, 18, 19
+    ]);
+    return {
+      name: 'HongKong_Guardrail',
+      positions,
+      normals,
+      uvs,
+      indices,
+      vertexCount: positions.length / 3,
+      triangleCount: indices.length / 3,
+      bounds: { min: [-hl, 0, -0.05], max: [hl, h, 0.05], center: [0, h / 2, 0], size: [length, h, 0.1] }
+    };
+  }
+
+  /**
+   * Procedural Hong Kong Air Conditioner Condenser Box Mesh
+   */
+  private generateACUnitMesh(): DecodedMesh {
+    return this.generateBoxMesh(0.95, 0.75, 0.45);
   }
 
   /**
