@@ -841,3 +841,4 @@ export class StreetEconomySystem {
     setTimeout(() => toast.remove(), 2500);
   }
 }
+

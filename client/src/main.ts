@@ -54,6 +54,7 @@ import { SafehouseSystem, OUTFIT_CATALOG } from './safehouse-system';
 import { ActionHijackSystem } from './action-hijack-system';
 import { StreetEconomySystem, FOOD_MENU, CLOTHING_CATALOG } from './street-economy-system';
 import { CollectiblesSystem } from './collectibles-system';
+import { DojoMartialArtsSystem } from './dojo-martial-arts-system';
 
 window.addEventListener('DOMContentLoaded', async () => {
     const canvas = document.getElementById('viewport') as HTMLCanvasElement;
@@ -82,6 +83,8 @@ window.addEventListener('DOMContentLoaded', async () => {
     (window as any).streetEconomySystem = streetEconomySystem;
     const collectiblesSystem = new CollectiblesSystem();
     (window as any).collectiblesSystem = collectiblesSystem;
+    const dojoSystem = new DojoMartialArtsSystem();
+    (window as any).dojoSystem = dojoSystem;
     (window as any).getPlayerMaxHealth = () => playerMaxHealth;
     (window as any).setPlayerMaxHealth = (maxHp: number) => {
         playerMaxHealth = maxHp;
@@ -1199,7 +1202,16 @@ window.addEventListener('DOMContentLoaded', async () => {
                         openWorldActivities
                     );
                     if (!collectiblesHandled) {
-                        performCombatCounter();
+                        const dojoHandled = dojoSystem.handleInteraction(
+                            'e',
+                            audioEngine,
+                            combatSystem,
+                            crowdSystem,
+                            animPlayer
+                        );
+                        if (!dojoHandled) {
+                            performCombatCounter();
+                        }
                     }
                 }
             }
@@ -1218,7 +1230,12 @@ window.addEventListener('DOMContentLoaded', async () => {
                 renderer.sceneGraph!
             );
         } else if (e.code === 'KeyQ' || e.key.toLowerCase() === 'q') {
-            performHeavyKick();
+            const hasLegSweep = dojoSystem.moves.find(m => m.id === 'leg_sweep')?.unlocked;
+            if (hasLegSweep) {
+                dojoSystem.executeLegSweep(characterController.position, crowdSystem, audioEngine);
+            } else {
+                performHeavyKick();
+            }
         } else if (e.code === 'KeyC' || e.key.toLowerCase() === 'c') {
             const isCockpit = actionHijackSystem.toggleCockpitView(cameraController, vehicleController);
             if (isCockpit) {
@@ -1271,7 +1288,9 @@ window.addEventListener('DOMContentLoaded', async () => {
         } else if (e.code === 'Digit3' || e.key === '3') {
             applyWeatherPreset('typhoon_storm');
         } else if (e.code === 'Escape' || e.key === 'Escape') {
-            if (collectiblesSystem.isTumblerOpen) {
+            if (dojoSystem.isDojoModalOpen) {
+                dojoSystem.closeDojoModal();
+            } else if (collectiblesSystem.isTumblerOpen) {
                 collectiblesSystem.closeTumblerModal();
             } else if (streetEconomySystem.isFoodModalOpen || streetEconomySystem.isBoutiqueModalOpen) {
                 streetEconomySystem.closeModals();
@@ -2395,6 +2414,14 @@ window.addEventListener('DOMContentLoaded', async () => {
                 deltaTimeSec,
                 activePos,
                 isDriving
+            );
+
+            // Shaolin Jade Statues & Master Kwok Dojo Martial Arts Update
+            dojoSystem.update(
+                deltaTimeSec,
+                activePos,
+                isDriving,
+                combatSystem
             );
 
             // Canonical Sleeping Dogs Story Mission & Cutscene Pipeline Update

@@ -597,3 +597,4 @@ export class CollectiblesSystem {
     setTimeout(() => toast.remove(), 2500);
   }
 }
+

@@ -695,3 +695,12 @@ ode-wei-shoe-l/r).
   - [x] Vault latch opening chime (`ui_chime_granted`) and massive cash rewards ($+8,000 to $+15,000 HKD)
   - [x] Option 4 edge cases audited (duplicate prayer denial, max HP bounds, abort [ESC] cleanup, pin alignment accuracy, re-looting prevention)
   - [x] Automated browser verification suite (`tools/verify_health_shrines_and_lockboxes.js`, 11/11 passed, 0 page errors, 0 failed requests, 5 visual proof screenshots)
+
+- [x] **Option 1: Shaolin Jade Statues & Master Kwok Dojo Martial Arts Combos**
+  - [x] 11 Authentic Shaolin Jade Statues placed across key Hong Kong districts with glowing jade aura and proximity detection
+  - [x] Master Kwok Temple Courtyard Altar ([-20.0, 0.0, 10.0]) and ancient kung fu skill tree modal
+  - [x] Four unlockable martial arts techniques: Shaolin Leg Sweep, Tiger Arm Break & Disarm, Dim Mak Chi Strike, Jumping Flying Kick
+  - [x] In-Combat 360-Degree AoE Leg Sweep Knockdown ([Q]) sweeping 3.2m radius and staggering all adjacent brawlers for 3.0s
+  - [x] Signature Aquarium Fish Tank Environmental Glass Smash Takedown ([F]) at Club Bam Bam with shattering glass audio, instant defeat, +500 Triad XP, and +50% Face Surge
+  - [x] Option 1 edge cases audited (duplicate statue rejection, insufficient statues check, empty range sweep stability, out-of-range aquarium takedown denial, rapid modal spam resilience)
+  - [x] Automated browser verification suite (	ools/verify_dojo_and_jade_statues.js, 12/12 passed, 0 page errors, 0 failed requests, 6 visual proof screenshots)

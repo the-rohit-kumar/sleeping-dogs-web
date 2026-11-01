@@ -164,3 +164,10 @@ With the 18 main campaign story missions fully functional and verified, the rema
 - **Health Shrines:** `client/src/collectibles-system.ts` implementing incense prayers, ceremonial blessings, and permanent Max HP upgrades (100 -> 110 -> 120 HP).
 - **Lockbox Tumblers:** Interactive 3-dial mechanical brass lockpicking minigame with notch ticks, proximity color glow, pin latches, and cash payouts.
 - **Automated Verification:** `tools/verify_health_shrines_and_lockboxes.js` passed all 11 steps with 0 errors.
+
+### Option 1 (Expansion): Shaolin Jade Statues & Master Kwok Dojo Martial Arts (100% Operational)
+- **11 Hidden Shaolin Jade Statues:** Scattered across authentic Hong Kong locations (Club Bam Bam, Golden Koi, Temple, etc.) with glowing jade aura and inventory tracking.
+- **Master Kwok Dojo Altar & Ancient Skill Tree:** Interactive modal (#dojo-training-modal) at [-20.0, 0.0, 10.0] unlocking advanced martial arts combos: Shaolin Leg Sweep, Tiger Arm Break & Disarm, Dim Mak Chi Strike, and Jumping Flying Kick.
+- **In-Combat 360-Degree Leg Sweep:** AoE knockdown attack ([Q]) sweeping a 3.2m radius around Wei Shen, hitting multiple hostile brawlers with 3s knockdown stagger.
+- **Aquarium Environmental Glass Smash:** Signature Club Bam Bam fish tank takedown ([F]) hurling enemies through coral tank glass with shatter audio, instant defeat, +500 Triad XP, and +50% Face Surge.
+- **Automated Verification:** tools/verify_dojo_and_jade_statues.js passed all 12 steps and 5/5 edge cases with 0 errors.
