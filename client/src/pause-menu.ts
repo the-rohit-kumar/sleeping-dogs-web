@@ -23,6 +23,7 @@ export interface PauseMenuCallbacks {
   onQuitToTitle: () => void;
   onGraphicsChange: (key: keyof GameSettingsState, val: any) => void;
   onAudioChange: (bus: 'master' | 'sfx' | 'music' | 'dialogue', val: number) => void;
+  onSelectMission?: (missionKey: string) => void;
 }
 
 export class PauseMenuController {
@@ -107,6 +108,7 @@ export class PauseMenuController {
           <!-- Left Sidebar Menu Tabs -->
           <div class="pause-sidebar">
             <button class="pause-tab-btn ${this.activeTab === 'resume' ? 'active' : ''}" data-tab="resume">RESUME</button>
+            <button class="pause-tab-btn ${this.activeTab === 'missions' ? 'active' : ''}" data-tab="missions">CHAPTER &amp; MISSIONS</button>
             <button class="pause-tab-btn ${this.activeTab === 'save' ? 'active' : ''}" data-tab="save">SAVE GAME</button>
             <button class="pause-tab-btn ${this.activeTab === 'load' ? 'active' : ''}" data-tab="load">LOAD GAME</button>
             <button class="pause-tab-btn ${this.activeTab === 'graphics' ? 'active' : ''}" data-tab="graphics">GRAPHICS SETTINGS</button>
@@ -139,6 +141,255 @@ export class PauseMenuController {
             <p class="pane-desc">Return immediately to the undercover streets of Hong Kong.</p>
             <div class="pane-actions">
               <button class="btn-action-primary" id="btn-pause-resume">CONTINUE PLAYING [ESC]</button>
+            </div>
+          </div>
+        `;
+
+            case 'missions':
+        return `
+          <div class="pause-pane">
+            <h2 class="pane-title">CANONICAL CAMPAIGN &amp; MISSION SELECT</h2>
+            <p class="pane-desc">Jump directly into any canonical story mission or open world activity across Hong Kong.</p>
+            <div class="slots-list" style="display: flex; flex-direction: column; gap: 8px; max-height: 440px; overflow-y: auto; padding-right: 8px;">
+              <!-- Prologue -->
+              <div class="slot-card filled" style="border-left: 4px solid #38bdf8;">
+                <div class="slot-info">
+                  <div class="slot-title">PROLOGUE: <span style="color: #fff;">Aberdeen Docks Deal &amp; Foot Chase</span></div>
+                  <div class="slot-meta">Location: Aberdeen Fish Docks • Stage: prologue_cinematic</div>
+                  <div class="slot-sub">Meet Naz Singh &amp; Ming. Evade HKPD tactical blockade and survive dead-end alley brawl.</div>
+                </div>
+                <div class="slot-actions">
+                  <button class="btn-slot-load btn-jump-mission" data-mission="prologue_cinematic">PLAY ▶</button>
+                </div>
+              </div>
+
+              <!-- Chapter 1 Mission 1 -->
+              <div class="slot-card filled" style="border-left: 4px solid #38bdf8;">
+                <div class="slot-info">
+                  <div class="slot-title">CHAPTER 1: <span style="color: #fff;">Going Under — Interrogation &amp; Holding Cells</span></div>
+                  <div class="slot-meta">Location: Central Police Station • Stage: ch1_interrogation</div>
+                  <div class="slot-sub">Superintendent Thomas Pendrew briefing. Protect childhood friend Jackie Ma from 18K inmates.</div>
+                </div>
+                <div class="slot-actions">
+                  <button class="btn-slot-load btn-jump-mission" data-mission="ch1_interrogation">PLAY ▶</button>
+                </div>
+              </div>
+
+              <!-- Chapter 1 Mission 2 -->
+              <div class="slot-card filled" style="border-left: 4px solid #38bdf8;">
+                <div class="slot-info">
+                  <div class="slot-title">CHAPTER 1: <span style="color: #fff;">Vendor Extortion (Golden Koi &amp; Night Market)</span></div>
+                  <div class="slot-meta">Location: Golden Koi Restaurant • Stage: ch1_extortion</div>
+                  <div class="slot-sub">Winston Chu shakedown orders. Collect watch &amp; drink vendor protection tribute and crush Dogeyes' ambush.</div>
+                </div>
+                <div class="slot-actions">
+                  <button class="btn-slot-load btn-jump-mission" data-mission="ch1_extortion">PLAY ▶</button>
+                </div>
+              </div>
+
+              <!-- Chapter 1 Mission 3 -->
+              <div class="slot-card filled" style="border-left: 4px solid #38bdf8;">
+                <div class="slot-info">
+                  <div class="slot-title">CHAPTER 1: <span style="color: #fff;">Night Market Chase (Ming Rooftop Knife Brawl)</span></div>
+                  <div class="slot-meta">Location: North Point Night Market • Stage: ch1_ming_chase</div>
+                  <div class="slot-sub">Pursue Ming across market stalls and rooftop parkour ledges. Disarm knife and subdue him.</div>
+                </div>
+                <div class="slot-actions">
+                  <button class="btn-slot-load btn-jump-mission" data-mission="ch1_ming_chase">PLAY ▶</button>
+                </div>
+              </div>
+
+              <!-- Chapter 1 Mission 4 -->
+              <div class="slot-card filled" style="border-left: 4px solid #38bdf8;">
+                <div class="slot-info">
+                  <div class="slot-title">CHAPTER 1: <span style="color: #fff;">Amanda's Tour &amp; Master Kwok Dojo</span></div>
+                  <div class="slot-meta">Location: Shaolin Temple Courtyard • Stage: ch1_amanda</div>
+                  <div class="slot-sub">Escort Amanda to Temple Courtyard. Train under Sifu Master Kwok with Shaolin martial arts combos.</div>
+                </div>
+                <div class="slot-actions">
+                  <button class="btn-slot-load btn-jump-mission" data-mission="ch1_amanda">PLAY ▶</button>
+                </div>
+              </div>
+
+              <!-- Chapter 1 Mission 5 -->
+              <div class="slot-card filled" style="border-left: 4px solid #38bdf8;">
+                <div class="slot-info">
+                  <div class="slot-title">CHAPTER 1: <span style="color: #fff;">Club Bam Bam (VIP Lounge &amp; Restroom Climax)</span></div>
+                  <div class="slot-meta">Location: Club Bam Bam • Stage: ch1_bambam</div>
+                  <div class="slot-sub">Infiltrate the neon nightclub. Brawl bouncers on the dancefloor, fight in VIP lounge, and finish in the restroom.</div>
+                </div>
+                <div class="slot-actions">
+                  <button class="btn-slot-load btn-jump-mission" data-mission="ch1_bambam">PLAY ▶</button>
+                </div>
+              </div>
+
+              <!-- Chapter 1 Mission 6 -->
+              <div class="slot-card filled" style="border-left: 4px solid #38bdf8;">
+                <div class="slot-info">
+                  <div class="slot-title">CHAPTER 1: <span style="color: #fff;">Popstar Drug Bust (Camera Hacking &amp; Ambush)</span></div>
+                  <div class="slot-meta">Location: North Point Waterfront • Stage: ch1_popstar</div>
+                  <div class="slot-sub">Hack HKPD junction security terminal, monitor surveillance feed, and intercept Popstar's drug ring.</div>
+                </div>
+                <div class="slot-actions">
+                  <button class="btn-slot-load btn-jump-mission" data-mission="ch1_popstar">PLAY ▶</button>
+                </div>
+              </div>
+
+              <!-- Chapter 1 Mission 7 -->
+              <div class="slot-card filled" style="border-left: 4px solid #38bdf8;">
+                <div class="slot-info">
+                  <div class="slot-title">CHAPTER 1: <span style="color: #fff;">Listening In (Wiretap Frequency Tuning)</span></div>
+                  <div class="slot-meta">Location: Golden Koi Rooftop • Stage: ch1_listening_in</div>
+                  <div class="slot-sub">Scale bamboo scaffolding, tune RF audio frequency analyzer, and plant covert listening bug in office.</div>
+                </div>
+                <div class="slot-actions">
+                  <button class="btn-slot-load btn-jump-mission" data-mission="ch1_listening_in">PLAY ▶</button>
+                </div>
+              </div>
+
+              <!-- Chapter 1 Mission 8 -->
+              <div class="slot-card filled" style="border-left: 4px solid #38bdf8;">
+                <div class="slot-info">
+                  <div class="slot-title">CHAPTER 1: <span style="color: #fff;">Chain of Command (Inspector Teng Rendezvous)</span></div>
+                  <div class="slot-meta">Location: Victoria Peak Overlook • Stage: ch1_chain_command</div>
+                  <div class="slot-sub">Meet HKPD Inspector Teng. Undercover boundary briefing and intel debriefing.</div>
+                </div>
+                <div class="slot-actions">
+                  <button class="btn-slot-load btn-jump-mission" data-mission="ch1_chain_command">PLAY ▶</button>
+                </div>
+              </div>
+
+              <!-- Chapter 1 Mission 9 -->
+              <div class="slot-card filled" style="border-left: 4px solid #38bdf8;">
+                <div class="slot-info">
+                  <div class="slot-title">CHAPTER 1: <span style="color: #fff;">Payback (Warehouse Firefight &amp; Vehicular Chase)</span></div>
+                  <div class="slot-meta">Location: Aberdeen Industrial Warehouse • Stage: ch1_payback</div>
+                  <div class="slot-sub">Breach 18K warehouse enforcers with 9mm sidearm gunplay and execute high-speed highway pursuit.</div>
+                </div>
+                <div class="slot-actions">
+                  <button class="btn-slot-load btn-jump-mission" data-mission="ch1_payback">PLAY ▶</button>
+                </div>
+              </div>
+
+              <!-- Chapter 1 Mission 10 -->
+              <div class="slot-card filled" style="border-left: 4px solid #38bdf8;">
+                <div class="slot-info">
+                  <div class="slot-title">CHAPTER 1: <span style="color: #fff;">Uncle Po (Dragon Head Triad Ceremony)</span></div>
+                  <div class="slot-meta">Location: Floating Dragon Palace • Stage: ch1_uncle_po</div>
+                  <div class="slot-sub">Summoned before Sun On Yee Dragon Head Uncle Po. Triad initiation ceremony.</div>
+                </div>
+                <div class="slot-actions">
+                  <button class="btn-slot-load btn-jump-mission" data-mission="ch1_uncle_po">PLAY ▶</button>
+                </div>
+              </div>
+
+              <!-- Chapter 2 Mission 11 -->
+              <div class="slot-card filled" style="border-left: 4px solid #f43f5e;">
+                <div class="slot-info">
+                  <div class="slot-title">CHAPTER 2: <span style="color: #fff;">The Wedding (Banquet Ambush &amp; Winston's Tragedy)</span></div>
+                  <div class="slot-meta">Location: Central Grand Banquet Hall • Stage: ch2_wedding</div>
+                  <div class="slot-sub">Winston &amp; Peggy banquet celebration interrupted by 18K hitmen massacre. Defend Uncle Po.</div>
+                </div>
+                <div class="slot-actions">
+                  <button class="btn-slot-load btn-jump-mission" data-mission="ch2_wedding">PLAY ▶</button>
+                </div>
+              </div>
+
+              <!-- Chapter 2 Mission 12 -->
+              <div class="slot-card filled" style="border-left: 4px solid #f43f5e;">
+                <div class="slot-info">
+                  <div class="slot-title">CHAPTER 2: <span style="color: #fff;">Mrs. Chu's Revenge (Johnny Ratface Meat Shakedown)</span></div>
+                  <div class="slot-meta">Location: Golden Koi Kitchen • Stage: ch2_mrs_chu</div>
+                  <div class="slot-sub">Hunt Johnny Ratface through dark alleys, drag him back to Mrs. Chu's cleaver kitchen.</div>
+                </div>
+                <div class="slot-actions">
+                  <button class="btn-slot-load btn-jump-mission" data-mission="ch2_mrs_chu">PLAY ▶</button>
+                </div>
+              </div>
+
+              <!-- Chapter 2 Mission 13 -->
+              <div class="slot-card filled" style="border-left: 4px solid #f43f5e;">
+                <div class="slot-info">
+                  <div class="slot-title">CHAPTER 2: <span style="color: #fff;">Meet the New Boss (Central Triad Council Summit)</span></div>
+                  <div class="slot-meta">Location: Central Skyline Boardroom • Stage: ch2_new_boss</div>
+                  <div class="slot-sub">High-stakes summit with Big Smile Lee, Broken Nose Jiang, Two Chin Tsao, and Auntie Jiang.</div>
+                </div>
+                <div class="slot-actions">
+                  <button class="btn-slot-load btn-jump-mission" data-mission="ch2_new_boss">PLAY ▶</button>
+                </div>
+              </div>
+
+              <!-- Chapter 2 Mission 14 -->
+              <div class="slot-card filled" style="border-left: 4px solid #f43f5e;">
+                <div class="slot-info">
+                  <div class="slot-title">CHAPTER 2: <span style="color: #fff;">The Election (Dogeyes Yacht Showdown)</span></div>
+                  <div class="slot-meta">Location: Victoria Harbour Yacht Basin • Stage: ch2_election</div>
+                  <div class="slot-sub">Intercept Dogeyes on private luxury yacht. Climax brawl against Dogeyes &amp; heavily armed bodyguards.</div>
+                </div>
+                <div class="slot-actions">
+                  <button class="btn-slot-load btn-jump-mission" data-mission="ch2_election">PLAY ▶</button>
+                </div>
+              </div>
+
+              <!-- Chapter 3 Mission 15 -->
+              <div class="slot-card filled" style="border-left: 4px solid #eab308;">
+                <div class="slot-info">
+                  <div class="slot-title">CHAPTER 3: <span style="color: #fff;">Civil War (Hospital ICU Defense)</span></div>
+                  <div class="slot-meta">Location: Queen Victoria Memorial Hospital • Stage: ch3_hospital</div>
+                  <div class="slot-sub">Protect critically wounded Uncle Po from Big Smile Lee's assassination hit squad in hospital ICU ward.</div>
+                </div>
+                <div class="slot-actions">
+                  <button class="btn-slot-load btn-jump-mission" data-mission="ch3_hospital">PLAY ▶</button>
+                </div>
+              </div>
+
+              <!-- Chapter 3 Mission 16 -->
+              <div class="slot-card filled" style="border-left: 4px solid #eab308;">
+                <div class="slot-info">
+                  <div class="slot-title">CHAPTER 3: <span style="color: #fff;">The Funeral (Cemetery Ambush &amp; Tommy Lau)</span></div>
+                  <div class="slot-meta">Location: Happy Valley Cemetery • Stage: ch3_funeral</div>
+                  <div class="slot-sub">Uncle Po's state funeral ambushed by 18K hitmen. Guard Auntie Jiang and eliminate Tommy Lau.</div>
+                </div>
+                <div class="slot-actions">
+                  <button class="btn-slot-load btn-jump-mission" data-mission="ch3_funeral">PLAY ▶</button>
+                </div>
+              </div>
+
+              <!-- Chapter 3 Mission 17 -->
+              <div class="slot-card filled" style="border-left: 4px solid #eab308;">
+                <div class="slot-info">
+                  <div class="slot-title">CHAPTER 3: <span style="color: #fff;">Kidnapping Jackie Ma (Slaughterhouse Infiltration)</span></div>
+                  <div class="slot-meta">Location: Kennedy Town Slaughterhouse • Stage: ch3_slaughterhouse</div>
+                  <div class="slot-sub">Rescue childhood friend Jackie Ma from Smile Lee's meat-hook slaughterhouse. Tragic discovery.</div>
+                </div>
+                <div class="slot-actions">
+                  <button class="btn-slot-load btn-jump-mission" data-mission="ch3_slaughterhouse">PLAY ▶</button>
+                </div>
+              </div>
+
+              <!-- Chapter 3 Mission 18 -->
+              <div class="slot-card filled" style="border-left: 4px solid #eab308;">
+                <div class="slot-info">
+                  <div class="slot-title">CHAPTER 3: <span style="color: #fff;">Grand Finale (Big Smile Lee Container Crane Climax)</span></div>
+                  <div class="slot-meta">Location: Aberdeen Container Terminal • Stage: ch3_grand_finale</div>
+                  <div class="slot-sub">Storm Big Smile Lee's heavily fortified compound. Climactic boss showdown on overhead gantry crane.</div>
+                </div>
+                <div class="slot-actions">
+                  <button class="btn-slot-load btn-jump-mission" data-mission="ch3_grand_finale">PLAY ▶</button>
+                </div>
+              </div>
+
+              <!-- Free Roam -->
+              <div class="slot-card filled" style="border-left: 4px solid #22c55e;">
+                <div class="slot-info">
+                  <div class="slot-title">FREE ROAM: <span style="color: #fff;">Hong Kong Open World &amp; Activities</span></div>
+                  <div class="slot-meta">Location: North Point Safehouse • Stage: free_roam</div>
+                  <div class="slot-sub">Explore full sandbox: Martial Arts Dojos, Cockfight Gambling, K-Bar Karaoke, Police Pursuits &amp; DLC!</div>
+                </div>
+                <div class="slot-actions">
+                  <button class="btn-slot-load btn-jump-mission" data-mission="free_roam">ROAM ▶</button>
+                </div>
+              </div>
             </div>
           </div>
         `;
@@ -375,6 +626,18 @@ export class PauseMenuController {
         this.activeTab = tab;
         this.renderMenu();
         this.playAudioCue('ui_click_confirm');
+      });
+    });
+
+    // Mission Select buttons
+    this.overlay.querySelectorAll('.btn-jump-mission').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const mission = (btn as HTMLElement).dataset.mission;
+        if (mission && this.callbacks.onSelectMission) {
+          this.playAudioCue('ui_click_confirm');
+          this.close();
+          this.callbacks.onSelectMission(mission);
+        }
       });
     });
 

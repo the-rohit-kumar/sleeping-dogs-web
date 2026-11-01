@@ -729,3 +729,4 @@ export class NightmareNorthPointSystem {
     setTimeout(() => toast.remove(), 4000);
   }
 }
+

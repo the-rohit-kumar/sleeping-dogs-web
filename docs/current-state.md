@@ -195,3 +195,18 @@ With the 18 main campaign story missions fully functional and verified, the rema
 - **5 Cursed Spirit Cat Shrines:** Trapped golden cats in spectral cages across North Point; cleansing awards +1,000 Face XP and grants 60s "Taoist Chi Surge" (100% critical strike chance).
 - **"Smiley Cat's Revenge" Climax Campaign Objective:** Slaying minions and banishing Boss Smiley Cat completes the DLC objective with celebratory fanfare and +2,500 Face XP.
 - **Automated Verification:** `tools/verify_nightmare_campaign.js` passed all 10 steps and 5/5 edge cases with 0 errors.
+
+### Complete Browser Playability & Mission 1 Playable Campaign Loop (100% Operational)
+- **Title Screen "NEW GAME" Launch:** Clicking `[▶ NEW GAME]` on the title screen immediately launches the canonical Sleeping Dogs campaign at Aberdeen Fish Docks (`[26.0, 0.0, 32.5]`) in third-person follow camera with zero developer setup required.
+- **End-to-End Mission 1 Pipeline:**
+  1. *Prologue Deal Cinematic:* Naz Singh, Wei Shen, Ming, and Inspector Raymond Mak with authentic subtitles and letterbox bars.
+  2. *Aberdeen Market Foot Chase:* Sprinting and vaulting down the dock corridor away from the tactical blockade.
+  3. *Dead-End Alley Brawl:* Cornered fight defeating 3 corrupt dock brawlers with strikes, counters, and environmental takedowns.
+  4. *Raymond Mak Arrest Cutscene:* Handcuffs and Central Station booking.
+  5. *Interrogation Room Briefing:* Superintendent Thomas Pendrew orders Wei Shen undercover.
+  6. *Holding Cells Brawl with Jackie Ma:* Defending childhood friend Jackie Ma against 3 rival inmate brawlers.
+  7. *Bailout Cinematic:* Escorting Jackie Ma to Golden Koi restaurant.
+  8. *Chapter 1 Mission 2 Transition:* Winston Chu shakedown orders and active transition into Night Market Vendor Extortion.
+- **Pause Menu "CHAPTER & MISSIONS" Selector:** Interactive menu tab in the pause menu allowing players to instantly launch any of the 19 canonical missions or free roam.
+- **Dialogue Controls:** Responsive dialogue advance on `[Space]`, `[Enter]`, `[KeyE]`, clicking `#cinematic-skip`, or clicking anywhere on screen.
+- **Automated Verification:** `tools/verify_mission_1_playable.js` passed all 15 steps and 5/5 edge cases with 0 errors and 11 high-resolution proof screenshots.

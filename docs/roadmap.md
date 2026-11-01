@@ -739,3 +739,10 @@ ode-wei-shoe-l/r).
   - [x] Climax Boss "Smiley Cat" (300 HP spectral ghost); banishing boss completes "Smiley Cat's Revenge" campaign objective
   - [x] Option 4 edge cases audited (punch immunity verification, true sword banishment, shrine idempotency, clean DLC toggle on/off, rapid weapon switch stability)
   - [x] Automated browser verification suite (`tools/verify_nightmare_campaign.js`, 10/10 passed, 0 page errors, 0 failed requests, 7 visual proof screenshots)
+
+- [x] **Complete Browser Playability & Mission 1 Playable Campaign Loop**
+  - [x] Direct Title Screen "NEW GAME" (`#btn-start-game`) button triggering canonical Sleeping Dogs campaign at Aberdeen Fish Docks (`[26.0, 0.0, 32.5]`)
+  - [x] Complete Mission 1 Loop: Prologue Deal Cinematic -> Aberdeen Market Foot Chase -> Dead-End Alley Brawl (3 brawlers) -> Raymond Mak Arrest Cutscene -> Superintendent Pendrew Central Interrogation -> Holding Cells Brawl with Jackie Ma -> Bailout Cinematic -> Chapter 1 Mission 2 Transition (Golden Koi Vendor Extortion)
+  - [x] Dedicated Pause Menu "CHAPTER & MISSIONS" selector allowing instant launch of any of the 19 canonical missions or free roam
+  - [x] Universal dialogue skip/advance on Space, Enter, KeyE, `#cinematic-skip` click, or screen click
+  - [x] Automated browser verification suite (`tools/verify_mission_1_playable.js`, 15/15 passed, 0 page errors, 0 failed requests, 11 visual proof screenshots)

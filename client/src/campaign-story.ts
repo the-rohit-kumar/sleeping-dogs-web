@@ -154,10 +154,36 @@ export class CampaignStoryEngine {
     this.missionObjective = document.getElementById('mission-objective');
     this.actionPrompt = document.getElementById('action-prompt');
 
-    // Register Space / Enter to advance/skip cutscene lines
+    // Register Space / Enter / KeyE to advance/skip cutscene lines
     window.addEventListener('keydown', (e) => {
-      if ((e.code === 'Space' || e.code === 'KeyE') && this.isCutscene) {
+      if ((e.code === 'Space' || e.code === 'KeyE' || e.code === 'Enter') && this.isCutscene) {
         this.advanceDialogueLine();
+      }
+    });
+
+    if (this.cinematicSkip) {
+      this.cinematicSkip.style.pointerEvents = 'auto';
+      this.cinematicSkip.style.cursor = 'pointer';
+      this.cinematicSkip.addEventListener('click', (e) => {
+        e.stopPropagation();
+        if (this.isCutscene) this.advanceDialogueLine();
+      });
+    }
+
+    if (this.cinematicOverlay) {
+      this.cinematicOverlay.style.pointerEvents = 'auto';
+      this.cinematicOverlay.style.cursor = 'pointer';
+      this.cinematicOverlay.addEventListener('click', () => {
+        if (this.isCutscene) this.advanceDialogueLine();
+      });
+    }
+
+    window.addEventListener('click', (e) => {
+      if (this.isCutscene) {
+        const target = e.target as HTMLElement;
+        if (target && !target.closest('.inspector-drawer') && !target.closest('.pause-menu-overlay') && !target.closest('.start-overlay')) {
+          this.advanceDialogueLine();
+        }
       }
     });
   }
@@ -184,6 +210,12 @@ export class CampaignStoryEngine {
     audioEngine: AudioEngine
   ): void {
     this.stage = 'prologue_cinematic';
+    const cc = (window as any).characterController;
+    if (cc) {
+      cc.position = [26.0, 0.0, 32.5];
+      cc.velocity = [0, 0, 0];
+    }
+    cameraController.targetPos = [26.0, 0.0, 32.5];
     crowdSystem.spawnPrologueDocksNPCs(sceneGraph);
 
     const script: DialogueLine[] = [
@@ -337,6 +369,12 @@ export class CampaignStoryEngine {
     audioEngine: AudioEngine
   ): void {
     this.stage = 'ch1_interrogation_cinematic';
+    const cc = (window as any).characterController;
+    if (cc) {
+      cc.position = [-2.2, 0.0, 1.2];
+      cc.velocity = [0, 0, 0];
+    }
+    cameraController.targetPos = [-2.2, 0.0, 1.2];
     crowdSystem.spawnHoldingCellsNPCs(sceneGraph);
 
     const script: DialogueLine[] = [
@@ -389,6 +427,12 @@ export class CampaignStoryEngine {
     this.stage = 'ch1_holding_cells_brawl';
     this.thugsDefeated = 0;
     this.thugsTotal = 3;
+    const cc = (window as any).characterController;
+    if (cc) {
+      cc.position = [-2.2, 0.0, 1.2];
+      cc.velocity = [0, 0, 0];
+    }
+    cameraController.targetPos = [-2.2, 0.0, 1.2];
     this.endCutscene(cameraController);
 
     audioEngine.playTrack('jackie_reunion').catch(() => {});
@@ -463,6 +507,12 @@ export class CampaignStoryEngine {
     audioEngine: AudioEngine
   ): void {
     this.stage = 'ch1_extortion_golden_koi_cinematic';
+    const cc = (window as any).characterController;
+    if (cc) {
+      cc.position = [-2.2, 0.0, 22.0];
+      cc.velocity = [0, 0, 0];
+    }
+    cameraController.targetPos = [-2.2, 0.0, 22.0];
     crowdSystem.spawnVendorExtortionCast(sceneGraph);
 
     const script: DialogueLine[] = [
@@ -3117,7 +3167,7 @@ export class CampaignStoryEngine {
     }
   }
 
-  private updateHUD(title: string, objective: string): void {
+  public updateHUD(title: string, objective: string): void {
     if (this.missionTitle) this.missionTitle.textContent = title;
     if (this.missionObjective) this.missionObjective.textContent = objective;
   }

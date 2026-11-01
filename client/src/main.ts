@@ -280,10 +280,20 @@ window.addEventListener('DOMContentLoaded', async () => {
             console.log('Ambience playback on user click:', err);
         }
         cameraController.isDriving = false;
-            actionHijackSystem.isCockpitActive = false;
-            cameraController.isCockpit = false;
+        actionHijackSystem.isCockpitActive = false;
+        cameraController.isCockpit = false;
         updateCameraModeUI('follow');
-        performSave('autosave', 'Prologue: Night Market Ambush');
+
+        // Position Wei Shen at Aberdeen Fish Docks for canonical Prologue
+        characterController.position = [26.0, 0.0, 32.5];
+        characterController.velocity = [0, 0, 0];
+        cameraController.targetPos = [...characterController.position];
+
+        const sg = renderer.sceneGraph || activeSceneGraph;
+        if (sg) {
+            campaignStory.startCampaign(sg, crowdSystem, cameraController, audioEngine);
+        }
+        performSave('autosave', 'Prologue: Aberdeen Docks Deal');
     });
 
     (window as any).startGame = () => {
@@ -463,10 +473,125 @@ window.addEventListener('DOMContentLoaded', async () => {
         saveManager.triggerAutoSaveIndicator();
     }
 
+    function jumpToMission(missionKey: string) {
+        const sg = renderer.sceneGraph || activeSceneGraph;
+        if (!sg) return;
+        cameraController.isDriving = false;
+        actionHijackSystem.isCockpitActive = false;
+        cameraController.isCockpit = false;
+        updateCameraModeUI('follow');
+
+        switch (missionKey) {
+            case 'prologue_cinematic':
+                characterController.position = [26.0, 0.0, 32.5];
+                characterController.velocity = [0, 0, 0];
+                cameraController.targetPos = [...characterController.position];
+                campaignStory.startCampaign(sg, crowdSystem, cameraController, audioEngine);
+                break;
+            case 'prologue_chase':
+                characterController.position = [26.0, 0.0, 32.5];
+                campaignStory.startPrologueChase(cameraController, audioEngine);
+                break;
+            case 'prologue_alley_fight':
+                characterController.position = [26.0, 0.0, 36.5];
+                campaignStory.startPrologueAlleyFight(audioEngine);
+                break;
+            case 'ch1_interrogation':
+                characterController.position = [-2.2, 0.0, 1.2];
+                campaignStory.startInterrogationCinematic(sg, crowdSystem, cameraController, audioEngine);
+                break;
+            case 'ch1_holding_cells':
+                characterController.position = [-2.2, 0.0, 1.2];
+                campaignStory.startHoldingCellsBrawl(cameraController, audioEngine);
+                break;
+            case 'ch1_extortion':
+                characterController.position = [-2.2, 0.0, 22.0];
+                campaignStory.startVendorExtortionGoldenKoi(sg, crowdSystem, cameraController, audioEngine);
+                break;
+            case 'ch1_ming_chase':
+                characterController.position = [4.5, 0.0, -8.0];
+                campaignStory.startNightMarketChaseFindMing(sg, crowdSystem, cameraController, audioEngine);
+                break;
+            case 'ch1_amanda':
+                characterController.position = [-18.0, 0.0, 32.0];
+                campaignStory.startAmandaTour(sg, crowdSystem, cameraController, audioEngine);
+                break;
+            case 'ch1_bambam':
+                characterController.position = [12.0, 0.0, -35.0];
+                campaignStory.startMission5ClubBamBam(sg, crowdSystem, cameraController, audioEngine);
+                break;
+            case 'ch1_popstar':
+                characterController.position = [24.0, 0.0, -48.0];
+                campaignStory.startMission6PopstarDrugBust(sg, crowdSystem, cameraController, audioEngine);
+                break;
+            case 'ch1_listening_in':
+                characterController.position = [-2.2, 0.0, 24.0];
+                campaignStory.startMission7ListeningIn(sg, crowdSystem, cameraController, audioEngine);
+                break;
+            case 'ch1_chain_command':
+                characterController.position = [-1.2, 0.0, 2.0];
+                campaignStory.startMission8ChainOfCommand(sg, crowdSystem, cameraController, audioEngine);
+                break;
+            case 'ch1_payback':
+                characterController.position = [28.0, 0.0, 40.0];
+                campaignStory.startMission9Payback(sg, crowdSystem, cameraController, audioEngine);
+                break;
+            case 'ch1_uncle_po':
+                characterController.position = [-2.2, 0.0, 24.0];
+                campaignStory.startMission10UnclePo(sg, crowdSystem, cameraController, audioEngine);
+                break;
+            case 'ch2_wedding':
+                characterController.position = [0.0, 0.0, 0.0];
+                campaignStory.startMission11TheWedding(sg, crowdSystem, cameraController, audioEngine);
+                break;
+            case 'ch2_mrs_chu':
+                characterController.position = [-2.2, 0.0, 24.0];
+                campaignStory.startMission12MrsChusRevenge(sg, crowdSystem, cameraController, audioEngine);
+                break;
+            case 'ch2_new_boss':
+                characterController.position = [0.0, 0.0, 0.0];
+                campaignStory.startMission13MeetTheNewBoss(sg, crowdSystem, cameraController, audioEngine);
+                break;
+            case 'ch2_election':
+                characterController.position = [26.0, 0.0, 32.5];
+                campaignStory.startMission14TheElection(sg, crowdSystem, cameraController, audioEngine);
+                break;
+            case 'ch3_hospital':
+                characterController.position = [0.0, 0.0, 0.0];
+                campaignStory.startMission15CivilWarHospital(sg, crowdSystem, cameraController, audioEngine);
+                break;
+            case 'ch3_funeral':
+                characterController.position = [-20.0, 0.0, 10.0];
+                campaignStory.startMission16TheFuneral(sg, crowdSystem, cameraController, audioEngine);
+                break;
+            case 'ch3_slaughterhouse':
+                characterController.position = [28.0, 0.0, 40.0];
+                campaignStory.startMission17KidnappingJackieMa(sg, crowdSystem, cameraController, audioEngine);
+                break;
+            case 'ch3_grand_finale':
+                characterController.position = [28.0, 0.0, 40.0];
+                campaignStory.startMission18BigSmileLeeFinale(sg, crowdSystem, cameraController, audioEngine);
+                break;
+            case 'free_roam':
+            default:
+                characterController.position = [-2.2, 0.0, 1.2];
+                campaignStory.stage = 'free_roam';
+                campaignStory.endCutscene(cameraController);
+                campaignStory.updateHUD('OPEN WORLD EXPLORATION', 'Explore Hong Kong: Martial Arts Dojos, Police Pursuits, Gambling & Nightlife!');
+                break;
+        }
+        cameraController.targetPos = [...characterController.position];
+        performSave('autosave', `Mission: ${missionKey}`);
+    }
+    (window as any).jumpToMission = jumpToMission;
+
     const pauseMenu = new PauseMenuController(
         saveManager,
         {
             onResume: () => {},
+            onSelectMission: (missionKey) => {
+                jumpToMission(missionKey);
+            },
             onSaveSlot: (slotId, slotName) => {
                 performSave(slotId, slotName);
             },
