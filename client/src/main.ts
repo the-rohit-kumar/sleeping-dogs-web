@@ -40,6 +40,8 @@ import { TrafficSystem } from './traffic-system';
 import { CrowdSystem } from './crowd-system';
 import { WeatherSystem, WeatherMode } from './weather-system';
 import { CampaignStoryEngine } from './campaign-story';
+import { HackingMinigame } from './hacking-minigame';
+import { GunplaySystem } from './gunplay-system';
 
 window.addEventListener('DOMContentLoaded', async () => {
     const canvas = document.getElementById('viewport') as HTMLCanvasElement;
@@ -57,9 +59,20 @@ window.addEventListener('DOMContentLoaded', async () => {
     const crowdSystem = new CrowdSystem();
     const weatherSystem = new WeatherSystem();
     const campaignStory = new CampaignStoryEngine();
+    const hackingMinigame = new HackingMinigame(audioEngine);
+    const gunplaySystem = new GunplaySystem(
+        renderer.sceneGraph!,
+        characterController,
+        vehicleController,
+        crowdSystem,
+        cameraController,
+        audioEngine
+    );
     (window as any).campaignStory = campaignStory;
     (window as any).audioEngine = audioEngine;
     (window as any).renderer = renderer;
+    (window as any).hackingMinigame = hackingMinigame;
+    (window as any).gunplaySystem = gunplaySystem;
 
     // Link weather system to renderer
     renderer.weatherSystem = weatherSystem;
@@ -376,6 +389,16 @@ window.addEventListener('DOMContentLoaded', async () => {
             campaignStory.triggerBathroomRestroomShowdown(cameraController, audioEngine, renderer.sceneGraph, crowdSystem);
         } else if (campaignStory.stage === 'ch1_bambam_bathroom_climax') {
             campaignStory.completeClubBamBam(cameraController, audioEngine);
+        } else if (campaignStory.stage === 'ch1_bambam_completed' || campaignStory.stage === 'ch1_popstar_phone_call') {
+            campaignStory.startMission6PopstarDrugBust(renderer.sceneGraph, crowdSystem, cameraController, audioEngine);
+        } else if (campaignStory.stage === 'ch1_popstar_drive_terminal') {
+            campaignStory.startPopstarCameraHacking(hackingMinigame, cameraController, audioEngine);
+        } else if (campaignStory.stage === 'ch1_popstar_camera_hacking') {
+            campaignStory.startPopstarSurveillanceFeed(cameraController, audioEngine, renderer.sceneGraph, crowdSystem);
+        } else if (campaignStory.stage === 'ch1_popstar_surveillance_feed') {
+            campaignStory.startPopstarAmbushBrawl(cameraController, audioEngine, renderer.sceneGraph, crowdSystem);
+        } else if (campaignStory.stage === 'ch1_popstar_ambush_brawl') {
+            campaignStory.completePopstarDrugBust(cameraController, audioEngine);
         } else {
             campaignStory.startPrologueCinematic(renderer.sceneGraph, crowdSystem, cameraController, audioEngine);
         }
@@ -641,6 +664,15 @@ window.addEventListener('DOMContentLoaded', async () => {
                     campaignStory.collectWatchVendorTribute(audioEngine);
                     return;
                 }
+            } else if (campaignStory.stage === 'ch1_popstar_drive_terminal') {
+                const distToTerminal = Math.hypot(characterController.position[0] - 24.0, characterController.position[2] - (-48.0));
+                if (distToTerminal <= 7.0) {
+                    campaignStory.startPopstarCameraHacking(hackingMinigame, cameraController, audioEngine);
+                    return;
+                }
+            } else if (campaignStory.stage === 'ch1_popstar_surveillance_feed') {
+                campaignStory.startPopstarAmbushBrawl(cameraController, audioEngine, renderer.sceneGraph!, crowdSystem);
+                return;
             }
             if (vehicleController.canInteract(characterController.position) || vehicleController.isOccupied) {
                 toggleVehicleEntry();
@@ -1604,6 +1636,9 @@ window.addEventListener('DOMContentLoaded', async () => {
             } else {
                 faceBurstBanner.style.display = 'none';
             }
+
+            // Gunplay & Vehicular Aiming Update
+            gunplaySystem.update(deltaTimeSec);
 
             // Canonical Sleeping Dogs Story Mission & Cutscene Pipeline Update
             if (renderer.sceneGraph) {

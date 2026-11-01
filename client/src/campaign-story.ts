@@ -55,6 +55,12 @@ export type StoryStage =
   | 'ch1_bambam_vip_lounge_brawl'
   | 'ch1_bambam_bathroom_climax'
   | 'ch1_bambam_completed'
+  | 'ch1_popstar_phone_call'
+  | 'ch1_popstar_drive_terminal'
+  | 'ch1_popstar_camera_hacking'
+  | 'ch1_popstar_surveillance_feed'
+  | 'ch1_popstar_ambush_brawl'
+  | 'ch1_popstar_bust_completed'
   | 'free_roam';
 
 export interface DialogueLine {
@@ -1055,6 +1061,221 @@ export class CampaignStoryEngine {
   }
 
   /**
+   * Chapter 1 Mission 6: "Popstar Lead 1 / Drug Bust"
+   * Stage 1: Police Phone Briefing with Inspector Jane Teng
+   */
+  public startMission6PopstarDrugBust(
+    sceneGraph: SceneGraph,
+    crowdSystem: CrowdSystem,
+    cameraController: CameraController,
+    audioEngine: AudioEngine
+  ): void {
+    this.stage = 'ch1_popstar_phone_call';
+    this.thugsDefeated = 0;
+    this.thugsTotal = 3;
+
+    audioEngine.playTrack('radio_static_burst').catch(() => {});
+    audioEngine.playTrack('police_radio_call').catch(() => {});
+
+    const script: DialogueLine[] = [
+      {
+        speaker: 'INSPECTOR JANE TENG (HKPD)',
+        speakerColor: '#38bdf8',
+        text: "Wei, it's Teng. We have a confirmed location on Popstar's drug supply hub in the North Point housing projects.",
+        audioKey: 'teng_popstar_lead',
+        durationSec: 5.5,
+        cameraEye: [-1.2, 1.8, -7.0],
+        cameraTarget: [-2.2, 1.4, -8.3]
+      },
+      {
+        speaker: 'WEI SHEN',
+        speakerColor: '#facc15',
+        text: "I'll head over to the tenements, hack the CCTV camera terminal, and identify the supplier with the stash.",
+        audioKey: 'wei_teng_response',
+        durationSec: 4.8,
+        cameraEye: [-3.0, 1.7, -9.5],
+        cameraTarget: [-2.2, 1.4, -8.3]
+      }
+    ];
+
+    this.playCutscene(script, cameraController, audioEngine, () => {
+      this.stage = 'ch1_popstar_drive_terminal';
+      this.endCutscene(cameraController);
+
+      this.updateHUD(
+        'CASE: POPSTAR LEAD 1 — DRUG BUST',
+        '📍 Travel to North Point Housing Project & Access Security Camera [24.0, -48.0]'
+      );
+
+      if (this.actionPrompt) {
+        this.actionPrompt.style.display = 'block';
+        this.actionPrompt.textContent = '📞 CASE UPDATE: POPSTAR DRUG OPERATION • HEAD TO SURVEILLANCE JUNCTION 📞';
+        this.actionPrompt.style.background = 'rgba(56, 189, 248, 0.95)';
+        setTimeout(() => {
+          if (this.actionPrompt) this.actionPrompt.style.display = 'none';
+        }, 4500);
+      }
+    });
+  }
+
+  /**
+   * Mission 6 Stage 2: CCTV Camera Hacking Minigame
+   */
+  public startPopstarCameraHacking(
+    hackingMinigame: any,
+    cameraController: CameraController,
+    audioEngine: AudioEngine
+  ): void {
+    this.stage = 'ch1_popstar_camera_hacking';
+
+    if (this.actionPrompt) this.actionPrompt.style.display = 'none';
+
+    this.updateHUD(
+      'CASE: POPSTAR LEAD 1 — CAMERA BREACH PROTOCOL',
+      '🔐 Hack CCTV Terminal: Enter 4-Digit Security Code [Green: Exact, Yellow: Wrong Slot, Red: Denied]'
+    );
+
+    if (hackingMinigame) {
+      hackingMinigame.startMinigame([3, 8, 1, 5], (result: any) => {
+        if (result.success) {
+          const sceneGraph = (window as any).renderer?.sceneGraph;
+          const crowdSystem = (window as any).crowdSystem;
+          if (sceneGraph && crowdSystem) {
+            this.startPopstarSurveillanceFeed(cameraController, audioEngine, sceneGraph, crowdSystem);
+          }
+        }
+      });
+    }
+  }
+
+  /**
+   * Mission 6 Stage 3: Surveillance Camera Feed & Supplier Tagging
+   */
+  public startPopstarSurveillanceFeed(
+    cameraController: CameraController,
+    audioEngine: AudioEngine,
+    sceneGraph: SceneGraph,
+    crowdSystem: CrowdSystem
+  ): void {
+    this.stage = 'ch1_popstar_surveillance_feed';
+
+    // Spawn the drug ring in the alley
+    crowdSystem.spawnPopstarDrugRingCast(sceneGraph);
+
+    // Switch camera to elevated security camera perspective overlooking alley
+    cameraController.setCinematicShot([28.0, 6.5, -42.0], [24.0, 0.5, -48.0], true);
+
+    this.updateHUD(
+      'CASE: POPSTAR LEAD 1 — SURVEILLANCE FEED ONLINE',
+      '📹 [CCTV CAM 04 - NORTH POINT] Drug deal in progress! Identify supplier carrying the briefcase [F]!'
+    );
+
+    if (this.actionPrompt) {
+      this.actionPrompt.style.display = 'block';
+      this.actionPrompt.textContent = '🔴 REC • CAM 04 • [F] MARK POPSTAR SUPPLIER & DROP IN TO BUST 🔴';
+      this.actionPrompt.style.background = 'rgba(239, 68, 68, 0.95)';
+    }
+  }
+
+  /**
+   * Mission 6 Stage 4: Alley Ambush Brawl & Handgun Gunplay
+   */
+  public startPopstarAmbushBrawl(
+    cameraController: CameraController,
+    audioEngine: AudioEngine,
+    sceneGraph: SceneGraph,
+    crowdSystem: CrowdSystem
+  ): void {
+    this.stage = 'ch1_popstar_ambush_brawl';
+    this.thugsDefeated = 0;
+    this.thugsTotal = 3;
+
+    if (this.actionPrompt) this.actionPrompt.style.display = 'none';
+
+    const script: DialogueLine[] = [
+      {
+        speaker: 'POPSTAR DRUG SUPPLIER',
+        speakerColor: '#ef4444',
+        text: "What the hell?! Who is this guy?! He's a cop! Don't let him leave this alley alive!",
+        audioKey: 'drug_dealer_threat',
+        durationSec: 4.5,
+        cameraEye: [26.0, 1.8, -45.5],
+        cameraTarget: [24.0, 1.4, -48.0]
+      }
+    ];
+
+    this.playCutscene(script, cameraController, audioEngine, () => {
+      this.endCutscene(cameraController);
+
+      this.updateHUD(
+        'CASE: POPSTAR LEAD 1 — ALLEY AMBUSH',
+        `⚔️ Defeat Popstar's Supplier & Enforcers (${this.thugsDefeated}/${this.thugsTotal})! [Press G for Handgun / Melee Combos]`
+      );
+
+      if (this.actionPrompt) {
+        this.actionPrompt.style.display = 'block';
+        this.actionPrompt.textContent = '⚔️ POPSTAR AMBUSH • PRESS [G] TO DRAW 9MM HANDGUN OR USE MELEE ⚔️';
+        this.actionPrompt.style.background = 'rgba(234, 179, 8, 0.95)';
+        setTimeout(() => {
+          if (this.actionPrompt) this.actionPrompt.style.display = 'none';
+        }, 4500);
+      }
+    });
+  }
+
+  /**
+   * Mission 6 Completion: Jane Teng Confirmation & XP Rewards
+   */
+  public completePopstarDrugBust(cameraController: CameraController, audioEngine: AudioEngine): void {
+    this.stage = 'ch1_popstar_bust_completed';
+
+    audioEngine.playTrack('teng_bust_complete').catch(() => {});
+    audioEngine.playTrack('police_siren').catch(() => {});
+    audioEngine.playTrack('mission_fanfare').catch(() => {});
+
+    if (this.actionPrompt) this.actionPrompt.style.display = 'none';
+
+    const script: DialogueLine[] = [
+      {
+        speaker: 'INSPECTOR JANE TENG (HKPD)',
+        speakerColor: '#38bdf8',
+        text: "Outstanding work, Wei. Tactical units are moving in to sweep the stash and take them down to Central. Popstar is feeling the heat.",
+        audioKey: 'teng_bust_complete',
+        durationSec: 5.2,
+        cameraEye: [25.5, 2.0, -46.5],
+        cameraTarget: [24.0, 1.2, -48.0]
+      },
+      {
+        speaker: 'WEI SHEN',
+        speakerColor: '#facc15',
+        text: "Copy that, Teng. Sun On Yee won't be happy about losing their top dealer. I'm moving on to Dogeyes next.",
+        durationSec: 4.0,
+        cameraEye: [23.0, 1.8, -49.0],
+        cameraTarget: [24.0, 1.2, -48.0]
+      }
+    ];
+
+    this.playCutscene(script, cameraController, audioEngine, () => {
+      this.stage = 'free_roam';
+      this.endCutscene(cameraController);
+
+      this.updateHUD(
+        'CASE COMPLETED: POPSTAR LEAD 1',
+        '🏆 POPSTAR DRUG RING BUSTED • COP SCORE +500 • TRIAD SCORE +350 • FIREARMS PROFICIENCY UNLOCKED'
+      );
+
+      if (this.actionPrompt) {
+        this.actionPrompt.style.display = 'block';
+        this.actionPrompt.textContent = '🏆 CASE 1 COMPLETED: POPSTAR BUSTED • COP LEVEL UP • POLICE SCORE +500 🏆';
+        this.actionPrompt.style.background = 'rgba(34, 197, 94, 0.95)';
+        setTimeout(() => {
+          if (this.actionPrompt) this.actionPrompt.style.display = 'none';
+        }, 5500);
+      }
+    });
+  }
+
+  /**
    * Cutscene Player & Timeline Engine
    */
   public playCutscene(
@@ -1206,6 +1427,15 @@ export class CampaignStoryEngine {
       if (distToClub <= 6.5) {
         this.arriveAtClubBamBam(cameraController, audioEngine, sceneGraph, crowdSystem);
       }
+    } else if (this.stage === 'ch1_popstar_drive_terminal') {
+      const distToTerminal = Math.hypot(playerPos[0] - 24.0, playerPos[2] - (-48.0));
+      if (distToTerminal <= 6.5) {
+        if (this.actionPrompt) {
+          this.actionPrompt.style.display = 'block';
+          this.actionPrompt.textContent = '🔐 [F] HACK CCTV SURVEILLANCE TERMINAL 🔐';
+          this.actionPrompt.style.background = 'rgba(234, 179, 8, 0.95)';
+        }
+      }
     }
   }
 
@@ -1325,6 +1555,20 @@ export class CampaignStoryEngine {
           this.completeClubBamBam(cameraController, audioEngine);
         }, 1200);
       }
+    } else if (this.stage === 'ch1_popstar_ambush_brawl') {
+      this.thugsDefeated++;
+      combatSystem.policeScore += 250;
+      combatSystem.triadScore += 200;
+      this.updateHUD(
+        'CASE: POPSTAR LEAD 1 — ALLEY AMBUSH',
+        `⚔️ Defeat Popstar's Supplier & Enforcers (${this.thugsDefeated}/${this.thugsTotal})! [Press G for Handgun / Melee Combos]`
+      );
+
+      if (this.thugsDefeated >= this.thugsTotal) {
+        setTimeout(() => {
+          this.completePopstarDrugBust(cameraController, audioEngine);
+        }, 1200);
+      }
     }
   }
 
@@ -1348,6 +1592,12 @@ export class CampaignStoryEngine {
     if (this.stage === 'ch1_bambam_dancefloor_brawl') return [12.0, -35.0];
     if (this.stage === 'ch1_bambam_vip_lounge_brawl') return [16.5, -39.0];
     if (this.stage === 'ch1_bambam_bathroom_climax') return [19.5, -42.0];
+    if (
+      this.stage === 'ch1_popstar_drive_terminal' ||
+      this.stage === 'ch1_popstar_camera_hacking' ||
+      this.stage === 'ch1_popstar_surveillance_feed' ||
+      this.stage === 'ch1_popstar_ambush_brawl'
+    ) return [24.0, -48.0];
     return null;
   }
 

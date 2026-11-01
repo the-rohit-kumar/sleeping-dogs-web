@@ -293,6 +293,141 @@ export const AUTHENTIC_TRACKS: Record<string, AudioTrackInfo> = {
     sampleRate: 48000,
     channels: 1,
     isLoop: false
+  },
+  teng_popstar_lead: {
+    id: 'teng_popstar_lead',
+    name: 'Inspector Jane Teng Popstar Briefing',
+    source: 'English(US).pck (Stream 597c0d6c @ 0x150247f9)',
+    description: 'Jane Teng calls Wei Shen regarding Water Street supplier Popstar',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  wei_teng_response: {
+    id: 'wei_teng_response',
+    name: 'Wei Shen HKPD Response',
+    source: 'English(US).pck (Stream 599ce1a9 @ 0x1503c793)',
+    description: 'Wei agrees to plant surveillance and bust the drug distribution ring',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  drug_dealer_threat: {
+    id: 'drug_dealer_threat',
+    name: 'Popstar Drug Supplier Confrontation',
+    source: 'English(US).pck (Stream 59a6f0c2 @ 0x15078e80)',
+    description: 'Popstar drug supplier and enforcers defend the stash in the alley',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  teng_bust_complete: {
+    id: 'teng_bust_complete',
+    name: 'Jane Teng Tactical Bust Confirmation',
+    source: 'English(US).pck (Stream 599cf8dc @ 0x1504e23c)',
+    description: 'Jane Teng confirms HKPD Tactical Unit incoming to sweep the area',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  ui_hack_tick: {
+    id: 'ui_hack_tick',
+    name: 'Security Camera Keypad Digit Input',
+    source: 'SFX.pck (Stream 1a702218 @ 0x47e51674)',
+    description: 'Authentic high-frequency tick when keying security terminal digits',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  ui_click_denied: {
+    id: 'ui_click_denied',
+    name: 'Security Hack Access Denied',
+    source: 'SFX.pck (Stream 31d2cff1 @ 0x6ec8b405)',
+    description: 'Low-frequency access denied buzzer when incorrect code is submitted',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  ui_chime_granted: {
+    id: 'ui_chime_granted',
+    name: 'Security Hack Access Granted',
+    source: 'SFX.pck (Stream 131215c8 @ 0x385d1c81)',
+    description: 'Chime confirmation when CCTV surveillance node is successfully breached',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  radio_static_burst: {
+    id: 'radio_static_burst',
+    name: 'Police Radio Squelch & Static',
+    source: 'SFX.pck (Stream 2a895219 @ 0x63039db2)',
+    description: 'HKPD police band radio opening squelch and static burst',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  police_radio_call: {
+    id: 'police_radio_call',
+    name: 'HKPD Police Dispatch Chime',
+    source: 'SFX.pck (Stream 3d7b35a5 @ 0x7e225378)',
+    description: 'HKPD central dispatch two-tone attention call chime',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  gun_pistol_fire: {
+    id: 'gun_pistol_fire',
+    name: '9mm Handgun Fire Sound',
+    source: 'SFX.pck (Stream 05b20d4a @ 0x19325c91)',
+    description: 'Crisp authentic semi-automatic 9mm pistol gunshot and muzzle blast',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  gun_bullet_ricochet: {
+    id: 'gun_bullet_ricochet',
+    name: 'Bullet Impact Ricochet',
+    source: 'SFX.pck (Stream 14b5998c @ 0x3c031219)',
+    description: 'High-velocity bullet impact deflection and metallic ricochet whine',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  gun_reload_slide: {
+    id: 'gun_reload_slide',
+    name: 'Handgun Chamber Slide Rack',
+    source: 'SFX.pck (Stream 3aed6f10 @ 0x7ae2a4ea)',
+    description: 'Mechanical pistol magazine seating and chamber slide rack',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  gun_impact_concrete: {
+    id: 'gun_impact_concrete',
+    name: 'Bullet Concrete Impact',
+    source: 'SFX.pck (Stream 1d88c115 @ 0x4dd4cd3f)',
+    description: 'Heavy bullet impact on urban masonry and concrete structures',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  gun_shotgun_blast: {
+    id: 'gun_shotgun_blast',
+    name: 'Pump-Action Shotgun Blast',
+    source: 'SFX.pck (Stream 021d2075 @ 0x0efee76a)',
+    description: 'Authentic 12-gauge pump shotgun concussive muzzle blast',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  tire_blowout: {
+    id: 'tire_blowout',
+    name: 'Vehicle Tire Blowout',
+    source: 'SFX.pck (Stream 2213fbb5 @ 0x55454af6)',
+    description: 'High-speed vehicular tire puncture, explosive blowout, and rim grind',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
   }
 };
 

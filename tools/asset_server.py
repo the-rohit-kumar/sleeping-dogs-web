@@ -197,6 +197,96 @@ AUDIO_TRACKS = {
         "offset": 0x09e7f465,
         "size": 28466,
         "name": "Bathroom Porcelain Urinal Environmental Slam"
+    },
+    "teng_popstar_lead": {
+        "pck": ENG_PCK,
+        "offset": 0x150247f9,
+        "size": 45988,
+        "name": "Inspector Jane Teng Popstar Drug Lead Briefing"
+    },
+    "wei_teng_response": {
+        "pck": ENG_PCK,
+        "offset": 0x1503c793,
+        "size": 40661,
+        "name": "Wei Shen Police Wiretap Acknowledgment"
+    },
+    "drug_dealer_threat": {
+        "pck": ENG_PCK,
+        "offset": 0x15078e80,
+        "size": 32843,
+        "name": "Popstar Drug Ring Supplier Hostile Confrontation"
+    },
+    "teng_bust_complete": {
+        "pck": ENG_PCK,
+        "offset": 0x1504e23c,
+        "size": 26244,
+        "name": "Inspector Jane Teng Tactical Unit Bust Confirmation"
+    },
+    "ui_hack_tick": {
+        "pck": SFX_PCK,
+        "offset": 0x47e51674,
+        "size": 5609,
+        "name": "Surveillance Camera Hacking Keypad Digit Input"
+    },
+    "ui_click_denied": {
+        "pck": SFX_PCK,
+        "offset": 0x6ec8b405,
+        "size": 4698,
+        "name": "Surveillance Camera Hacking Access Denied Buzzer"
+    },
+    "ui_chime_granted": {
+        "pck": SFX_PCK,
+        "offset": 0x385d1c81,
+        "size": 4898,
+        "name": "Surveillance Camera Hacking Access Granted Chime"
+    },
+    "radio_static_burst": {
+        "pck": SFX_PCK,
+        "offset": 0x63039db2,
+        "size": 6284,
+        "name": "HKPD Police Radio Frequency Squelch & Static"
+    },
+    "police_radio_call": {
+        "pck": SFX_PCK,
+        "offset": 0x7e225378,
+        "size": 6552,
+        "name": "HKPD Central Police Dispatch Chime"
+    },
+    "gun_pistol_fire": {
+        "pck": SFX_PCK,
+        "offset": 0x19325c91,
+        "size": 4902,
+        "name": "9mm Handgun Fire Sound"
+    },
+    "gun_bullet_ricochet": {
+        "pck": SFX_PCK,
+        "offset": 0x3c031219,
+        "size": 5200,
+        "name": "Bullet Impact Metal Ricochet"
+    },
+    "gun_reload_slide": {
+        "pck": SFX_PCK,
+        "offset": 0x7ae2a4ea,
+        "size": 5488,
+        "name": "Semi-Automatic Handgun Chamber Slide Rack"
+    },
+    "gun_impact_concrete": {
+        "pck": SFX_PCK,
+        "offset": 0x4dd4cd3f,
+        "size": 5936,
+        "name": "High-Velocity Bullet Impact on Concrete"
+    },
+    "gun_shotgun_blast": {
+        "pck": SFX_PCK,
+        "offset": 0x0efee76a,
+        "size": 6589,
+        "name": "Pump-Action Shotgun Blast"
+    },
+    "tire_blowout": {
+        "pck": SFX_PCK,
+        "offset": 0x55454af6,
+        "size": 6595,
+        "name": "Vehicular Tire Blowout and Rim Friction"
     }
 }
 
@@ -286,6 +376,13 @@ class ReadOnlyGameAssetHandler(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
+        if self.path == '/health':
+            self.send_response(HTTPStatus.OK)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            self.wfile.write(b'{"status":"ok","service":"sleeping-dogs-asset-server"}')
+            return
+
         # Handle /api/audio/<track_id>
         if self.path.startswith('/api/audio/'):
             track_key = self.path[len('/api/audio/'):].split('?')[0]
@@ -302,6 +399,28 @@ class ReadOnlyGameAssetHandler(http.server.SimpleHTTPRequestHandler):
                 return
 
         return super().do_GET()
+
+    def do_HEAD(self):
+        if self.path == '/health':
+            self.send_response(HTTPStatus.OK)
+            self.send_header("Content-Type", "application/json")
+            self.end_headers()
+            return
+
+        if self.path.startswith('/api/audio/'):
+            track_key = self.path[len('/api/audio/'):].split('?')[0]
+            wav_data = get_decoded_wav(track_key)
+            if wav_data:
+                self.send_response(HTTPStatus.OK)
+                self.send_header("Content-Type", "audio/wav")
+                self.send_header("Content-Length", str(len(wav_data)))
+                self.end_headers()
+                return
+            else:
+                self.send_error(HTTPStatus.NOT_FOUND, f"Audio track '{track_key}' not found")
+                return
+
+        return super().do_HEAD()
 
     def send_head(self):
         path = self.translate_path(self.path)

@@ -410,6 +410,16 @@ export class CrowdSystem {
     ]);
   }
 
+  public spawnPopstarDrugRingCast(sceneGraph: SceneGraph): void {
+    this.clearStoryNPCs(sceneGraph);
+    this.spawnStoryBatch(sceneGraph, [
+      { id: 'popstar-supplier', typeId: 'triad-enforcer', x: 24.0, z: -48.0, hp: 140, name: 'Popstar Drug Supplier', hostile: true, state: 'circling', color: [0.95, 0.75, 0.1] },
+      { id: 'popstar-guard-1', typeId: 'sun-on-yee', x: 22.5, z: -46.5, hp: 100, name: '18K Lookout', hostile: true, state: 'circling', color: [0.2, 0.2, 0.25] },
+      { id: 'popstar-guard-2', typeId: 'triad-enforcer', x: 25.5, z: -49.5, hp: 110, name: '18K Enforcer', hostile: true, state: 'circling', color: [0.75, 0.2, 0.2] },
+      { id: 'popstar-buyer', typeId: 'pedestrian', x: 24.8, z: -47.2, hp: 90, name: 'Water Street Junkie Buyer', hostile: false, state: 'panicked', color: [0.5, 0.5, 0.5] }
+    ]);
+  }
+
   /**
    * Updates crowd locomotion, active brawler combat AI, red-flash windups, and ragdoll knockouts
    */

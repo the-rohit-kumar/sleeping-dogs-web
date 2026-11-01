@@ -316,6 +316,15 @@ export async function loadAuthenticVehicle(): Promise<DecodedMesh> {
 }
 
 /**
+ * Milestone 11: Loads authentic base-game Havok vehicle chassis physics & collision shape from Vehicles.big
+ * Resource UID: 0xe391fb68 | Offset: 0x00000800 (2,048 bytes) | Span: 12,224 bytes
+ * Shape: 1100NAR01_Body_P (hkpConvexVerticesShape)
+ */
+export async function loadAuthenticVehicleChassisHavok(): Promise<Uint8Array> {
+  return await fetchRange('Vehicles', 0x00000800, 12224);
+}
+
+/**
  * Loads the authentic base-game character mesh from Characters.big
  * Resource UID: 0x030e17e9 | Offset: 0x161f3000 (371,134,464 bytes) | Span: 10,944 bytes
  */
