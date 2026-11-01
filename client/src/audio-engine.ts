@@ -113,6 +113,42 @@ export const AUTHENTIC_TRACKS: Record<string, AudioTrackInfo> = {
     channels: 1,
     isLoop: false,
     spatialPosition: [-2.2, 1.6, 1.2] // Attached to pedestrian head
+  },
+  env_takedown: {
+    id: 'env_takedown',
+    name: 'Environmental Takedown Impact',
+    source: 'SFX.pck (Stream 4784603 @ 0x09e7f465)',
+    description: 'Signature Sleeping Dogs environmental slam and smash sound',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  police_siren: {
+    id: 'police_siren',
+    name: 'Hong Kong Police Pursuit Siren',
+    source: 'SFX.pck (Stream 2667881 @ 0x0985d257)',
+    description: 'Hong Kong Police Department cruiser pursuit siren & radio dispatch',
+    sampleRate: 48000,
+    channels: 2,
+    isLoop: false
+  },
+  mission_fanfare: {
+    id: 'mission_fanfare',
+    name: 'Mission Accomplished Fanfare',
+    source: 'SFX.pck (Stream 2530870 @ 0x0984a0ab)',
+    description: 'Authentic orchestral brass fanfare for mission success',
+    sampleRate: 44100,
+    channels: 2,
+    isLoop: false
+  },
+  triad_brawl_shout: {
+    id: 'triad_brawl_shout',
+    name: 'Triad Brawler Shouts & Atmosphere',
+    source: 'SFX.pck (Stream 20896152 @ 0x0ce55550)',
+    description: '18K and Sun On Yee triad brawlers shouting and fight clamor',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
   }
 };
 

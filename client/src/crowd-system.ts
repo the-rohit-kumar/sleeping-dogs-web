@@ -107,14 +107,16 @@ export class CrowdSystem {
   public npcs: CrowdNPCInstance[] = [];
   public crowdEnabled = true;
   private clothingTexture?: DecodedTexture;
+  private triadTexture?: DecodedTexture;
   public onPlayerDamaged?: (damage: number) => void;
   public onEnemyDefeated?: (npc: CrowdNPCInstance) => void;
 
   /**
    * Initializes the crowd system by prefetching models from Characters.big
    */
-  public async init(sceneGraph: SceneGraph, clothingTexture?: DecodedTexture): Promise<void> {
+  public async init(sceneGraph: SceneGraph, clothingTexture?: DecodedTexture, triadTexture?: DecodedTexture): Promise<void> {
     this.clothingTexture = clothingTexture;
+    this.triadTexture = triadTexture;
 
     // 1. Preload authentic character meshes from Characters.big
     for (const cType of AUTHENTIC_CROWD_CATALOG) {
@@ -192,13 +194,75 @@ export class CrowdSystem {
         id: nodeId,
         name: `${cType.name} [${cfg.hostile ? '18K Brawler' : 'Crowd'} #${idx + 1}]`,
         mesh,
-        texture: this.clothingTexture,
+        texture: cfg.hostile ? (this.triadTexture || this.clothingTexture) : this.clothingTexture,
         position: instance.position,
         rotation: [0, rotY, 0],
         scale: [1, 1, 1],
         color: cType.color,
         visible: true,
         transform: createTransformMatrix(instance.position, [0, rotY, 0], [1, 1, 1])
+      };
+
+      sceneGraph.addNode(sceneNode);
+      this.npcs.push(instance);
+    });
+  }
+
+  /**
+   * Spawns Campaign Mission 2 dockside warehouse triad enforcers and lieutenant boss
+   */
+  public spawnMission2Enemies(sceneGraph: SceneGraph): void {
+    const m2Spawns = [
+      { typeId: 'triad-enforcer', x: 26.0, z: 34.0, hp: 100, name: '18K Dock Enforcer' },
+      { typeId: 'sun-on-yee',    x: 29.5, z: 36.5, hp: 100, name: '18K Cleaver Thug' },
+      { typeId: 'triad-enforcer', x: 24.5, z: 38.0, hp: 110, name: '18K Warehouse Brawler' },
+      { typeId: 'sun-on-yee',    x: 28.0, z: 41.0, hp: 110, name: '18K Dock Enforcer' },
+      { typeId: 'triad-enforcer', x: 31.0, z: 39.0, hp: 180, name: '18K Lieutenant Dogeyes', isBoss: true }
+    ];
+
+    m2Spawns.forEach((cfg, idx) => {
+      const cType = AUTHENTIC_CROWD_CATALOG.find(t => t.id === cfg.typeId) || AUTHENTIC_CROWD_CATALOG[0];
+      const mesh = this.characterMeshes.get(cfg.typeId) || this.characterMeshes.values().next().value;
+      if (!mesh) return;
+
+      const instId = `m2-triad-${idx}`;
+      const nodeId = `node-${instId}`;
+
+      const instance: CrowdNPCInstance = {
+        id: instId,
+        type: cType,
+        mesh,
+        position: [cfg.x, 0.28, cfg.z],
+        rotationY: Math.PI * 0.75,
+        state: 'circling',
+        walkDirZ: -1,
+        sidewalkX: cfg.x,
+        minZ: cfg.z - 6.0,
+        maxZ: cfg.z + 6.0,
+        walkSpeed: cfg.isBoss ? 1.8 : 1.45,
+        staggerTimer: 0.0,
+        health: cfg.hp,
+        maxHealth: cfg.hp,
+        nodeId,
+        isHostile: true,
+        attackCooldown: 1.5 + Math.random() * 1.5,
+        windupTimer: 0.0,
+        isCounterable: false,
+        defeated: false,
+        baseColor: cfg.isBoss ? [0.95, 0.25, 0.15] : [...cType.color]
+      };
+
+      const sceneNode: SceneNode = {
+        id: nodeId,
+        name: `${cfg.name} (Characters.big)`,
+        mesh,
+        texture: this.triadTexture || this.clothingTexture,
+        position: instance.position,
+        rotation: [0, instance.rotationY, 0],
+        scale: cfg.isBoss ? [1.15, 1.15, 1.15] : [1, 1, 1], // Imposing lieutenant boss size
+        color: cfg.isBoss ? [0.95, 0.25, 0.15] : cType.color,
+        visible: true,
+        transform: createTransformMatrix(instance.position, [0, instance.rotationY, 0], cfg.isBoss ? [1.15, 1.15, 1.15] : [1, 1, 1])
       };
 
       sceneGraph.addNode(sceneNode);

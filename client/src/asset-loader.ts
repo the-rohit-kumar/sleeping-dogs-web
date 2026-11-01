@@ -257,12 +257,32 @@ export async function loadAuthenticNeonTexture(): Promise<DecodedTexture> {
   return decodeAuthenticTexture(payload, 256, 256, TextureFormat.BC1, "Authentic_Neon_Signboard (Game.big 0x0ef12810)");
 }
 
+/**
+ * Loads authentic 18K Triad Thug brawler texture from Characters.big
+ * Offset: 0x16595000 + 16 | Payload: 131,072 bytes BC1 (512x512)
+ */
+export async function loadAuthenticTriadThugTexture(): Promise<DecodedTexture> {
+  const payload = await fetchRange('Characters', 0x16595000 + 16, 131072);
+  return decodeAuthenticTexture(payload, 512, 512, TextureFormat.BC1, "Authentic_Triad_Thug (Characters.big 0x16595010)");
+}
+
+/**
+ * Loads authentic Hong Kong Crown Comfort Taxi vehicle livery from Vehicles.big
+ * Offset: 0x0207f800 + 16 | Payload: 131,072 bytes BC1 (512x512)
+ */
+export async function loadAuthenticTaxiTexture(): Promise<DecodedTexture> {
+  const payload = await fetchRange('Vehicles', 0x0207f800 + 16, 131072);
+  return decodeAuthenticTexture(payload, 512, 512, TextureFormat.BC1, "Authentic_Taxi_Livery (Vehicles.big 0x0207f810)");
+}
+
 export interface AuthenticTextures {
   asphalt: DecodedTexture;
   building: DecodedTexture;
   neon: DecodedTexture;
   vehicle: DecodedTexture;
   clothing: DecodedTexture;
+  triadThug?: DecodedTexture;
+  taxi?: DecodedTexture;
   asphaltNormal?: DecodedTexture;
   vehicleNormal?: DecodedTexture;
   characterNormal?: DecodedTexture;
@@ -324,6 +344,8 @@ export async function loadCompositeStreetScene(): Promise<{
     neonTexture,
     vehicleTexture,
     clothingTexture,
+    triadThugTexture,
+    taxiTexture,
     asphaltNormal,
     vehicleNormal,
     characterNormal
@@ -336,6 +358,8 @@ export async function loadCompositeStreetScene(): Promise<{
     loadAuthenticNeonTexture(),
     loadAuthenticVehicleTexture(),
     loadAuthenticClothingTexture(),
+    loadAuthenticTriadThugTexture(),
+    loadAuthenticTaxiTexture(),
     loadAuthenticAsphaltNormal(),
     loadAuthenticVehicleNormal(),
     loadAuthenticCharacterNormal()
@@ -347,6 +371,8 @@ export async function loadCompositeStreetScene(): Promise<{
     neon: neonTexture,
     vehicle: vehicleTexture,
     clothing: clothingTexture,
+    triadThug: triadThugTexture,
+    taxi: taxiTexture,
     asphaltNormal,
     vehicleNormal,
     characterNormal

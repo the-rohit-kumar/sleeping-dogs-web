@@ -18,6 +18,13 @@ import { PhysicsEngine } from './physics-engine';
 import { SceneGraph, createTransformMatrix } from './scene-graph';
 import { AudioEngine } from './audio-engine';
 
+export interface SkidMarkSegment {
+  leftPoint: [number, number, number];
+  rightPoint: [number, number, number];
+  intensity: number;
+  lifetime: number;
+}
+
 export class VehicleController {
   // World Space Transform
   public position: [number, number, number] = [1.8, 0.35, 0.0]; // Sedan starting lane position
@@ -28,9 +35,13 @@ export class VehicleController {
   // Kinematics State
   public speed = 0.0;            // Current forward speed (m/s)
   public steeringAngle = 0.0;    // Steer angle (radians)
+  public wheelSpinAngle = 0.0;   // Cumulative wheel rotation (radians)
   public isOccupied = false;     // True when Wei Shen is driving
   public isBraking = false;
   public isHandbraking = false;
+  public isDrifting = false;
+  public driftScreechTimer = 0.0;
+  public skidMarks: SkidMarkSegment[] = [];
   public groundY = 0.35;
   public surfaceNormal: [number, number, number] = [0, 1, 0];
 
@@ -193,12 +204,61 @@ export class VehicleController {
         const pitchMultiplier = 0.9 + normalizedRPM * 1.3; // 0.9x idle to 2.2x redline
         audioEngine.setPlaybackRate(pitchMultiplier);
       }
+
+      // 8. Drift Kinematics & Skid Mark Ribbon Generation
+      const wheelRadius = 0.35;
+      this.wheelSpinAngle += (this.speed / wheelRadius) * dt;
+
+      if (this.driftScreechTimer > 0) {
+        this.driftScreechTimer -= dt;
+      }
+
+      const isHighSlip = Math.abs(lateralG) > 0.025 && Math.abs(this.speed) > 3.5;
+      this.isDrifting = (this.isHandbraking && Math.abs(this.speed) > 2.0) || isHighSlip;
+
+      if (this.isDrifting) {
+        // Compute rear tire world positions
+        const cosY = Math.cos(this.rotationY);
+        const sinY = Math.sin(this.rotationY);
+        const halfTrack = 0.82;
+        const rearAxleDist = 1.35;
+
+        const leftX = this.position[0] - cosY * halfTrack - sinY * rearAxleDist;
+        const leftZ = this.position[2] + sinY * halfTrack - cosY * rearAxleDist;
+        const rightX = this.position[0] + cosY * halfTrack - sinY * rearAxleDist;
+        const rightZ = this.position[2] - sinY * halfTrack - cosY * rearAxleDist;
+
+        this.skidMarks.push({
+          leftPoint: [leftX, this.groundY - 0.33, leftZ],
+          rightPoint: [rightX, this.groundY - 0.33, rightZ],
+          intensity: this.isHandbraking ? 0.95 : 0.65,
+          lifetime: 14.0
+        });
+
+        if (this.skidMarks.length > 250) {
+          this.skidMarks.shift();
+        }
+
+        if (audioEngine && this.driftScreechTimer <= 0) {
+          audioEngine.playTrack('vehicle_horn').catch(() => {});
+          this.driftScreechTimer = 1.2;
+        }
+      }
     } else {
       // Unoccupied: damp down motion and return suspension to level
       this.speed *= 0.90;
       this.pitch *= 0.85;
       this.roll *= 0.85;
       this.steeringAngle *= 0.85;
+      this.isDrifting = false;
+    }
+
+    // Decay existing skid marks
+    for (let i = this.skidMarks.length - 1; i >= 0; i--) {
+      this.skidMarks[i].lifetime -= dt;
+      if (this.skidMarks[i].lifetime <= 0) {
+        this.skidMarks.splice(i, 1);
+      }
     }
 
     // 8. Ground Clamping: Clamps vehicle elevation to Hong Kong road surface

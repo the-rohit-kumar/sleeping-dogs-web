@@ -19,6 +19,82 @@ import { fetchRange } from './asset-loader';
 import { DecodedTexture } from './texture-decoder';
 import { SceneGraph, SceneNode, createTransformMatrix } from './scene-graph';
 
+export interface EnvironmentalHazard {
+  id: string;
+  name: string;
+  type: 'market_stall' | 'phone_booth' | 'dumpster' | 'fuse_box' | 'ac_unit';
+  position: [number, number, number];
+  radius: number;
+  promptText: string;
+  scoreBonus: number;
+}
+
+export const ENVIRONMENTAL_HAZARDS: EnvironmentalHazard[] = [
+  {
+    id: 'hazard-stall-0',
+    name: 'Produce Stall Counter',
+    type: 'market_stall',
+    position: [-7.2, 0.28, -6.0],
+    radius: 2.6,
+    promptText: 'SLAM INTO MARKET STALL COUNTER',
+    scoreBonus: 300
+  },
+  {
+    id: 'hazard-phone-0',
+    name: 'Glass Telephone Kiosk',
+    type: 'phone_booth',
+    position: [-6.8, 0.28, -1.5],
+    radius: 2.5,
+    promptText: 'SMASH THROUGH GLASS PHONE BOOTH',
+    scoreBonus: 350
+  },
+  {
+    id: 'hazard-fuse-0',
+    name: 'High-Voltage Fuse Box',
+    type: 'fuse_box',
+    position: [-8.4, 1.4, 2.0],
+    radius: 2.4,
+    promptText: 'ELECTROCUTE ON TRANSFORMER PANEL',
+    scoreBonus: 400
+  },
+  {
+    id: 'hazard-stall-1',
+    name: 'Seafood Display Stall',
+    type: 'market_stall',
+    position: [-7.2, 0.28, 6.0],
+    radius: 2.6,
+    promptText: 'DUNK INTO SEAFOOD ICE BASIN',
+    scoreBonus: 300
+  },
+  {
+    id: 'hazard-dumpster-0',
+    name: 'Heavy Steel Dumpster',
+    type: 'dumpster',
+    position: [-7.0, 0.28, 12.0],
+    radius: 2.8,
+    promptText: 'SHUT DUMPSTER LID ON ENEMY',
+    scoreBonus: 350
+  },
+  {
+    id: 'hazard-stall-2',
+    name: 'Roast Duck Stall Counter',
+    type: 'market_stall',
+    position: [7.2, 0.28, 0.0],
+    radius: 2.6,
+    promptText: 'SLAM INTO ROAST DUCK CART',
+    scoreBonus: 300
+  },
+  {
+    id: 'hazard-phone-1',
+    name: 'Telephone Booth East',
+    type: 'phone_booth',
+    position: [6.8, 0.28, -10.0],
+    radius: 2.5,
+    promptText: 'SMASH THROUGH TELEPHONE GLASS',
+    scoreBonus: 350
+  }
+];
+
 export interface WorldSectorMeta {
   id: string;
   name: string;
@@ -459,6 +535,61 @@ export class WorldStreamer {
       };
       sceneGraph.addNode(acNode);
     });
+
+    // 8. Sleeping Dogs Interactive Environmental Hazards
+    // Phone Booths (Red kiosk frames with glass windows)
+    const phoneMesh = this.generatePhoneBoothMesh();
+    const phoneConfigs = [
+      { id: 'node-phone-booth-0', name: 'Hong Kong Telephone Kiosk West', x: -6.8, y: 1.18, z: -1.5, rotY: Math.PI / 2, color: [0.85, 0.18, 0.18] as [number, number, number] },
+      { id: 'node-phone-booth-1', name: 'Hong Kong Telephone Kiosk East', x:  6.8, y: 1.18, z: -10.0, rotY: -Math.PI / 2, color: [0.85, 0.18, 0.18] as [number, number, number] }
+    ];
+    phoneConfigs.forEach(cfg => {
+      const pNode: SceneNode = {
+        id: cfg.id,
+        name: cfg.name,
+        mesh: phoneMesh,
+        texture: this.buildingTexture,
+        position: [cfg.x, cfg.y, cfg.z],
+        rotation: [0, cfg.rotY, 0],
+        scale: [1, 1, 1],
+        color: cfg.color,
+        visible: true,
+        transform: createTransformMatrix([cfg.x, cfg.y, cfg.z], [0, cfg.rotY, 0], [1, 1, 1])
+      };
+      sceneGraph.addNode(pNode);
+    });
+
+    // Heavy Industrial Steel Trash Dumpster
+    const dumpsterMesh = this.generateDumpsterMesh();
+    const dumpsterNode: SceneNode = {
+      id: 'node-dumpster-0',
+      name: 'North Point Steel Dumpster',
+      mesh: dumpsterMesh,
+      texture: this.buildingTexture,
+      position: [-7.0, 0.68, 12.0],
+      rotation: [0, Math.PI / 2, 0],
+      scale: [1, 1, 1],
+      color: [0.18, 0.38, 0.58], // Dark industrial steel blue
+      visible: true,
+      transform: createTransformMatrix([-7.0, 0.68, 12.0], [0, Math.PI / 2, 0], [1, 1, 1])
+    };
+    sceneGraph.addNode(dumpsterNode);
+
+    // High-Voltage Electrical Fuse Box / Transformer Panel
+    const fuseBoxMesh = this.generateFuseBoxMesh();
+    const fuseNode: SceneNode = {
+      id: 'node-fuse-box-0',
+      name: 'High-Voltage Transformer Panel',
+      mesh: fuseBoxMesh,
+      texture: this.buildingTexture,
+      position: [-8.4, 1.4, 2.0],
+      rotation: [0, Math.PI / 2, 0],
+      scale: [1, 1, 1],
+      color: [0.88, 0.78, 0.18], // Warning electrical yellow
+      visible: true,
+      transform: createTransformMatrix([-8.4, 1.4, 2.0], [0, Math.PI / 2, 0], [1, 1, 1])
+    };
+    sceneGraph.addNode(fuseNode);
   }
 
   /**
@@ -716,6 +847,27 @@ export class WorldStreamer {
    */
   private generateACUnitMesh(): DecodedMesh {
     return this.generateBoxMesh(0.95, 0.75, 0.45);
+  }
+
+  /**
+   * Procedural Hong Kong Telephone Kiosk Mesh (Red frame & glass panels)
+   */
+  private generatePhoneBoothMesh(): DecodedMesh {
+    return this.generateBoxMesh(0.95, 2.35, 0.95);
+  }
+
+  /**
+   * Procedural Hong Kong Street Dumpster Mesh (Heavy industrial metal)
+   */
+  private generateDumpsterMesh(): DecodedMesh {
+    return this.generateBoxMesh(2.10, 1.35, 1.25);
+  }
+
+  /**
+   * Procedural High-Voltage Electrical Transformer Fuse Box Mesh
+   */
+  private generateFuseBoxMesh(): DecodedMesh {
+    return this.generateBoxMesh(0.85, 1.15, 0.35);
   }
 
   /**

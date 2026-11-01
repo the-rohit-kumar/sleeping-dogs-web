@@ -15,6 +15,7 @@
 import { CrowdSystem, CrowdNPCInstance } from './crowd-system';
 import { AnimationPlayer } from './anim-player';
 import { AudioEngine } from './audio-engine';
+import { EnvironmentalHazard, ENVIRONMENTAL_HAZARDS } from './world-streamer';
 
 export interface CombatTargetInfo {
   hasTarget: boolean;
@@ -23,6 +24,14 @@ export interface CombatTargetInfo {
   targetState: string;
   isAttacking: boolean;
   canCounter: boolean;
+  nearbyHazard?: EnvironmentalHazard | null;
+}
+
+export interface EnvironmentalTakedownResult {
+  success: boolean;
+  damage: number;
+  hazard?: EnvironmentalHazard;
+  target?: CrowdNPCInstance;
 }
 
 export class CombatSystem {
@@ -47,6 +56,16 @@ export class CombatSystem {
   public readonly targetReach = 3.6; // Maximum targeting range (meters)
   public readonly strikeReach = 2.2; // Maximum strike connection distance
 
+  public findNearbyHazard(playerPos: [number, number, number], maxDist = 3.2): EnvironmentalHazard | null {
+    for (const h of ENVIRONMENTAL_HAZARDS) {
+      const d = Math.hypot(playerPos[0] - h.position[0], playerPos[2] - h.position[2]);
+      if (d <= Math.max(h.radius, maxDist)) {
+        return h;
+      }
+    }
+    return null;
+  }
+
   /**
    * Updates soft lock-on targeting and detects counterable incoming attacks.
    */
@@ -57,6 +76,7 @@ export class CombatSystem {
   ): CombatTargetInfo {
     this.currentTarget = crowdSystem.findClosestCombatTarget(playerPos, this.targetReach);
     this.counterableAttacker = crowdSystem.getCounterableAttacker(playerPos, this.targetReach);
+    const nearbyHazard = this.findNearbyHazard(playerPos);
 
     if (this.counterableAttacker) {
       const dist = Math.hypot(
@@ -69,7 +89,8 @@ export class CombatSystem {
         targetHealth: this.counterableAttacker.health,
         targetState: 'ATTACKING_RED',
         isAttacking: true,
-        canCounter: true
+        canCounter: true,
+        nearbyHazard
       };
     }
 
@@ -84,7 +105,8 @@ export class CombatSystem {
         targetHealth: this.currentTarget.health,
         targetState: this.currentTarget.state,
         isAttacking: false,
-        canCounter: false
+        canCounter: false,
+        nearbyHazard
       };
     }
 
@@ -94,7 +116,8 @@ export class CombatSystem {
       targetHealth: 0,
       targetState: 'NONE',
       isAttacking: false,
-      canCounter: false
+      canCounter: false,
+      nearbyHazard
     };
   }
 
@@ -258,6 +281,48 @@ export class CombatSystem {
     animPlayer.setTime(0);
 
     return { grappleSuccess: true, damage, target };
+  }
+
+  /**
+   * Executes the signature Sleeping Dogs Environmental Takedown.
+   * Wei Shen drags / throws an enemy into interactive street scenery
+   * (Market stall counter, glass phone booth, metal dumpster, high-voltage fuse box).
+   */
+  public executeEnvironmentalTakedown(
+    playerPos: [number, number, number],
+    animPlayer: AnimationPlayer,
+    audioEngine?: AudioEngine,
+    crowdSystem?: CrowdSystem
+  ): EnvironmentalTakedownResult {
+    if (!crowdSystem) return { success: false, damage: 0 };
+    const hazard = this.findNearbyHazard(playerPos, 3.2);
+    if (!hazard) return { success: false, damage: 0 };
+
+    const target = crowdSystem.findClosestCombatTarget(playerPos, 2.8);
+    if (!target) return { success: false, damage: 0 };
+
+    // Brutal finisher damage (instant elimination)
+    const damage = 120;
+    const dirX = (hazard.position[0] - target.position[0]) * 1.6;
+    const dirZ = (hazard.position[2] - target.position[2]) * 1.6;
+
+    crowdSystem.applyCombatHit(target.id, damage, [dirX, 0, dirZ], audioEngine);
+    this.boostFaceMeter(50.0);
+    this.triadScore += hazard.scoreBonus;
+    this.policeScore += 100;
+    this.totalHitsLanded++;
+
+    // Play signature environmental takedown impact & bone crunch audio
+    if (audioEngine) {
+      audioEngine.playTrack('env_takedown').catch(() => {});
+      audioEngine.playTrack('counter_impact').catch(() => {});
+    }
+
+    animPlayer.setState('FSR_CombatStance');
+    animPlayer.setTime(0);
+    animPlayer.playbackSpeed = 1.35;
+
+    return { success: true, damage, hazard, target };
   }
 
   /**

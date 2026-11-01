@@ -14,7 +14,7 @@
 
 import { Viewport3D, CameraMode } from './renderer';
 import { parseBixBuffer, BixArchive } from './bix-parser';
-import { parseIllusionBuffer } from './mesh-decoder';
+import { parseIllusionBuffer, DecodedMesh } from './mesh-decoder';
 import { decodeAuthenticTexture, TextureFormat, DecodedTexture } from './texture-decoder';
 import {
     loadAuthenticVehicle,
@@ -26,7 +26,7 @@ import {
     fetchRange,
     cacheStats
 } from './asset-loader';
-import { SceneGraph } from './scene-graph';
+import { SceneGraph, SceneNode, createTransformMatrix } from './scene-graph';
 import { AudioEngine, AUTHENTIC_TRACKS } from './audio-engine';
 import { AnimationPlayer, AUTHENTIC_ANIMS, AnimStateName } from './anim-player';
 import { PhysicsEngine } from './physics-engine';
@@ -35,7 +35,7 @@ import { CharacterController } from './character-controller';
 import { VehicleController } from './vehicle-controller';
 import { PedestrianAIController } from './pedestrian-ai';
 import { CombatSystem } from './combat-system';
-import { WorldStreamer } from './world-streamer';
+import { WorldStreamer, ENVIRONMENTAL_HAZARDS } from './world-streamer';
 import { TrafficSystem } from './traffic-system';
 import { CrowdSystem } from './crowd-system';
 import { WeatherSystem, WeatherMode } from './weather-system';
@@ -294,38 +294,53 @@ window.addEventListener('DOMContentLoaded', async () => {
     });
 
     // -------------------------------------------------------------
-    // Sleeping Dogs Campaign Mission 1: "Night Market Ambush"
+    // Sleeping Dogs Campaign Mission Engine (Missions 1 & 2)
     // -------------------------------------------------------------
     let playerHealth = 100.0;
     const playerMaxHealth = 100.0;
     let slowMoTimer = 0.0;
 
     interface CampaignMissionState {
-        stage: 'ambush' | 'carjack' | 'deliver' | 'completed';
+        missionId: 1 | 2;
+        stage: 'm1_ambush' | 'm1_carjack' | 'm1_deliver' | 'm1_completed' | 'm2_drive_docks' | 'm2_brawl' | 'm2_interrogate' | 'm2_completed';
         thugsDefeated: number;
         thugsTotal: number;
     }
 
     const campaignMission: CampaignMissionState = {
-        stage: 'ambush',
+        missionId: 1,
+        stage: 'm1_ambush',
         thugsDefeated: 0,
         thugsTotal: 4
     };
 
     function updateMissionBanner() {
-        if (campaignMission.stage === 'ambush') {
+        if (campaignMission.stage === 'm1_ambush') {
             missionTitle.textContent = 'MISSION 1: NIGHT MARKET AMBUSH';
-            missionObjective.textContent = `Defeat the 18K Triad ambush brawlers (${campaignMission.thugsDefeated}/${campaignMission.thugsTotal} Defeated) [L-Click: Strike, R-Click/E: Counter]`;
-        } else if (campaignMission.stage === 'carjack') {
+            missionObjective.textContent = `Defeat 18K Triad ambush brawlers (${campaignMission.thugsDefeated}/${campaignMission.thugsTotal}) [L-Click: Strike, R-Click/E: Counter, F: Env Takedown]`;
+        } else if (campaignMission.stage === 'm1_carjack') {
             missionTitle.textContent = 'MISSION 1: GETAWAY VEHICLE';
             missionObjective.textContent = '18K Ambush Cleared! Hijack the Sedan or Taxi [F] to evade Triad reinforcements!';
-        } else if (campaignMission.stage === 'deliver') {
+        } else if (campaignMission.stage === 'm1_deliver') {
             const dist = Math.hypot(vehicleController.position[0] - (-9.5), vehicleController.position[2] - (-12.0));
             missionTitle.textContent = 'MISSION 1: REACH SAFEHOUSE';
             missionObjective.textContent = `Evade Police pursuit & deliver vehicle to Golden Dragon Teahouse (${Math.round(dist)}m away)`;
-        } else if (campaignMission.stage === 'completed') {
-            missionTitle.textContent = 'MISSION ACCOMPLISHED';
+        } else if (campaignMission.stage === 'm1_completed') {
+            missionTitle.textContent = 'MISSION 1 ACCOMPLISHED';
             missionObjective.textContent = 'SAFEHOUSE SECURED! TRIAD RESPECT +500 • POLICE RESPECT +250 • COP LEVEL 2 UNLOCKED!';
+        } else if (campaignMission.stage === 'm2_drive_docks') {
+            const dist = Math.hypot(vehicleController.position[0] - 28.0, vehicleController.position[2] - 36.0);
+            missionTitle.textContent = 'MISSION 2: DOCKSIDE WAREHOUSE SHAKEDOWN';
+            missionObjective.textContent = `🚨 Drive to Aberdeen Fish Warehouse (${Math.round(dist)}m) - 18K Triad crew is ransacking the docks!`;
+        } else if (campaignMission.stage === 'm2_brawl') {
+            missionTitle.textContent = 'MISSION 2: WAREHOUSE BRAWL';
+            missionObjective.textContent = `Eliminate Dogeyes' dock enforcers (${campaignMission.thugsDefeated}/${campaignMission.thugsTotal}) [Use Environmental Takedowns!]`;
+        } else if (campaignMission.stage === 'm2_interrogate') {
+            missionTitle.textContent = 'MISSION 2: 18K LIEUTENANT';
+            missionObjective.textContent = 'Defeat 18K Lieutenant Dogeyes [BOSS]! Break guard with [Q] Heavy Kick or [F] Environmental Slam!';
+        } else if (campaignMission.stage === 'm2_completed') {
+            missionTitle.textContent = 'MISSION 2 ACCOMPLISHED';
+            missionObjective.textContent = 'ABERDEEN DOCKS LIBERATED! TRIAD RESPECT +1000 • POLICE RESPECT +500 • DRAGON ENFORCER UNLOCKED!';
         }
     }
 
@@ -343,11 +358,11 @@ window.addEventListener('DOMContentLoaded', async () => {
         setTimeout(() => actionPrompt.style.display = 'none', 800);
     };
 
-    crowdSystem.onEnemyDefeated = (_npc) => {
-        if (campaignMission.stage === 'ambush') {
+    crowdSystem.onEnemyDefeated = (npc) => {
+        if (campaignMission.stage === 'm1_ambush') {
             campaignMission.thugsDefeated++;
             if (campaignMission.thugsDefeated >= campaignMission.thugsTotal) {
-                campaignMission.stage = 'carjack';
+                campaignMission.stage = 'm1_carjack';
                 updateMissionBanner();
                 actionPrompt.style.display = 'block';
                 actionPrompt.textContent = '⚡ 18K AMBUSH DEFEATED! HIJACK VEHICLE [F] ⚡';
@@ -357,19 +372,46 @@ window.addEventListener('DOMContentLoaded', async () => {
             } else {
                 updateMissionBanner();
             }
+        } else if (campaignMission.stage === 'm2_brawl') {
+            campaignMission.thugsDefeated++;
+            if (campaignMission.thugsDefeated >= campaignMission.thugsTotal) {
+                campaignMission.stage = 'm2_interrogate';
+                updateMissionBanner();
+                actionPrompt.style.display = 'block';
+                actionPrompt.textContent = '⚠️ 18K LIEUTENANT DOGEYES ENTERS THE FIGHT! ⚠️';
+                actionPrompt.style.background = '#ef4444';
+                setTimeout(() => actionPrompt.style.display = 'none', 3500);
+            } else {
+                updateMissionBanner();
+            }
+        } else if (campaignMission.stage === 'm2_interrogate') {
+            if (npc.id.includes('m2-triad-4') || npc.type.name.includes('Lieutenant') || npc.health <= 0) {
+                campaignMission.stage = 'm2_completed';
+                updateMissionBanner();
+                combatSystem.triadScore += 1000;
+                combatSystem.policeScore += 500;
+                audioEngine.playTrack('mission_fanfare').catch(() => {});
+                actionPrompt.style.display = 'block';
+                actionPrompt.textContent = '★ 18K LIEUTENANT DEFEATED! ABERDEEN SECURED! ★';
+                actionPrompt.style.background = '#22c55e';
+                setTimeout(() => actionPrompt.style.display = 'none', 6000);
+            }
         }
     };
 
     btnNextMission.addEventListener('click', () => {
-        if (campaignMission.stage === 'ambush') {
-            campaignMission.stage = 'carjack';
-        } else if (campaignMission.stage === 'carjack') {
-            campaignMission.stage = 'deliver';
-        } else if (campaignMission.stage === 'deliver') {
-            campaignMission.stage = 'completed';
-        } else {
-            campaignMission.stage = 'ambush';
-            campaignMission.thugsDefeated = 0;
+        const stageCycle: CampaignMissionState['stage'][] = [
+            'm1_ambush', 'm1_carjack', 'm1_deliver', 'm1_completed',
+            'm2_drive_docks', 'm2_brawl', 'm2_interrogate', 'm2_completed'
+        ];
+        const nextIdx = (stageCycle.indexOf(campaignMission.stage) + 1) % stageCycle.length;
+        campaignMission.stage = stageCycle[nextIdx];
+        campaignMission.missionId = campaignMission.stage.startsWith('m2') ? 2 : 1;
+        campaignMission.thugsDefeated = 0;
+        campaignMission.thugsTotal = (campaignMission.stage === 'm2_brawl') ? 4 : 4;
+
+        if (campaignMission.stage === 'm2_brawl' && renderer.sceneGraph) {
+            crowdSystem.spawnMission2Enemies(renderer.sceneGraph);
         }
         updateMissionBanner();
     });
@@ -448,8 +490,8 @@ window.addEventListener('DOMContentLoaded', async () => {
                 const charNode = renderer.sceneGraph?.getNode('node-character');
                 if (charNode) charNode.visible = false;
 
-                if (campaignMission.stage === 'carjack') {
-                    campaignMission.stage = 'deliver';
+                if (campaignMission.stage === 'm1_carjack') {
+                    campaignMission.stage = 'm1_deliver';
                     updateMissionBanner();
                     actionPrompt.style.display = 'block';
                     actionPrompt.textContent = '🚨 POLICE DISPATCHED! DELIVER TO TEAHOUSE SAFEHOUSE! 🚨';
@@ -598,6 +640,29 @@ window.addEventListener('DOMContentLoaded', async () => {
         }
     }
 
+    function performEnvironmentalTakedown() {
+        if (vehicleController.isOccupied) return false;
+        const res = combatSystem.executeEnvironmentalTakedown(
+            characterController.position,
+            animPlayer,
+            audioEngine,
+            crowdSystem
+        );
+        if (res.success && res.hazard) {
+            slowMoTimer = 0.45;
+            cameraController.pitch += 0.08;
+            cameraController.distance = Math.max(1.8, cameraController.distance - 0.5);
+
+            actionPrompt.style.display = 'block';
+            actionPrompt.innerHTML = `💥 <strong style="color:#facc15">ENVIRONMENTAL FINISHER: ${res.hazard.name.toUpperCase()}</strong> (+${res.damage} DMG, +${res.hazard.scoreBonus} TRIAD XP) 💥`;
+            actionPrompt.style.background = 'rgba(168, 85, 247, 0.95)';
+            actionPrompt.style.boxShadow = '0 0 30px rgba(168, 85, 247, 0.9)';
+            setTimeout(() => actionPrompt.style.display = 'none', 1400);
+            return true;
+        }
+        return false;
+    }
+
     btnComboStrike.addEventListener('click', performCombatStrike);
 
     btnPedPanic.addEventListener('click', () => {
@@ -611,6 +676,8 @@ window.addEventListener('DOMContentLoaded', async () => {
         if (e.code === 'KeyF' || e.key.toLowerCase() === 'f') {
             if (vehicleController.canInteract(characterController.position) || vehicleController.isOccupied) {
                 toggleVehicleEntry();
+            } else if (combatSystem.findNearbyHazard(characterController.position) && combatSystem.currentTarget) {
+                performEnvironmentalTakedown();
             } else {
                 performGrapple();
             }
@@ -834,6 +901,62 @@ window.addEventListener('DOMContentLoaded', async () => {
     btnBixGame.addEventListener('click', () => switchArchive('Game'));
     btnBixUi.addEventListener('click', () => switchArchive('UI'));
 
+    function generateWheelMesh(): DecodedMesh {
+        const segs = 14;
+        const r = 0.35;
+        const w = 0.22;
+        const hw = w / 2;
+        const pos: number[] = [];
+        const norm: number[] = [];
+        const uvs: number[] = [];
+        const ind: number[] = [];
+
+        for (let i = 0; i <= segs; i++) {
+            const th = (i / segs) * Math.PI * 2;
+            const cy = Math.cos(th) * r;
+            const cz = Math.sin(th) * r;
+            // Tread left edge
+            pos.push(-hw, cy, cz);
+            norm.push(-0.4, Math.cos(th), Math.sin(th));
+            uvs.push(i / segs, 0);
+            // Tread right edge
+            pos.push(hw, cy, cz);
+            norm.push(0.4, Math.cos(th), Math.sin(th));
+            uvs.push(i / segs, 1);
+        }
+        for (let i = 0; i < segs; i++) {
+            const i0 = i * 2;
+            const i1 = i * 2 + 1;
+            const i2 = (i + 1) * 2;
+            const i3 = (i + 1) * 2 + 1;
+            ind.push(i0, i1, i2);
+            ind.push(i2, i1, i3);
+        }
+        return {
+            name: 'Vehicle_Wheel_Mesh',
+            positions: new Float32Array(pos),
+            normals: new Float32Array(norm),
+            uvs: new Float32Array(uvs),
+            indices: new Uint16Array(ind),
+            vertexCount: pos.length / 3,
+            triangleCount: ind.length / 3,
+            bounds: { min: [-hw, -r, -r], max: [hw, r, r], center: [0, 0, 0], size: [w, r*2, r*2] }
+        };
+    }
+
+    function createInitialSkidMarkMesh(): DecodedMesh {
+        return {
+            name: 'Asphalt_Skid_Marks',
+            positions: new Float32Array(0),
+            normals: new Float32Array(0),
+            uvs: new Float32Array(0),
+            indices: new Uint16Array(0),
+            vertexCount: 0,
+            triangleCount: 0,
+            bounds: { min: [0, 0, 0], max: [0, 0, 0], center: [0, 0, 0], size: [0, 0, 0] }
+        };
+    }
+
     // Showcase Action: Load Hong Kong Street Scene (Composite Graph)
     async function activateCompositeStreet() {
         document.querySelectorAll('.showcase-bar button').forEach(b => {
@@ -853,7 +976,46 @@ window.addEventListener('DOMContentLoaded', async () => {
 
             // Milestone 7B & 9: Stream authentic traffic vehicles & sidewalk crowds with authentic materials
             await trafficSystem.initTraffic(sceneGraph, textures.vehicle);
-            await crowdSystem.initCrowd(sceneGraph, textures.clothing);
+            await crowdSystem.init(sceneGraph, textures.clothing, textures.triadThug);
+
+            // Dynamic Vehicle Wheels (Front steering & 4-wheel rotation)
+            const wheelMesh = generateWheelMesh();
+            const wheelConfigs = [
+                { id: 'node-wheel-fl', name: 'Sedan Front Left Wheel', side: -0.82, fwd:  1.35, isFront: true },
+                { id: 'node-wheel-fr', name: 'Sedan Front Right Wheel', side: 0.82, fwd:  1.35, isFront: true },
+                { id: 'node-wheel-rl', name: 'Sedan Rear Left Wheel', side: -0.82, fwd: -1.30, isFront: false },
+                { id: 'node-wheel-rr', name: 'Sedan Rear Right Wheel', side: 0.82, fwd: -1.30, isFront: false }
+            ];
+            wheelConfigs.forEach(w => {
+                const wNode: SceneNode = {
+                    id: w.id,
+                    name: w.name,
+                    mesh: wheelMesh,
+                    texture: textures.vehicle,
+                    normalMap: textures.vehicleNormal,
+                    position: [1.8 + w.side, 0.35, w.fwd],
+                    rotation: [0, 0.4, 0],
+                    scale: [1, 1, 1],
+                    color: [0.15, 0.15, 0.18],
+                    visible: true,
+                    transform: createTransformMatrix([1.8 + w.side, 0.35, w.fwd], [0, 0.4, 0], [1, 1, 1])
+                };
+                sceneGraph.addNode(wNode);
+            });
+
+            // Dynamic Asphalt Drift Skid Mark Ribbon Node
+            const skidNode: SceneNode = {
+                id: 'node-skid-marks',
+                name: 'Asphalt Tire Drift Skid Marks',
+                mesh: createInitialSkidMarkMesh(),
+                position: [0, 0, 0],
+                rotation: [0, 0, 0],
+                scale: [1, 1, 1],
+                color: [0.06, 0.06, 0.07],
+                visible: true,
+                transform: createTransformMatrix([0, 0, 0], [0, 0, 0], [1, 1, 1])
+            };
+            sceneGraph.addNode(skidNode);
 
             renderer.setSceneGraph(sceneGraph);
             renderSceneHierarchy(sceneGraph);
@@ -1192,12 +1354,30 @@ window.addEventListener('DOMContentLoaded', async () => {
             }
         }
 
-        // Mission Waypoint Objective Star (Carjack or Safehouse)
+        // Sleeping Dogs Environmental Hazard Props Blips (Purple Diamond Markers)
+        for (const h of ENVIRONMENTAL_HAZARDS) {
+            const hRelX = (h.position[0] - playerPos[0]) * scale;
+            const hRelZ = (h.position[2] - playerPos[2]) * scale;
+            if (Math.hypot(hRelX, hRelZ) < radius) {
+                radarCtx.save();
+                radarCtx.translate(cx + hRelX, cy + hRelZ);
+                radarCtx.rotate(Math.PI / 4);
+                radarCtx.fillStyle = '#a855f7';
+                radarCtx.fillRect(-2.5, -2.5, 5, 5);
+                radarCtx.restore();
+            }
+        }
+
+        // Mission Waypoint Objective Star (Carjack, Safehouse, or Aberdeen Docks)
         let objectiveWorldPos: [number, number] | null = null;
-        if (campaignMission.stage === 'carjack') {
+        if (campaignMission.stage === 'm1_carjack') {
             objectiveWorldPos = [vehicleController.position[0], vehicleController.position[2]];
-        } else if (campaignMission.stage === 'deliver') {
+        } else if (campaignMission.stage === 'm1_deliver') {
             objectiveWorldPos = [-9.5, -12.0]; // Golden Dragon Teahouse
+        } else if (campaignMission.stage === 'm2_drive_docks') {
+            objectiveWorldPos = [28.0, 36.0]; // Aberdeen Fish Warehouse Docks
+        } else if (campaignMission.stage === 'm2_brawl' || campaignMission.stage === 'm2_interrogate') {
+            objectiveWorldPos = [28.0, 36.0];
         }
 
         if (objectiveWorldPos) {
@@ -1209,10 +1389,10 @@ window.addEventListener('DOMContentLoaded', async () => {
             const beaconX = cx + Math.cos(angle) * clampedDist;
             const beaconZ = cy + Math.sin(angle) * clampedDist;
 
-            // Draw glowing golden mission beacon
+            // Draw glowing golden / crimson mission beacon
             radarCtx.beginPath();
-            radarCtx.arc(beaconX, beaconZ, 5, 0, Math.PI * 2);
-            radarCtx.fillStyle = '#facc15';
+            radarCtx.arc(beaconX, beaconZ, 5.5, 0, Math.PI * 2);
+            radarCtx.fillStyle = campaignMission.stage.startsWith('m2') ? '#ef4444' : '#facc15';
             radarCtx.fill();
             radarCtx.strokeStyle = '#ffffff';
             radarCtx.lineWidth = 1.5;
@@ -1329,6 +1509,78 @@ window.addEventListener('DOMContentLoaded', async () => {
                 cameraController.targetPos = [...vehicleController.position];
                 cameraController.vehicleHeading = vehicleController.rotationY;
                 cameraController.vehicleSpeed = vehicleController.speed;
+
+                // Update 4 Wheel sub-nodes with Ackerman steering and spin rotation
+                const cosH = Math.cos(vehicleController.rotationY);
+                const sinH = Math.sin(vehicleController.rotationY);
+                const wheelDefs = [
+                    { id: 'node-wheel-fl', side: -0.82, fwd:  1.35, isFront: true },
+                    { id: 'node-wheel-fr', side:  0.82, fwd:  1.35, isFront: true },
+                    { id: 'node-wheel-rl', side: -0.82, fwd: -1.30, isFront: false },
+                    { id: 'node-wheel-rr', side:  0.82, fwd: -1.30, isFront: false }
+                ];
+                wheelDefs.forEach(w => {
+                    const wNode = renderer.sceneGraph?.getNode(w.id);
+                    if (!wNode) return;
+                    const wx = vehicleController.position[0] + cosH * w.side + sinH * w.fwd;
+                    const wy = vehicleController.groundY - 0.05;
+                    const wz = vehicleController.position[2] - sinH * w.side + cosH * w.fwd;
+                    const heading = w.isFront
+                        ? vehicleController.rotationY + vehicleController.steeringAngle
+                        : vehicleController.rotationY;
+                    wNode.position = [wx, wy, wz];
+                    wNode.rotation = [vehicleController.wheelSpinAngle, heading, 0];
+                    wNode.transform = createTransformMatrix(wNode.position, wNode.rotation, wNode.scale);
+                });
+
+                // Update Asphalt Drift Skid Mark Ribbon Mesh
+                if (vehicleController.skidMarks.length >= 2) {
+                    const marks = vehicleController.skidMarks;
+                    const count = marks.length;
+                    const pos: number[] = [];
+                    const norm: number[] = [];
+                    const uvs: number[] = [];
+                    const ind: number[] = [];
+                    const treadW = 0.16;
+                    for (let i = 0; i < count; i++) {
+                        const m = marks[i];
+                        const u = i / (count - 1);
+                        pos.push(m.leftPoint[0] - treadW/2, m.leftPoint[1] + 0.02, m.leftPoint[2]);
+                        norm.push(0, 1, 0);
+                        uvs.push(u, 0);
+                        pos.push(m.leftPoint[0] + treadW/2, m.leftPoint[1] + 0.02, m.leftPoint[2]);
+                        norm.push(0, 1, 0);
+                        uvs.push(u, 1);
+                        pos.push(m.rightPoint[0] - treadW/2, m.rightPoint[1] + 0.02, m.rightPoint[2]);
+                        norm.push(0, 1, 0);
+                        uvs.push(u, 0);
+                        pos.push(m.rightPoint[0] + treadW/2, m.rightPoint[1] + 0.02, m.rightPoint[2]);
+                        norm.push(0, 1, 0);
+                        uvs.push(u, 1);
+                        if (i < count - 1) {
+                            const bL = i * 4;
+                            ind.push(bL, bL + 1, bL + 4);
+                            ind.push(bL + 1, bL + 5, bL + 4);
+                            const bR = i * 4 + 2;
+                            ind.push(bR, bR + 1, bR + 4);
+                            ind.push(bR + 1, bR + 5, bR + 4);
+                        }
+                    }
+                    const skidNode = renderer.sceneGraph?.getNode('node-skid-marks');
+                    if (skidNode) {
+                        skidNode.mesh = {
+                            name: 'Asphalt_Skid_Marks',
+                            positions: new Float32Array(pos),
+                            normals: new Float32Array(norm),
+                            uvs: new Float32Array(uvs),
+                            indices: new Uint16Array(ind),
+                            vertexCount: pos.length / 3,
+                            triangleCount: ind.length / 3,
+                            bounds: { min: [-50, 0, -50], max: [50, 2, 50], center: [0, 0, 0], size: [100, 2, 100] }
+                        };
+                        renderer.updateNodeMesh(skidNode);
+                    }
+                }
             } else {
                 // On Foot Mode (Wei Shen)
                 characterController.update(
@@ -1395,19 +1647,48 @@ window.addEventListener('DOMContentLoaded', async () => {
             }
 
             // Mission Stage 3 Safehouse Delivery Check
-            if (campaignMission.stage === 'deliver' && isDriving) {
+            if (campaignMission.stage === 'm1_deliver' && isDriving) {
                 const distToTeahouse = Math.hypot(vehicleController.position[0] - (-9.5), vehicleController.position[2] - (-12.0));
                 missionObjective.textContent = `Evade Police pursuit & deliver vehicle to Golden Dragon Teahouse (${Math.round(distToTeahouse)}m away)`;
                 if (distToTeahouse <= 6.5) {
-                    campaignMission.stage = 'completed';
+                    campaignMission.stage = 'm1_completed';
                     updateMissionBanner();
                     combatSystem.triadScore += 500;
                     combatSystem.policeScore += 250;
                     actionPrompt.style.display = 'block';
-                    actionPrompt.textContent = '★ SAFEHOUSE REACHED! MISSION ACCOMPLISHED! ★';
+                    actionPrompt.textContent = '★ SAFEHOUSE REACHED! MISSION 1 ACCOMPLISHED! ★';
                     actionPrompt.style.background = '#22c55e';
-                    setTimeout(() => actionPrompt.style.display = 'none', 6000);
                     audioEngine.playTrack('hk_dialogue').catch(() => {});
+
+                    setTimeout(() => {
+                        audioEngine.playTrack('police_siren').catch(() => {});
+                        campaignMission.missionId = 2;
+                        campaignMission.stage = 'm2_drive_docks';
+                        campaignMission.thugsDefeated = 0;
+                        campaignMission.thugsTotal = 4;
+                        updateMissionBanner();
+                        actionPrompt.style.display = 'block';
+                        actionPrompt.textContent = '🚨 DISPATCH: 18K TRIADS SACKING ABERDEEN WAREHOUSE! INTERVENE! 🚨';
+                        actionPrompt.style.background = '#ef4444';
+                        setTimeout(() => actionPrompt.style.display = 'none', 4500);
+                    }, 3500);
+                }
+            }
+
+            // Mission 2: Drive to Aberdeen Docks Arrival Check
+            if (campaignMission.stage === 'm2_drive_docks') {
+                const distToDocks = Math.hypot(activePos[0] - 28.0, activePos[2] - 36.0);
+                if (distToDocks <= 14.0) {
+                    campaignMission.stage = 'm2_brawl';
+                    campaignMission.thugsDefeated = 0;
+                    campaignMission.thugsTotal = 4;
+                    updateMissionBanner();
+                    crowdSystem.spawnMission2Enemies(renderer.sceneGraph);
+                    audioEngine.playTrack('triad_brawl_shout').catch(() => {});
+                    actionPrompt.style.display = 'block';
+                    actionPrompt.textContent = '⚔️ 18K DOCK SHAKEDOWN! ELIMINATE ENFORCERS! ⚔️';
+                    actionPrompt.style.background = '#ef4444';
+                    setTimeout(() => actionPrompt.style.display = 'none', 3500);
                 }
             }
 
@@ -1417,22 +1698,32 @@ window.addEventListener('DOMContentLoaded', async () => {
                 actionPrompt.style.display = 'block';
                 actionPrompt.textContent = '[F] EXIT SEDAN CHASSIS';
                 actionPrompt.style.background = 'rgba(217, 38, 56, 0.95)';
+                actionPrompt.style.boxShadow = 'none';
             } else if (vehicleController.canInteract(activePos)) {
                 actionPrompt.style.display = 'block';
                 actionPrompt.textContent = '[F] JACK SEDAN';
                 actionPrompt.style.background = 'rgba(0, 210, 255, 0.95)';
+                actionPrompt.style.boxShadow = 'none';
             } else if (nearbyTraffic) {
                 actionPrompt.style.display = 'block';
                 actionPrompt.textContent = `[F] HIJACK ${nearbyTraffic.type.name.split('(')[0].trim().toUpperCase()}`;
                 actionPrompt.style.background = 'rgba(239, 68, 68, 0.95)';
+                actionPrompt.style.boxShadow = 'none';
             } else if (targetInfo.canCounter) {
                 actionPrompt.style.display = 'block';
                 actionPrompt.textContent = `⚡ [R-CLICK / E] COUNTER INCOMING STRIKE! ⚡`;
                 actionPrompt.style.background = '#ef4444';
+                actionPrompt.style.boxShadow = '0 0 25px rgba(255, 0, 50, 0.9)';
+            } else if (targetInfo.nearbyHazard && targetInfo.hasTarget && targetInfo.distance <= 3.2) {
+                actionPrompt.style.display = 'block';
+                actionPrompt.innerHTML = `⚡ <strong style="color:#facc15">[F] ENVIRONMENTAL TAKEDOWN:</strong> ${targetInfo.nearbyHazard.promptText} ⚡`;
+                actionPrompt.style.background = 'rgba(168, 85, 247, 0.95)';
+                actionPrompt.style.boxShadow = '0 0 30px rgba(168, 85, 247, 0.9)';
             } else if (targetInfo.hasTarget && targetInfo.distance <= combatSystem.strikeReach) {
                 actionPrompt.style.display = 'block';
                 actionPrompt.textContent = `[L-CLICK] STRIKE (${targetInfo.targetHealth} HP) • [Q] HEAVY KICK • [F] GRAPPLE`;
                 actionPrompt.style.background = 'rgba(234, 179, 8, 0.95)';
+                actionPrompt.style.boxShadow = 'none';
             } else {
                 actionPrompt.style.display = 'none';
             }

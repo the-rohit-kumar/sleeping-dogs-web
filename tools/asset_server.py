@@ -77,6 +77,30 @@ AUDIO_TRACKS = {
         "offset": 0x00431f8c,
         "size": 16681,
         "name": "Hong Kong Pedestrian Dialogue"
+    },
+    "env_takedown": {
+        "pck": SFX_PCK,
+        "offset": 0x09e7f465,
+        "size": 28466,
+        "name": "Environmental Takedown Slam"
+    },
+    "police_siren": {
+        "pck": SFX_PCK,
+        "offset": 0x0985d257,
+        "size": 57305,
+        "name": "Hong Kong Police Dispatch Siren"
+    },
+    "mission_fanfare": {
+        "pck": SFX_PCK,
+        "offset": 0x0984a0ab,
+        "size": 78252,
+        "name": "Mission Accomplished Orchestral Sting"
+    },
+    "triad_brawl_shout": {
+        "pck": SFX_PCK,
+        "offset": 0x0ce55550,
+        "size": 89872,
+        "name": "Triad Brawl Shouts & Fight Atmosphere"
     }
 }
 

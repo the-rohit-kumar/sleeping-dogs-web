@@ -658,6 +658,34 @@ export class Viewport3D {
     }
 
     /**
+     * Updates dynamic geometry (e.g. vehicle drift skid marks) in GPU buffers
+     */
+    public updateNodeMesh(node: SceneNode) {
+        if (!node.vao || !node.gpuReady) {
+            this.initNodeGpu(node);
+            return;
+        }
+        const gl = this.gl;
+        const mesh = node.mesh;
+        const vertexCount = mesh.vertexCount;
+        const interleaved = new Float32Array(vertexCount * 8);
+        for (let i = 0; i < vertexCount; i++) {
+            interleaved[i * 8 + 0] = mesh.positions[i * 3 + 0];
+            interleaved[i * 8 + 1] = mesh.positions[i * 3 + 1];
+            interleaved[i * 8 + 2] = mesh.positions[i * 3 + 2];
+            interleaved[i * 8 + 3] = mesh.normals[i * 3 + 0];
+            interleaved[i * 8 + 4] = mesh.normals[i * 3 + 1];
+            interleaved[i * 8 + 5] = mesh.normals[i * 3 + 2];
+            interleaved[i * 8 + 6] = mesh.uvs[i * 2 + 0];
+            interleaved[i * 8 + 7] = mesh.uvs[i * 2 + 1];
+        }
+        gl.bindBuffer(gl.ARRAY_BUFFER, node.vbo!);
+        gl.bufferData(gl.ARRAY_BUFFER, interleaved, gl.DYNAMIC_DRAW);
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, node.ebo!);
+        gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, mesh.indices, gl.DYNAMIC_DRAW);
+    }
+
+    /**
      * Binds and displays a single authentic decoded 3D mesh
      */
     public setMesh(mesh: DecodedMesh) {
