@@ -627,6 +627,9 @@ export class SafehouseSystem {
     if (!outfit) return;
 
     this.currentOutfit = outfitId;
+    if (typeof window !== 'undefined' && (window as any).policePursuitSystem) {
+      (window as any).policePursuitSystem.clearHeatViaDisguise(audioEngine);
+    }
 
     // Recolor Wei Shen's nodes in SceneGraph
     const torsoNode = sceneGraph.getNode('node-wei-torso');

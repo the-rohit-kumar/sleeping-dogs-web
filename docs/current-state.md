@@ -171,3 +171,14 @@ With the 18 main campaign story missions fully functional and verified, the rema
 - **In-Combat 360-Degree Leg Sweep:** AoE knockdown attack ([Q]) sweeping a 3.2m radius around Wei Shen, hitting multiple hostile brawlers with 3s knockdown stagger.
 - **Aquarium Environmental Glass Smash:** Signature Club Bam Bam fish tank takedown ([F]) hurling enemies through coral tank glass with shatter audio, instant defeat, +500 Triad XP, and +50% Face Surge.
 - **Automated Verification:** tools/verify_dojo_and_jade_statues.js passed all 12 steps and 5/5 edge cases with 0 errors.
+
+### Option 2 (Expansion): Dynamic 5-Star HKPD Police Pursuit & SWAT Lockdown (100% Operational)
+- **5-Star Dynamic Heat Escalation:** Full scaling from 1 Star to 5 Stars with HUD stars rating, Cantonese police callouts, flashing pursuit vignette, and authentic radio scanner chatter.
+- **Heat 1 (⭐):** HKPD foot patrol constables deploying with nightsticks.
+- **Heat 2 (⭐⭐):** Marked interceptor cruisers with flashing red/blue lightbar strobes and siren loop audio.
+- **Heat 3 (⭐⭐⭐):** Nathan Road intersection roadblocks in V-formation with active metallic spike strips.
+- **Flat-Tire Puncture Physics:** Driving across spike strips triggers tire blowout audio and clamps vehicle speed to an 18 km/h crawl.
+- **Heat 4 (⭐⭐⭐⭐):** SDU ("Flying Tigers") tactical armored carriers with 900 HP armor and armed tactical units.
+- **Heat 5 (⭐⭐⭐⭐⭐):** Full city tactical lockdown with Eagle-1 pursuit helicopter hovering at Y=22.0m with spinning rotors and dynamic 3D ground searchlight beam tracking player.
+- **Evasion & Wardrobe Disguise Wipe:** Breaking search radius enters Cooldown countdown; changing clothes at any wardrobe or entering Safehouse instantly wipes 5-star heat to 0 Stars with alibi secured.
+- **Automated Verification:** `tools/verify_police_pursuit.js` passed all 13 steps and 5/5 edge cases with 0 errors.

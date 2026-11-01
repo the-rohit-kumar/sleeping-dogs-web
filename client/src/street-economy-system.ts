@@ -752,6 +752,9 @@ export class StreetEconomySystem {
     });
 
     item.equipped = true;
+    if (typeof window !== 'undefined' && (window as any).policePursuitSystem) {
+      (window as any).policePursuitSystem.clearHeatViaDisguise(audioEngine);
+    }
 
     // Dynamically recolor Wei Shen's 3D mesh limb nodes in sceneGraph!
     if (sceneGraph) {

@@ -55,6 +55,7 @@ import { ActionHijackSystem } from './action-hijack-system';
 import { StreetEconomySystem, FOOD_MENU, CLOTHING_CATALOG } from './street-economy-system';
 import { CollectiblesSystem } from './collectibles-system';
 import { DojoMartialArtsSystem } from './dojo-martial-arts-system';
+import { PolicePursuitSystem } from './police-pursuit-system';
 
 window.addEventListener('DOMContentLoaded', async () => {
     const canvas = document.getElementById('viewport') as HTMLCanvasElement;
@@ -85,6 +86,8 @@ window.addEventListener('DOMContentLoaded', async () => {
     (window as any).collectiblesSystem = collectiblesSystem;
     const dojoSystem = new DojoMartialArtsSystem();
     (window as any).dojoSystem = dojoSystem;
+    const policePursuitSystem = new PolicePursuitSystem();
+    (window as any).policePursuitSystem = policePursuitSystem;
     (window as any).getPlayerMaxHealth = () => playerMaxHealth;
     (window as any).setPlayerMaxHealth = (maxHp: number) => {
         playerMaxHealth = maxHp;
@@ -2423,6 +2426,19 @@ window.addEventListener('DOMContentLoaded', async () => {
                 isDriving,
                 combatSystem
             );
+
+            // Option 2: Dynamic 5-Star HKPD Police Pursuit & SWAT Lockdown Update
+            if (renderer.sceneGraph) {
+                policePursuitSystem.update(
+                    deltaTimeSec,
+                    renderer.sceneGraph,
+                    activePos,
+                    isDriving,
+                    vehicleController,
+                    audioEngine,
+                    combatSystem
+                );
+            }
 
             // Canonical Sleeping Dogs Story Mission & Cutscene Pipeline Update
             if (renderer.sceneGraph) {

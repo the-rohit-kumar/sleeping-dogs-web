@@ -704,3 +704,16 @@ ode-wei-shoe-l/r).
   - [x] Signature Aquarium Fish Tank Environmental Glass Smash Takedown ([F]) at Club Bam Bam with shattering glass audio, instant defeat, +500 Triad XP, and +50% Face Surge
   - [x] Option 1 edge cases audited (duplicate statue rejection, insufficient statues check, empty range sweep stability, out-of-range aquarium takedown denial, rapid modal spam resilience)
   - [x] Automated browser verification suite (	ools/verify_dojo_and_jade_statues.js, 12/12 passed, 0 page errors, 0 failed requests, 6 visual proof screenshots)
+
+- [x] **Option 2: Dynamic 5-Star HKPD Police Pursuit & SWAT Lockdown System**
+  - [x] 5-Star Heat Escalation System (⭐ to ⭐⭐⭐⭐⭐) with HUD star icons, radio scanner chatter, and pursuit vignette
+  - [x] Heat 1 Foot Patrol Beat Cops pursuing on foot with nightsticks and Cantonese police commands ("警察! 唔好郁!")
+  - [x] Heat 2 Marked Interceptor Cruisers with alternating Red/Blue emergency strobes and siren loops
+  - [x] Heat 3 Intersection Roadblocks in V-formation with active roadway metallic spike strips
+  - [x] Spike Strip Collision & 18 km/h Flat-Tire Crawl Physics with authentic tire blowout sound effect
+  - [x] Heat 4 SDU ("Flying Tigers") Tactical Armored Carrier deployment with reinforced SWAT response
+  - [x] Heat 5 City Tactical Lockdown & Eagle-1 Pursuit Helicopter hovering at Y=22m with dynamic 3D ground searchlight beam
+  - [x] Evasion search radius and Cooldown state machine with real-time HUD countdown timer
+  - [x] Wardrobe / Safehouse Disguise instant heat wipe (5 Stars -> 0 Stars) with alibi secured
+  - [x] Option 2 edge cases audited (zero-heat peace, escalation invariance, disguise wipe, tire repair, spotlight math)
+  - [x] Automated browser verification suite (`tools/verify_police_pursuit.js`, 13/13 passed, 0 page errors, 0 failed requests, 9 visual proof screenshots)
