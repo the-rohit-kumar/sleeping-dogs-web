@@ -57,6 +57,7 @@ import { CollectiblesSystem } from './collectibles-system';
 import { DojoMartialArtsSystem } from './dojo-martial-arts-system';
 import { PolicePursuitSystem } from './police-pursuit-system';
 import { GamblingNightlifeSystem } from './gambling-nightlife-system';
+import { NightmareNorthPointSystem } from './nightmare-north-point-system';
 
 window.addEventListener('DOMContentLoaded', async () => {
     const canvas = document.getElementById('viewport') as HTMLCanvasElement;
@@ -91,6 +92,8 @@ window.addEventListener('DOMContentLoaded', async () => {
     (window as any).policePursuitSystem = policePursuitSystem;
     const gamblingSystem = new GamblingNightlifeSystem();
     (window as any).gamblingSystem = gamblingSystem;
+    const nightmareSystem = new NightmareNorthPointSystem();
+    (window as any).nightmareSystem = nightmareSystem;
     (window as any).getPlayerMaxHealth = () => playerMaxHealth;
     (window as any).setPlayerMaxHealth = (maxHp: number) => {
         playerMaxHealth = maxHp;
@@ -1208,6 +1211,8 @@ window.addEventListener('DOMContentLoaded', async () => {
                         openWorldActivities
                     );
                     if (!collectiblesHandled) {
+                        const nightmareHandled = nightmareSystem.handleInteraction(combatSystem, audioEngine);
+                        if (nightmareHandled) return;
                         const gamblingHandled = gamblingSystem.handleInteraction(openWorldActivities, audioEngine);
                         if (gamblingHandled) return;
                         const dojoHandled = dojoSystem.handleInteraction(
@@ -1238,11 +1243,15 @@ window.addEventListener('DOMContentLoaded', async () => {
                 renderer.sceneGraph!
             );
         } else if (e.code === 'KeyQ' || e.key.toLowerCase() === 'q') {
-            const hasLegSweep = dojoSystem.moves.find(m => m.id === 'leg_sweep')?.unlocked;
-            if (hasLegSweep) {
-                dojoSystem.executeLegSweep(characterController.position, crowdSystem, audioEngine);
+            if (nightmareSystem.isNightmareActive && nightmareSystem.isPeachWoodSwordEquipped) {
+                nightmareSystem.executePeachWoodSlash(characterController.position, audioEngine, combatSystem);
             } else {
-                performHeavyKick();
+                const hasLegSweep = dojoSystem.moves.find(m => m.id === 'leg_sweep')?.unlocked;
+                if (hasLegSweep) {
+                    dojoSystem.executeLegSweep(characterController.position, crowdSystem, audioEngine);
+                } else {
+                    performHeavyKick();
+                }
             }
         } else if (e.code === 'KeyC' || e.key.toLowerCase() === 'c') {
             const isCockpit = actionHijackSystem.toggleCockpitView(cameraController, vehicleController);
@@ -1265,6 +1274,16 @@ window.addEventListener('DOMContentLoaded', async () => {
                 if (triggered) {
                     e.preventDefault();
                 }
+            }
+        } else if (e.code === 'KeyN' || e.key.toLowerCase() === 'n') {
+            if (nightmareSystem.isNightmareActive) {
+                nightmareSystem.deactivateNightmareMode(weatherSystem, renderer.sceneGraph!);
+            } else {
+                nightmareSystem.activateNightmareMode(weatherSystem, renderer.sceneGraph!, audioEngine);
+            }
+        } else if (e.code === 'Digit1') {
+            if (nightmareSystem.isNightmareActive) {
+                nightmareSystem.togglePeachWoodSword(renderer.sceneGraph!, audioEngine);
             }
         } else if (e.code === 'KeyR' || e.key.toLowerCase() === 'r') {
             switchRadioStation();
@@ -2463,6 +2482,17 @@ window.addEventListener('DOMContentLoaded', async () => {
                 combatSystem,
                 renderer.sceneGraph
             );
+
+            // Option 4: Nightmare in North Point Supernatural DLC Update
+            if (renderer.sceneGraph) {
+                nightmareSystem.update(
+                    deltaTimeSec,
+                    activePos,
+                    renderer.sceneGraph,
+                    audioEngine,
+                    combatSystem
+                );
+            }
 
             // Canonical Sleeping Dogs Story Mission & Cutscene Pipeline Update
             if (renderer.sceneGraph) {

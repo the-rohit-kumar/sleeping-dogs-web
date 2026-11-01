@@ -727,3 +727,15 @@ ode-wei-shoe-l/r).
   - [x] PERFECT / GREAT / MISS hit detection, combo streak multipliers, and S-Rank hostess tip payouts (+$2,000 HKD)
   - [x] Option 3 edge cases audited (broke wager rejection, in-flight bout abort safety, odds payout math, pitch clamping, high-score persistence)
   - [x] Automated browser verification suite (`tools/verify_gambling_nightlife.js`, 11/11 passed, 0 page errors, 0 failed requests, 8 visual proof screenshots)
+
+- [x] **Option 4: "Nightmare in North Point" Supernatural DLC Campaign**
+  - [x] "Nightmare in North Point" DLC Mode Toggle (`[N]`) with custom `supernatural_storm` weather and spectral green fog
+  - [x] Full-screen cursed emerald mist vignette overlay (`#nightmare-spectral-vignette`) and cemetery bell audio
+  - [x] 4 Qing Dynastic Jiangshi (Hopping Chinese Vampires) with outstretched arms and hopping locomotion physics
+  - [x] Physical punch immunity lore: Ordinary melee attacks cannot permanently damage Jiangshi (undead curse immediately revives)
+  - [x] Taoist Peach Wood Sword (`[1]` key to toggle) equipped in Wei Shen's right hand with golden runic mesh
+  - [x] Lethal supernatural banishment slash vaporizing Jiangshi with authentic sword clash sound (`cleaver_steel_clash`)
+  - [x] 5 Cursed Spirit Cat Shrines scattered across districts; cleansing grants +1,000 Face XP and 60s "Taoist Chi Surge" (100% Crits)
+  - [x] Climax Boss "Smiley Cat" (300 HP spectral ghost); banishing boss completes "Smiley Cat's Revenge" campaign objective
+  - [x] Option 4 edge cases audited (punch immunity verification, true sword banishment, shrine idempotency, clean DLC toggle on/off, rapid weapon switch stability)
+  - [x] Automated browser verification suite (`tools/verify_nightmare_campaign.js`, 10/10 passed, 0 page errors, 0 failed requests, 7 visual proof screenshots)

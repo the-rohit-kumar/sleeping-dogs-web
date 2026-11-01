@@ -187,3 +187,11 @@ With the 18 main campaign story missions fully functional and verified, the rema
 - **Aberdeen Docks Cockfighting Arena:** Underground betting pit (`[6.0, 0.0, 26.0]`) with octagonal wooden barricade ring, bookmaker odds for Crimson Talon (2.25x) vs Shadow Phoenix (1.75x), real-time animated rooster fight simulation, and cash payouts.
 - **Club Bam Bam VIP K-Bar Karaoke:** Rhythm minigame (`[-6.5, 0.28, 9.0]`) featuring continuous pitch highway, horizontal scrolling note timeline, user vocal cursor control via [W]/[S], PERFECT/GREAT/MISS hit detection, and S-Rank rewards (+$2,000 HKD hostess tips + Face surge).
 - **Automated Verification:** `tools/verify_gambling_nightlife.js` passed all 11 steps and 5/5 edge cases with 0 errors.
+
+### Option 4 (Expansion): "Nightmare in North Point" Supernatural DLC Campaign (100% Operational)
+- **Atmospheric Transformation:** Custom `supernatural_storm` weather mode with emerald green volumetric fog (density 0.045), twilight sky ambience, full-screen cursed spectral mist vignette, and authentic cemetery bell audio (`funeral_cemetery_bell`).
+- **Jiangshi Hopping Vampires:** 4 Qing dynastic hopping vampires + Boss Smiley Cat with outstretched arms, authentic hopping locomotion kinematics, and physical punch immunity (undead curse immediately regenerates regular melee damage).
+- **Taoist Peach Wood Sword ([1] Key):** Sacred runic wooden sword executing lethal supernatural banishment (120-250 DMG), vaporizing spirits with golden chi bursts and authentic sword clash SFX (`cleaver_steel_clash`).
+- **5 Cursed Spirit Cat Shrines:** Trapped golden cats in spectral cages across North Point; cleansing awards +1,000 Face XP and grants 60s "Taoist Chi Surge" (100% critical strike chance).
+- **"Smiley Cat's Revenge" Climax Campaign Objective:** Slaying minions and banishing Boss Smiley Cat completes the DLC objective with celebratory fanfare and +2,500 Face XP.
+- **Automated Verification:** `tools/verify_nightmare_campaign.js` passed all 10 steps and 5/5 edge cases with 0 errors.

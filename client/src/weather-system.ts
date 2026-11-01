@@ -17,7 +17,7 @@
  * ZERO synthetic assets: Procedural simulation driving authentic base game shaders.
  */
 
-export type WeatherMode = 'neon_night' | 'hong_kong_rain' | 'typhoon_storm';
+export type WeatherMode = 'neon_night' | 'hong_kong_rain' | 'typhoon_storm' | 'supernatural_storm';
 
 export interface WeatherSettings {
   name: string;
@@ -72,6 +72,19 @@ export const WEATHER_PRESETS: Record<WeatherMode, WeatherSettings> = {
     fogDensity: 0.032,
     skyAmbient: [0.02, 0.03, 0.06],
     streetlampIntensity: 1.8
+  },
+  supernatural_storm: {
+    name: 'Nightmare Supernatural Storm',
+    rainIntensity: 0.65,
+    rainSpeed: 38.0,
+    windX: 6.0,
+    windZ: -2.0,
+    wetness: 1.0,
+    puddleReflectivity: 1.0,
+    neonBloomFactor: 3.4,
+    fogDensity: 0.045,
+    skyAmbient: [0.02, 0.12, 0.06], // Eerie emerald green twilight
+    streetlampIntensity: 2.2
   }
 };
 
