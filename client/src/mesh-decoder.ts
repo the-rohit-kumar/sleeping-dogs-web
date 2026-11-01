@@ -134,8 +134,13 @@ function computeSmoothNormals(positions: Float32Array, indices: Uint16Array, ver
 /**
  * Decodes authentic vehicle geometry from Vehicles.big payload
  * Entry 0x008c038c @ 0x01f0a400 (3,840 bytes)
+ * Supports authentic index buffer decoding when provided.
  */
-export function decodeAuthenticVehicleMesh(data: Uint8Array, name: string = "Authentic_Vehicle_Mesh"): DecodedMesh {
+export function decodeAuthenticVehicleMesh(
+  data: Uint8Array,
+  name: string = "Authentic_Vehicle_Mesh",
+  rawIndexBuffer?: Uint8Array
+): DecodedMesh {
   const view = new DataView(data.buffer, data.byteOffset, data.byteLength);
   const totalHalfFloats = Math.floor(data.byteLength / 2);
 
@@ -162,17 +167,98 @@ export function decodeAuthenticVehicleMesh(data: Uint8Array, name: string = "Aut
   const vertexCount = rawPoints.length / 3;
   const positions = new Float32Array(rawPoints);
 
-  const rawIndices: number[] = [];
-  for (let i = 0; i < vertexCount - 2; i++) {
-    if (i % 2 === 0) {
-      rawIndices.push(i, i + 1, i + 2);
-    } else {
-      rawIndices.push(i + 1, i, i + 2);
+  let indices: Uint16Array;
+  if (rawIndexBuffer && rawIndexBuffer.length >= 6) {
+    const idxCount = Math.floor(rawIndexBuffer.length / 2);
+    indices = new Uint16Array(rawIndexBuffer.buffer, rawIndexBuffer.byteOffset, idxCount);
+  } else {
+    // Fallback: alternating triangle strip
+    const rawIndices: number[] = [];
+    for (let i = 0; i < vertexCount - 2; i++) {
+      if (i % 2 === 0) {
+        rawIndices.push(i, i + 1, i + 2);
+      } else {
+        rawIndices.push(i + 1, i, i + 2);
+      }
     }
+    indices = new Uint16Array(rawIndices);
   }
-  const indices = new Uint16Array(rawIndices);
 
   const bounds = computeBounds(positions);
+
+  const uvs = new Float32Array(vertexCount * 2);
+  const spanX = Math.max(bounds.size[0], 0.01);
+  const spanY = Math.max(bounds.size[1], 0.01);
+  for (let i = 0; i < vertexCount; i++) {
+    uvs[i * 2 + 0] = (positions[i * 3 + 0] - bounds.min[0]) / spanX;
+    uvs[i * 2 + 1] = (positions[i * 3 + 1] - bounds.min[1]) / spanY;
+  }
+
+  const normals = computeSmoothNormals(positions, indices, vertexCount);
+
+  return {
+    name,
+    positions,
+    normals,
+    uvs,
+    indices,
+    vertexCount,
+    triangleCount: indices.length / 3,
+    bounds
+  };
+}
+
+/**
+ * Universal authentic indexed mesh decoder.
+ * Extracts vertex positions from vertex buffer and binds authentic 16-bit index buffers.
+ * Zero synthetic triangle-strip generation when indexBuffer is supplied.
+ */
+export function decodeAuthenticIndexedMesh(
+  vertexBuffer: Uint8Array,
+  indexBuffer?: Uint8Array,
+  stride: number = 8,
+  coordLimit: number = 25.0,
+  name: string = "Authentic_Indexed_Mesh"
+): DecodedMesh {
+  const view = new DataView(vertexBuffer.buffer, vertexBuffer.byteOffset, vertexBuffer.byteLength);
+  const count = Math.floor(vertexBuffer.byteLength / stride);
+
+  const rawPoints: number[] = [];
+  for (let i = 0; i < count; i++) {
+    const hx = view.getUint16(i * stride + 0, true);
+    const hy = view.getUint16(i * stride + 2, true);
+    const hz = view.getUint16(i * stride + 4, true);
+
+    const x = float16ToFloat32(hx);
+    const y = float16ToFloat32(hy);
+    const z = float16ToFloat32(hz);
+
+    if (Number.isFinite(x) && Number.isFinite(y) && Number.isFinite(z)) {
+      if (Math.abs(x) < coordLimit && Math.abs(y) < coordLimit && Math.abs(z) < coordLimit) {
+        rawPoints.push(x, y, z);
+      }
+    }
+  }
+
+  const vertexCount = rawPoints.length / 3;
+  const positions = new Float32Array(rawPoints);
+  const bounds = computeBounds(positions);
+
+  let indices: Uint16Array;
+  if (indexBuffer && indexBuffer.length >= 6) {
+    const idxCount = Math.floor(indexBuffer.length / 2);
+    indices = new Uint16Array(indexBuffer.buffer, indexBuffer.byteOffset, idxCount);
+  } else {
+    const rawIndices: number[] = [];
+    for (let i = 0; i < vertexCount - 2; i++) {
+      if (i % 2 === 0) {
+        rawIndices.push(i, i + 1, i + 2);
+      } else {
+        rawIndices.push(i + 1, i, i + 2);
+      }
+    }
+    indices = new Uint16Array(rawIndices);
+  }
 
   const uvs = new Float32Array(vertexCount * 2);
   const spanX = Math.max(bounds.size[0], 0.01);
