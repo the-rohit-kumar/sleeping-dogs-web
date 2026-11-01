@@ -428,6 +428,105 @@ export const AUTHENTIC_TRACKS: Record<string, AudioTrackInfo> = {
     sampleRate: 48000,
     channels: 1,
     isLoop: false
+  },
+  wiretap_tuner_hum: {
+    id: 'wiretap_tuner_hum',
+    name: 'Wiretap Resonance Frequency Tuner Hum',
+    source: 'SFX.pck (Stream 131215c8 @ 0x385d1c81)',
+    description: 'Oscilloscope electronic resonance hum during wiretap calibration',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  warehouse_alarm: {
+    id: 'warehouse_alarm',
+    name: 'Dogeyes Warehouse Alarm Siren',
+    source: 'SFX.pck (Stream 2667881 @ 0x0985d257)',
+    description: 'Dockside warehouse industrial security alarm and klaxon',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  smg_fire_burst: {
+    id: 'smg_fire_burst',
+    name: 'Automatic SMG Fire Burst',
+    source: 'SFX.pck (Stream 05b20d4a @ 0x19325c91)',
+    description: 'High-cyclic automatic submachine gun suppression fire burst',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  truck_engine_rev: {
+    id: 'truck_engine_rev',
+    name: 'Delivery Truck Engine Rev',
+    source: 'SFX.pck (Stream 24476605 @ 0x0d528ab2)',
+    description: 'Heavy commercial flatbed truck diesel turbo combustion and rev',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  chapter1_finale_fanfare: {
+    id: 'chapter1_finale_fanfare',
+    name: 'Chapter 1 Grand Orchestral Fanfare',
+    source: 'SFX.pck (Stream 2530870 @ 0x0984a0ab)',
+    description: 'Grand symphonic Hong Kong cinematic fanfare for Chapter 1 completion',
+    sampleRate: 48000,
+    channels: 2,
+    isLoop: false
+  },
+  pendrew_listening_in: {
+    id: 'pendrew_listening_in',
+    name: 'Superintendent Pendrew Wiretap Orders',
+    source: 'English(US).pck (Stream 18011a82 @ 0x18011a82)',
+    description: 'Pendrew instructs Wei Shen on planting the listening device in Golden Koi',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  winston_office_secret: {
+    id: 'winston_office_secret',
+    name: 'Winston Chu Office Wiretap Recording',
+    source: 'English(US).pck (Stream 1802633c @ 0x1802633c)',
+    description: 'Wiretap captures Winston Chu and Conny discussing Water Street triad plans',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  raymond_chain_warning: {
+    id: 'raymond_chain_warning',
+    name: 'Inspector Raymond Mak Chain of Command Warning',
+    source: 'English(US).pck (Stream 1804a15c @ 0x1804a15c)',
+    description: 'Raymond Mak reprimands Wei Shen and questions his police loyalties',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  wei_mak_defiance: {
+    id: 'wei_mak_defiance',
+    name: 'Wei Shen Undercover Resolve',
+    source: 'English(US).pck (Stream 18069424 @ 0x18069424)',
+    description: 'Wei reminds Mak that real undercover work requires gaining their trust',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  dogeyes_warehouse_taunt: {
+    id: 'dogeyes_warehouse_taunt',
+    name: 'Dogeyes Warehouse Confrontation',
+    source: 'English(US).pck (Stream 18085874 @ 0x18085874)',
+    description: 'Dogeyes enforcers ambush Wei Shen at the North Point seafood warehouse',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  uncle_po_tea_meeting: {
+    id: 'uncle_po_tea_meeting',
+    name: 'Uncle Po Sun On Yee Dragon Head Meeting',
+    source: 'English(US).pck (Stream 1808e0dc @ 0x1808e0dc)',
+    description: 'Sun On Yee Dragon Head Uncle Po receives Wei Shen and grants Red Pole recognition',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
   }
 };
 

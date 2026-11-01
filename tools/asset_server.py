@@ -287,6 +287,72 @@ AUDIO_TRACKS = {
         "offset": 0x55454af6,
         "size": 6595,
         "name": "Vehicular Tire Blowout and Rim Friction"
+    },
+    "wiretap_tuner_hum": {
+        "pck": SFX_PCK,
+        "offset": 0x385d1c81,
+        "size": 4898,
+        "name": "Wiretap Resonance Frequency Tuner Hum"
+    },
+    "warehouse_alarm": {
+        "pck": SFX_PCK,
+        "offset": 0x0985d257,
+        "size": 57305,
+        "name": "Dogeyes Docks Warehouse Siren & Alarm"
+    },
+    "smg_fire_burst": {
+        "pck": SFX_PCK,
+        "offset": 0x19325c91,
+        "size": 4902,
+        "name": "Automatic SMG Gunfire Burst"
+    },
+    "truck_engine_rev": {
+        "pck": SFX_PCK,
+        "offset": 0x0d528ab2,
+        "size": 14194,
+        "name": "Heavy Getaway Delivery Truck Engine Rev"
+    },
+    "chapter1_finale_fanfare": {
+        "pck": SFX_PCK,
+        "offset": 0x0984a0ab,
+        "size": 78252,
+        "name": "Chapter 1 Sun On Yee Initiation Grand Fanfare"
+    },
+    "pendrew_listening_in": {
+        "pck": ENG_PCK,
+        "offset": 0x18011a82,
+        "size": 32277,
+        "name": "Superintendent Pendrew Golden Koi Wiretap Orders"
+    },
+    "winston_office_secret": {
+        "pck": ENG_PCK,
+        "offset": 0x1802633c,
+        "size": 32687,
+        "name": "Winston Chu Private Office Intercepted Wiretap"
+    },
+    "raymond_chain_warning": {
+        "pck": ENG_PCK,
+        "offset": 0x1804a15c,
+        "size": 44242,
+        "name": "Inspector Raymond Mak Chain of Command Warning"
+    },
+    "wei_mak_defiance": {
+        "pck": ENG_PCK,
+        "offset": 0x18069424,
+        "size": 39806,
+        "name": "Wei Shen Undercover Resolve and Defiance"
+    },
+    "dogeyes_warehouse_taunt": {
+        "pck": ENG_PCK,
+        "offset": 0x18085874,
+        "size": 34920,
+        "name": "Dogeyes Warehouse Ambush Confrontation"
+    },
+    "uncle_po_tea_meeting": {
+        "pck": ENG_PCK,
+        "offset": 0x1808e0dc,
+        "size": 46532,
+        "name": "Sun On Yee Mountain Master Uncle Po Tea Ceremony"
     }
 }
 

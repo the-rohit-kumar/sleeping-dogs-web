@@ -61,6 +61,19 @@ export type StoryStage =
   | 'ch1_popstar_surveillance_feed'
   | 'ch1_popstar_ambush_brawl'
   | 'ch1_popstar_bust_completed'
+  | 'ch1_listening_in_briefing'
+  | 'ch1_listening_in_scaffolding'
+  | 'ch1_listening_in_tuner'
+  | 'ch1_listening_in_plant_bug'
+  | 'ch1_listening_in_escape'
+  | 'ch1_chain_command_rendezvous'
+  | 'ch1_chain_command_dialogue'
+  | 'ch1_payback_warehouse_infiltrate'
+  | 'ch1_payback_warehouse_firefight'
+  | 'ch1_payback_vehicular_chase'
+  | 'ch1_payback_completed'
+  | 'ch1_uncle_po_ceremony'
+  | 'ch1_chapter1_completed'
   | 'free_roam';
 
 export interface DialogueLine {
@@ -1276,6 +1289,391 @@ export class CampaignStoryEngine {
   }
 
   /**
+   * Chapter 1 Mission 7: "Listening In"
+   * Stage 1: Briefing with Superintendent Thomas Pendrew
+   */
+  public startMission7ListeningIn(
+    sceneGraph: SceneGraph,
+    crowdSystem: CrowdSystem,
+    cameraController: CameraController,
+    audioEngine: AudioEngine
+  ): void {
+    this.stage = 'ch1_listening_in_briefing';
+
+    audioEngine.playTrack('radio_static_burst').catch(() => {});
+
+    const script: DialogueLine[] = [
+      {
+        speaker: 'SUPERINTENDENT THOMAS PENDREW',
+        speakerColor: '#38bdf8',
+        text: "Wei, Winston's Water Street crew is planning something big against Dogeyes. Take this wiretap. Infiltrate the Golden Koi through the kitchen roof.",
+        audioKey: 'pendrew_listening_in',
+        durationSec: 5.5,
+        cameraEye: [-3.5, 1.8, 20.0],
+        cameraTarget: [-2.2, 1.4, 22.5]
+      },
+      {
+        speaker: 'WEI SHEN',
+        speakerColor: '#facc15',
+        text: "Understood, Superintendent. I'll climb the bamboo scaffolding, tune the frequency bug, and plant it in Winston's back office.",
+        durationSec: 4.8,
+        cameraEye: [-1.2, 1.7, 24.0],
+        cameraTarget: [-2.2, 1.4, 22.5]
+      }
+    ];
+
+    this.playCutscene(script, cameraController, audioEngine, () => {
+      this.stage = 'ch1_listening_in_scaffolding';
+      this.endCutscene(cameraController);
+
+      this.updateHUD(
+        'MISSION 7: LISTENING IN',
+        '📍 Infiltrate Golden Koi Rooftop & Access Kitchen Vent Shaft [-2.2, 24.0]'
+      );
+
+      if (this.actionPrompt) {
+        this.actionPrompt.style.display = 'block';
+        this.actionPrompt.textContent = '🪜 [F] CLIMB BAMBOO SCAFFOLDING & CALIBRATE WIRETAP 🪜';
+        this.actionPrompt.style.background = 'rgba(56, 189, 248, 0.95)';
+      }
+    });
+  }
+
+  /**
+   * Mission 7 Stage 2: Wiretap Resonance Frequency Tuner
+   */
+  public startWiretapTuning(
+    tunerMinigame: any,
+    cameraController: CameraController,
+    audioEngine: AudioEngine
+  ): void {
+    this.stage = 'ch1_listening_in_tuner';
+
+    if (this.actionPrompt) this.actionPrompt.style.display = 'none';
+
+    this.updateHUD(
+      'MISSION 7: LISTENING IN — FREQUENCY CALIBRATION',
+      '📻 Tune Wiretap Resonance to 742.0 MHz: Align Sine Waves to Eliminate Static'
+    );
+
+    if (tunerMinigame) {
+      tunerMinigame.startTuner(742.0, (res: any) => {
+        if (res.success) {
+          const sceneGraph = (window as any).renderer?.sceneGraph;
+          const crowdSystem = (window as any).crowdSystem;
+          if (sceneGraph && crowdSystem) {
+            this.plantWiretapInOffice(cameraController, audioEngine, sceneGraph, crowdSystem);
+          }
+        }
+      });
+    }
+  }
+
+  /**
+   * Mission 7 Stage 3: Plant Bug & Intercept Golden Koi Audio Feed
+   */
+  public plantWiretapInOffice(
+    cameraController: CameraController,
+    audioEngine: AudioEngine,
+    sceneGraph: SceneGraph,
+    crowdSystem: CrowdSystem
+  ): void {
+    this.stage = 'ch1_listening_in_plant_bug';
+
+    // Focus camera on Winston's private office
+    cameraController.setCinematicShot([-3.8, 2.2, 26.5], [-2.2, 1.5, 24.0], true);
+
+    audioEngine.playTrack('wiretap_tuner_hum').catch(() => {});
+
+    const script: DialogueLine[] = [
+      {
+        speaker: 'WIRETAP INTERCEPT // WINSTON CHU',
+        speakerColor: '#ef4444',
+        text: "Conny, tell our boys in Aberdeen to lock down the warehouse. If Dogeyes touches our jade shipment, we go to war.",
+        audioKey: 'winston_office_secret',
+        durationSec: 5.5,
+        cameraEye: [-3.8, 2.2, 26.5],
+        cameraTarget: [-2.2, 1.5, 24.0]
+      }
+    ];
+
+    this.playCutscene(script, cameraController, audioEngine, () => {
+      this.completeMission7ListeningIn(cameraController, audioEngine);
+    });
+  }
+
+  /**
+   * Mission 7 Completion: Bug Planted & Intel Secured
+   */
+  public completeMission7ListeningIn(cameraController: CameraController, audioEngine: AudioEngine): void {
+    this.stage = 'ch1_listening_in_escape';
+    this.endCutscene(cameraController);
+
+    audioEngine.playTrack('mission_fanfare').catch(() => {});
+
+    this.updateHUD(
+      'MISSION 7 COMPLETED: LISTENING IN',
+      '🏆 WIRETAP ACTIVE • WATER STREET INTEL TRANSMITTING • POLICE SCORE +500 • TRIAD SCORE +300'
+    );
+
+    if (this.actionPrompt) {
+      this.actionPrompt.style.display = 'block';
+      this.actionPrompt.textContent = '🏆 MISSION 7 COMPLETED • CASE ADVANCED: CHAIN OF COMMAND UNLOCKED 🏆';
+      this.actionPrompt.style.background = 'rgba(34, 197, 94, 0.95)';
+      setTimeout(() => {
+        if (this.actionPrompt) this.actionPrompt.style.display = 'none';
+      }, 5000);
+    }
+  }
+
+  /**
+   * Chapter 1 Mission 8: "Chain of Command"
+   * Raymond Mak confrontation & police tension
+   */
+  public startMission8ChainOfCommand(
+    sceneGraph: SceneGraph,
+    crowdSystem: CrowdSystem,
+    cameraController: CameraController,
+    audioEngine: AudioEngine
+  ): void {
+    this.stage = 'ch1_chain_command_rendezvous';
+
+    audioEngine.playTrack('police_radio_call').catch(() => {});
+
+    const script: DialogueLine[] = [
+      {
+        speaker: 'INSPECTOR RAYMOND MAK (HKPD)',
+        speakerColor: '#f97316',
+        text: "Shen! You crossed the line at Club Bam Bam and now you're breaking into restaurants. You're forgetting which side of the badge you stand on.",
+        audioKey: 'raymond_chain_warning',
+        durationSec: 5.8,
+        cameraEye: [0.5, 1.8, 4.0],
+        cameraTarget: [-1.2, 1.4, 2.0]
+      },
+      {
+        speaker: 'WEI SHEN',
+        speakerColor: '#facc15',
+        text: "I haven't forgotten anything, Mak. If I play by your book, Dogeyes kills more people. I do whatever it takes to win Winston's trust.",
+        audioKey: 'wei_mak_defiance',
+        durationSec: 5.0,
+        cameraEye: [-2.5, 1.8, 0.5],
+        cameraTarget: [-1.2, 1.4, 2.0]
+      }
+    ];
+
+    this.playCutscene(script, cameraController, audioEngine, () => {
+      this.stage = 'ch1_chain_command_dialogue';
+      this.endCutscene(cameraController);
+
+      audioEngine.playTrack('mission_fanfare').catch(() => {});
+
+      this.updateHUD(
+        'MISSION 8 COMPLETED: CHAIN OF COMMAND',
+        '🏆 POLICE PROTOCOL MAINTAINED • UNDERCOVER COVER SECURE • COP SCORE +400 • ADVANCE TO PAYBACK'
+      );
+
+      if (this.actionPrompt) {
+        this.actionPrompt.style.display = 'block';
+        this.actionPrompt.textContent = '🏆 MISSION 8 COMPLETED • HIGH-STAKES WAREHOUSE ASSAULT UNLOCKED 🏆';
+        this.actionPrompt.style.background = 'rgba(34, 197, 94, 0.95)';
+        setTimeout(() => {
+          if (this.actionPrompt) this.actionPrompt.style.display = 'none';
+        }, 5000);
+      }
+    });
+  }
+
+  /**
+   * Chapter 1 Mission 9: "Popstar Lead 2 / Payback"
+   * Warehouse Cover Shootout & High-Speed Vehicular Pursuit
+   */
+  public startMission9Payback(
+    sceneGraph: SceneGraph,
+    crowdSystem: CrowdSystem,
+    cameraController: CameraController,
+    audioEngine: AudioEngine
+  ): void {
+    this.stage = 'ch1_payback_warehouse_infiltrate';
+    this.thugsDefeated = 0;
+    this.thugsTotal = 3;
+
+    crowdSystem.spawnWarehouseEnforcers(sceneGraph);
+
+    this.updateHUD(
+      'MISSION 9: PAYBACK — ABERDEEN WAREHOUSE',
+      '📍 Breach Dogeyes Seafood Warehouse [28.0, 40.0] & Eliminate Armed Guard Contingent'
+    );
+
+    if (this.actionPrompt) {
+      this.actionPrompt.style.display = 'block';
+      this.actionPrompt.textContent = '⚔️ [F] BREACH WAREHOUSE & COMMENCE GUNFIGHT ⚔️';
+      this.actionPrompt.style.background = 'rgba(239, 68, 68, 0.95)';
+    }
+  }
+
+  public startWarehouseFirefight(
+    cameraController: CameraController,
+    audioEngine: AudioEngine,
+    sceneGraph: SceneGraph,
+    crowdSystem: CrowdSystem
+  ): void {
+    this.stage = 'ch1_payback_warehouse_firefight';
+    this.thugsDefeated = 0;
+    this.thugsTotal = 3;
+
+    audioEngine.playTrack('warehouse_alarm').catch(() => {});
+    audioEngine.playTrack('smg_fire_burst').catch(() => {});
+
+    if (this.actionPrompt) this.actionPrompt.style.display = 'none';
+
+    const script: DialogueLine[] = [
+      {
+        speaker: 'DOGEYES ENFORCER',
+        speakerColor: '#ef4444',
+        text: "It's Wei Shen! Winston sent his dog! Light him up, don't let him near the trucks!",
+        audioKey: 'dogeyes_warehouse_taunt',
+        durationSec: 4.5,
+        cameraEye: [29.5, 2.2, 38.0],
+        cameraTarget: [27.0, 1.4, 40.5]
+      }
+    ];
+
+    this.playCutscene(script, cameraController, audioEngine, () => {
+      this.endCutscene(cameraController);
+
+      this.updateHUD(
+        'MISSION 9: PAYBACK — WAREHOUSE FIREFIGHT',
+        `⚔️ Eliminate Dogeyes' Armed Enforcers (${this.thugsDefeated}/${this.thugsTotal})! [Press G for Handgun / Cover Shooting]`
+      );
+
+      if (this.actionPrompt) {
+        this.actionPrompt.style.display = 'block';
+        this.actionPrompt.textContent = '🔫 COVER SHOOTING ACTIVE • PRESS [G] FOR HANDGUN • ELIMINATE GUARDS 🔫';
+        this.actionPrompt.style.background = 'rgba(234, 179, 8, 0.95)';
+        setTimeout(() => {
+          if (this.actionPrompt) this.actionPrompt.style.display = 'none';
+        }, 4000);
+      }
+    });
+  }
+
+  public startVehicularPursuit(
+    cameraController: CameraController,
+    audioEngine: AudioEngine,
+    vehicleController: any
+  ): void {
+    this.stage = 'ch1_payback_vehicular_chase';
+
+    audioEngine.playTrack('truck_engine_rev').catch(() => {});
+    audioEngine.playTrack('tire_blowout').catch(() => {});
+
+    this.updateHUD(
+      'MISSION 9: PAYBACK — HIGH-SPEED VEHICULAR PURSUIT',
+      '🏎️ Pursue Dogeyes Getaway Truck! Lean out window and shoot tires [Right-Click Aim, Left-Click Fire]!'
+    );
+
+    if (this.actionPrompt) {
+      this.actionPrompt.style.display = 'block';
+      this.actionPrompt.textContent = '🏎️ [F] CRASH & DISABLE GETAWAY VEHICLE WITH TIRE TAKEDOWN 🏎️';
+      this.actionPrompt.style.background = 'rgba(239, 68, 68, 0.95)';
+    }
+  }
+
+  public completeMission9Payback(cameraController: CameraController, audioEngine: AudioEngine): void {
+    this.stage = 'ch1_payback_completed';
+    audioEngine.playTrack('tire_blowout').catch(() => {});
+    audioEngine.playTrack('mission_fanfare').catch(() => {});
+
+    this.updateHUD(
+      'MISSION 9 COMPLETED: PAYBACK',
+      '🏆 WAREHOUSE SECURED • GETAWAY VEHICLE DISABLED • COP SCORE +600 • TRIAD SCORE +500'
+    );
+
+    if (this.actionPrompt) {
+      this.actionPrompt.style.display = 'block';
+      this.actionPrompt.textContent = '🏆 MISSION 9 COMPLETED • CHAPTER 1 FINALE: UNCLE PO SUMMONS UNLOCKED 🏆';
+      this.actionPrompt.style.background = 'rgba(34, 197, 94, 0.95)';
+      setTimeout(() => {
+        if (this.actionPrompt) this.actionPrompt.style.display = 'none';
+      }, 5000);
+    }
+  }
+
+  /**
+   * Chapter 1 Grand Finale: Mission 10 ("Uncle Po / A Favor for Winston")
+   * Council ceremony with Sun On Yee Mountain Master Uncle Po
+   */
+  public startMission10UnclePo(
+    sceneGraph: SceneGraph,
+    crowdSystem: CrowdSystem,
+    cameraController: CameraController,
+    audioEngine: AudioEngine
+  ): void {
+    this.stage = 'ch1_uncle_po_ceremony';
+
+    crowdSystem.spawnUnclePoCouncil(sceneGraph);
+
+    const script: DialogueLine[] = [
+      {
+        speaker: 'WINSTON CHU (WATER STREET RED POLE)',
+        speakerColor: '#ef4444',
+        text: "Uncle Po, this is Wei Shen. He broke Benny, crushed Dogeyes' drug pipeline, and took back our warehouse in Aberdeen.",
+        durationSec: 5.0,
+        cameraEye: [-1.2, 1.8, 25.5],
+        cameraTarget: [0.0, 1.5, 28.0]
+      },
+      {
+        speaker: 'UNCLE PO (SUN ON YEE DRAGON HEAD)',
+        speakerColor: '#eab308',
+        text: "Wei Shen... your family has deep roots in North Point. You have shown strength and loyalty to the Sun On Yee. From today, you sit at our table as a recognized Red Pole brother.",
+        audioKey: 'uncle_po_tea_meeting',
+        durationSec: 6.5,
+        cameraEye: [1.5, 1.9, 26.5],
+        cameraTarget: [0.0, 1.5, 28.0]
+      },
+      {
+        speaker: 'WEI SHEN',
+        speakerColor: '#facc15',
+        text: "Thank you, Mountain Master. I will honor the Sun On Yee brotherhood.",
+        durationSec: 4.0,
+        cameraEye: [-1.8, 1.7, 26.0],
+        cameraTarget: [0.0, 1.5, 28.0]
+      }
+    ];
+
+    this.playCutscene(script, cameraController, audioEngine, () => {
+      this.completeChapter1(cameraController, audioEngine);
+    });
+  }
+
+  /**
+   * Complete Chapter 1: North Point & Transition to Chapter 2: Central
+   */
+  public completeChapter1(cameraController: CameraController, audioEngine: AudioEngine): void {
+    this.stage = 'ch1_chapter1_completed';
+    this.endCutscene(cameraController);
+
+    audioEngine.playTrack('chapter1_finale_fanfare').catch(() => {});
+
+    this.updateHUD(
+      '🏆 CHAPTER 1: NORTH POINT COMPLETED 🏆',
+      '🌟 SUN ON YEE RED POLE PROMOTION • CENTRAL DISTRICT UNLOCKED • PROCEED TO CHAPTER 2 🌟'
+    );
+
+    if (this.actionPrompt) {
+      this.actionPrompt.style.display = 'block';
+      this.actionPrompt.textContent = '🌟 CHAPTER 1 COMPLETED • SUN ON YEE RED POLE CEREMONY CONCLUDED 🌟';
+      this.actionPrompt.style.background = 'linear-gradient(90deg, #eab308, #22c55e)';
+      this.actionPrompt.style.color = '#000';
+      this.actionPrompt.style.fontWeight = '800';
+      setTimeout(() => {
+        if (this.actionPrompt) this.actionPrompt.style.display = 'none';
+        this.stage = 'free_roam';
+      }, 7000);
+    }
+  }
+
+  /**
    * Cutscene Player & Timeline Engine
    */
   public playCutscene(
@@ -1436,6 +1834,33 @@ export class CampaignStoryEngine {
           this.actionPrompt.style.background = 'rgba(234, 179, 8, 0.95)';
         }
       }
+    } else if (this.stage === 'ch1_listening_in_scaffolding') {
+      const distToKoi = Math.hypot(playerPos[0] - (-2.2), playerPos[2] - 24.0);
+      if (distToKoi <= 6.5) {
+        if (this.actionPrompt) {
+          this.actionPrompt.style.display = 'block';
+          this.actionPrompt.textContent = '🪜 [F] CLIMB ROOFTOP & CALIBRATE WIRETAP 🪜';
+          this.actionPrompt.style.background = 'rgba(56, 189, 248, 0.95)';
+        }
+      }
+    } else if (this.stage === 'ch1_payback_warehouse_infiltrate') {
+      const distToWh = Math.hypot(playerPos[0] - 28.0, playerPos[2] - 40.0);
+      if (distToWh <= 6.5) {
+        if (this.actionPrompt) {
+          this.actionPrompt.style.display = 'block';
+          this.actionPrompt.textContent = '⚔️ [F] BREACH WAREHOUSE & COMMENCE GUNFIGHT ⚔️';
+          this.actionPrompt.style.background = 'rgba(239, 68, 68, 0.95)';
+        }
+      }
+    } else if (this.stage === 'ch1_uncle_po_ceremony') {
+      const distToCouncil = Math.hypot(playerPos[0] - 0.0, playerPos[2] - 28.0);
+      if (distToCouncil <= 5.0) {
+        if (this.actionPrompt) {
+          this.actionPrompt.style.display = 'block';
+          this.actionPrompt.textContent = '🍵 [F] MEET MOUNTAIN MASTER UNCLE PO 🍵';
+          this.actionPrompt.style.background = 'rgba(234, 179, 8, 0.95)';
+        }
+      }
     }
   }
 
@@ -1569,6 +1994,21 @@ export class CampaignStoryEngine {
           this.completePopstarDrugBust(cameraController, audioEngine);
         }, 1200);
       }
+    } else if (this.stage === 'ch1_payback_warehouse_firefight') {
+      this.thugsDefeated++;
+      combatSystem.policeScore += 300;
+      combatSystem.triadScore += 300;
+      this.updateHUD(
+        'MISSION 9: PAYBACK — WAREHOUSE FIREFIGHT',
+        `⚔️ Eliminate Dogeyes' Armed Enforcers (${this.thugsDefeated}/${this.thugsTotal})! [Press G for Handgun / Melee]`
+      );
+
+      if (this.thugsDefeated >= this.thugsTotal) {
+        setTimeout(() => {
+          const veh = (window as any).vehicleController;
+          this.startVehicularPursuit(cameraController, audioEngine, veh);
+        }, 1200);
+      }
     }
   }
 
@@ -1598,6 +2038,10 @@ export class CampaignStoryEngine {
       this.stage === 'ch1_popstar_surveillance_feed' ||
       this.stage === 'ch1_popstar_ambush_brawl'
     ) return [24.0, -48.0];
+    if (this.stage === 'ch1_listening_in_scaffolding' || this.stage === 'ch1_listening_in_tuner' || this.stage === 'ch1_listening_in_plant_bug') return [-2.2, 24.0];
+    if (this.stage === 'ch1_chain_command_rendezvous') return [-1.2, 2.0];
+    if (this.stage === 'ch1_payback_warehouse_infiltrate' || this.stage === 'ch1_payback_warehouse_firefight' || this.stage === 'ch1_payback_vehicular_chase') return [28.0, 40.0];
+    if (this.stage === 'ch1_uncle_po_ceremony') return [0.0, 28.0];
     return null;
   }
 

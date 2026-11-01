@@ -420,6 +420,34 @@ export class CrowdSystem {
     ]);
   }
 
+  public spawnGoldenKoiNightWatch(sceneGraph: SceneGraph): void {
+    this.clearStoryNPCs(sceneGraph);
+    this.spawnStoryBatch(sceneGraph, [
+      { id: 'koi-watchman-1', typeId: 'sun-on-yee', x: -1.5, z: 22.0, hp: 110, name: 'Water Street Night Watchman', hostile: true, state: 'circling', color: [0.15, 0.15, 0.2] },
+      { id: 'koi-watchman-2', typeId: 'triad-enforcer', x: -3.0, z: 25.5, hp: 120, name: 'Golden Koi Back-Door Guard', hostile: true, state: 'circling', color: [0.2, 0.15, 0.15] }
+    ]);
+  }
+
+  public spawnWarehouseEnforcers(sceneGraph: SceneGraph): void {
+    this.clearStoryNPCs(sceneGraph);
+    this.spawnStoryBatch(sceneGraph, [
+      { id: 'dogeyes-guard-1', typeId: 'triad-enforcer', x: 28.0, z: 40.0, hp: 130, name: 'Dogeyes Heavy Enforcer', hostile: true, state: 'circling', color: [0.85, 0.2, 0.1] },
+      { id: 'dogeyes-guard-2', typeId: 'triad-enforcer', x: 26.5, z: 38.5, hp: 120, name: '18K Gun Guard', hostile: true, state: 'circling', color: [0.25, 0.25, 0.3] },
+      { id: 'dogeyes-guard-3', typeId: 'sun-on-yee', x: 30.0, z: 42.0, hp: 125, name: '18K Muscle', hostile: true, state: 'circling', color: [0.75, 0.15, 0.15] },
+      { id: 'dogeyes-truck-driver', typeId: 'pedestrian', x: 27.0, z: 43.5, hp: 100, name: 'Getaway Truck Driver', hostile: true, state: 'panicked', color: [0.4, 0.4, 0.4] }
+    ]);
+  }
+
+  public spawnUnclePoCouncil(sceneGraph: SceneGraph): void {
+    this.clearStoryNPCs(sceneGraph);
+    this.spawnStoryBatch(sceneGraph, [
+      { id: 'uncle-po', typeId: 'pedestrian', x: 0.0, z: 28.0, hp: 500, name: 'Uncle Po (Sun On Yee Dragon Head)', hostile: false, state: 'talking', color: [0.95, 0.85, 0.3] },
+      { id: 'winston-chu', typeId: 'sun-on-yee', x: -1.8, z: 27.2, hp: 400, name: 'Winston Chu (Water Street Red Pole)', hostile: false, state: 'talking', color: [0.85, 0.2, 0.2] },
+      { id: 'po-bodyguard-1', typeId: 'triad-enforcer', x: 1.8, z: 29.5, hp: 200, name: 'Dragon Head Honor Guard', hostile: false, state: 'idle', color: [0.1, 0.1, 0.12] },
+      { id: 'po-bodyguard-2', typeId: 'triad-enforcer', x: -2.2, z: 29.5, hp: 200, name: 'Dragon Head Honor Guard', hostile: false, state: 'idle', color: [0.1, 0.1, 0.12] }
+    ]);
+  }
+
   /**
    * Updates crowd locomotion, active brawler combat AI, red-flash windups, and ragdoll knockouts
    */

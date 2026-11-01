@@ -42,6 +42,7 @@ import { WeatherSystem, WeatherMode } from './weather-system';
 import { CampaignStoryEngine } from './campaign-story';
 import { HackingMinigame } from './hacking-minigame';
 import { GunplaySystem } from './gunplay-system';
+import { FrequencyTunerMinigame } from './frequency-tuner';
 
 window.addEventListener('DOMContentLoaded', async () => {
     const canvas = document.getElementById('viewport') as HTMLCanvasElement;
@@ -60,6 +61,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     const weatherSystem = new WeatherSystem();
     const campaignStory = new CampaignStoryEngine();
     const hackingMinigame = new HackingMinigame(audioEngine);
+    const frequencyTuner = new FrequencyTunerMinigame(audioEngine);
     const gunplaySystem = new GunplaySystem(
         renderer.sceneGraph!,
         characterController,
@@ -72,6 +74,7 @@ window.addEventListener('DOMContentLoaded', async () => {
     (window as any).audioEngine = audioEngine;
     (window as any).renderer = renderer;
     (window as any).hackingMinigame = hackingMinigame;
+    (window as any).frequencyTuner = frequencyTuner;
     (window as any).gunplaySystem = gunplaySystem;
 
     // Link weather system to renderer
@@ -399,6 +402,30 @@ window.addEventListener('DOMContentLoaded', async () => {
             campaignStory.startPopstarAmbushBrawl(cameraController, audioEngine, renderer.sceneGraph, crowdSystem);
         } else if (campaignStory.stage === 'ch1_popstar_ambush_brawl') {
             campaignStory.completePopstarDrugBust(cameraController, audioEngine);
+        } else if (campaignStory.stage === 'ch1_popstar_bust_completed' || campaignStory.stage === 'ch1_listening_in_briefing') {
+            campaignStory.startMission7ListeningIn(renderer.sceneGraph, crowdSystem, cameraController, audioEngine);
+        } else if (campaignStory.stage === 'ch1_listening_in_scaffolding') {
+            campaignStory.startWiretapTuning(frequencyTuner, cameraController, audioEngine);
+        } else if (campaignStory.stage === 'ch1_listening_in_tuner') {
+            campaignStory.plantWiretapInOffice(cameraController, audioEngine, renderer.sceneGraph, crowdSystem);
+        } else if (campaignStory.stage === 'ch1_listening_in_plant_bug') {
+            campaignStory.completeMission7ListeningIn(cameraController, audioEngine);
+        } else if (campaignStory.stage === 'ch1_listening_in_escape' || campaignStory.stage === 'ch1_chain_command_rendezvous') {
+            campaignStory.startMission8ChainOfCommand(renderer.sceneGraph, crowdSystem, cameraController, audioEngine);
+        } else if (campaignStory.stage === 'ch1_chain_command_dialogue') {
+            campaignStory.startMission9Payback(renderer.sceneGraph, crowdSystem, cameraController, audioEngine);
+        } else if (campaignStory.stage === 'ch1_payback_warehouse_infiltrate') {
+            campaignStory.startWarehouseFirefight(cameraController, audioEngine, renderer.sceneGraph, crowdSystem);
+        } else if (campaignStory.stage === 'ch1_payback_warehouse_firefight') {
+            campaignStory.startVehicularPursuit(cameraController, audioEngine, vehicleController);
+        } else if (campaignStory.stage === 'ch1_payback_vehicular_chase') {
+            campaignStory.completeMission9Payback(cameraController, audioEngine);
+        } else if (campaignStory.stage === 'ch1_payback_completed') {
+            campaignStory.startMission10UnclePo(renderer.sceneGraph, crowdSystem, cameraController, audioEngine);
+        } else if (campaignStory.stage === 'ch1_uncle_po_ceremony') {
+            campaignStory.completeChapter1(cameraController, audioEngine);
+        } else if (campaignStory.stage === 'ch1_chapter1_completed') {
+            campaignStory.startPrologueCinematic(renderer.sceneGraph, crowdSystem, cameraController, audioEngine);
         } else {
             campaignStory.startPrologueCinematic(renderer.sceneGraph, crowdSystem, cameraController, audioEngine);
         }
@@ -672,6 +699,27 @@ window.addEventListener('DOMContentLoaded', async () => {
                 }
             } else if (campaignStory.stage === 'ch1_popstar_surveillance_feed') {
                 campaignStory.startPopstarAmbushBrawl(cameraController, audioEngine, renderer.sceneGraph!, crowdSystem);
+                return;
+            } else if (campaignStory.stage === 'ch1_listening_in_scaffolding') {
+                const distToScaffolding = Math.hypot(characterController.position[0] - (-2.2), characterController.position[2] - 24.0);
+                if (distToScaffolding <= 6.0) {
+                    campaignStory.startWiretapTuning(frequencyTuner, cameraController, audioEngine);
+                    return;
+                }
+            } else if (campaignStory.stage === 'ch1_listening_in_plant_bug') {
+                campaignStory.completeMission7ListeningIn(cameraController, audioEngine);
+                return;
+            } else if (campaignStory.stage === 'ch1_payback_warehouse_infiltrate') {
+                const distToWarehouse = Math.hypot(characterController.position[0] - 28.0, characterController.position[2] - 40.0);
+                if (distToWarehouse <= 8.0) {
+                    campaignStory.startWarehouseFirefight(cameraController, audioEngine, renderer.sceneGraph!, crowdSystem);
+                    return;
+                }
+            } else if (campaignStory.stage === 'ch1_payback_vehicular_chase') {
+                campaignStory.completeMission9Payback(cameraController, audioEngine);
+                return;
+            } else if (campaignStory.stage === 'ch1_uncle_po_ceremony') {
+                campaignStory.completeChapter1(cameraController, audioEngine);
                 return;
             }
             if (vehicleController.canInteract(characterController.position) || vehicleController.isOccupied) {

@@ -305,14 +305,76 @@ flowchart LR
 
 ---
 
-## Upcoming Milestones: Story Campaign Continuation
+## Milestone 13: Chapter 1 Mission 7 ("Listening In" — Golden Koi Wiretap) (Completed)
 
-### Milestone 13: Chapter 1 Mission 7 ("Listening In" — Golden Koi Wiretap)
-- [ ] **Police Wiretap Device Handoff**: Meet Superintendent Thomas Pendrew and Inspector Jane Teng in North Point alleyway.
-- [ ] **Bamboo Scaffolding & Rooftop Infiltration**: Infiltrate Golden Koi restaurant after hours through rooftop kitchen ventilation shaft.
-- [ ] **Wiretap Resonance Frequency Tuner Minigame**: Calibrate audio frequencies on oscilloscope to tune out static and lock onto bug frequency.
-- [ ] **Stealth Planting**: Evade patrolling Triad night watchmen and plant wiretap behind wall clock in Winston Chu's private back office.
+- [X] **Superintendent Thomas Pendrew Briefing**: Briefing on Winston's conflict with Dogeyes with authentic voice dialogue (`English(US).pck` 0x18011a82).
+- [X] **Bamboo Scaffolding & Rooftop Infiltration**: Infiltrate Golden Koi rooftop through ventilation shaft into Winston's private office.
+- [X] **Wiretap Resonance Frequency Tuner Minigame (`client/src/frequency-tuner.ts`)**:
+  - Real-time Canvas 2D oscilloscope waveform rendering with target vs. tuned sine waves.
+  - Interactive dial / slider to align phase and frequency (742.0 MHz) to eliminate static.
+  - Authentic Wwise SFX: `wiretap_tuner_hum` (`SFX.pck` 0x385d1c81), `radio_static_burst`, `ui_chime_granted`.
+- [X] **Stealth Wiretap Planting & Secret Audio Intercept**:
+  - Plant bug in Winston Chu's back office.
+  - Intercept secret conversation of Winston Chu ordering Aberdeen warehouse lockdown (`English(US).pck` 0x1802633c).
 
-### Milestone 14: Chapter 1 Mission 8 ("Chain of Command" / "Payback" — Warehouse Shootout)
-- [ ] **Dockside Warehouse Infiltration**: Cover shooting mechanics against Dogeyes' heavily armed guards.
-- [ ] **Vehicular Drive-By Chase**: High-speed vehicle chase through neon streets, shooting enemy tires for dramatic rollover takedowns.
+---
+
+## Milestone 14: Chapter 1 Mission 8 ("Chain of Command") & Mission 9 ("Payback") (Completed)
+
+- [X] **Mission 8: Inspector Raymond Mak Confrontation**:
+  - Tense dialogue exchange between Wei Shen and Inspector Raymond Mak questioning police loyalty (`English(US).pck` 0x1804a15c, 0x18069424).
+  - Authentic letterbox cinematic camera framing with character speaker cards.
+- [X] **Mission 9: Aberdeen Seafood Warehouse Firefight & Pursuit**:
+  - Breaching Dogeyes' seafood warehouse in Aberdeen with armed guards contingent (`crowdSystem.spawnWarehouseEnforcers`).
+  - Alarm klaxon and SMG gunfire sound effects (`SFX.pck` 0x0985d257, 0x19325c91).
+  - High-speed vehicular pursuit of Dogeyes' getaway truck with truck engine audio (`SFX.pck` 0x0d528ab2).
+  - Vehicular tire takedown disabling enemy vehicle with authentic blowout SFX.
+
+---
+
+## Milestone 15: Chapter 1 Grand Finale — Mission 10 ("Uncle Po / Red Pole Promotion") (Completed)
+
+- [X] **Sun On Yee Mountain Master Council Chamber**:
+  - Authentic tea ceremony with Dragon Head Uncle Po and Water Street Red Pole Winston Chu (`crowdSystem.spawnUnclePoCouncil`).
+  - Uncle Po dialogue welcoming Wei Shen into the inner circle (`English(US).pck` 0x1808e0dc).
+  - Formal promotion of Wei Shen to recognized Sun On Yee Red Pole brother.
+- [X] **Chapter 1 Grand Finale Fanfare & Score Integration**:
+  - Grand orchestral finale fanfare (`SFX.pck` 0x0984a0ab, 1.02MB 48kHz stereo WAV).
+  - Full Cop and Triad XP progression rewards.
+  - Transition to Chapter 1 Completed state (`ch1_chapter1_completed`).
+- [X] **Automated Browser Test Suite Verified (`tools/verify_chapter1_full.js`)**:
+  - Verified Missions 7, 8, 9, and 10 in headless Chrome with **0 page errors and 0 network failures**.
+  - Generated visual verification proof artifacts:
+    - `01_mission7_wiretap_tuning_oscilloscope.png`
+    - `02_mission8_raymond_mak_confrontation.png`
+    - `03_mission9_warehouse_firefight_pursuit.png`
+    - `04_mission10_uncle_po_red_pole_ceremony.png`
+
+---
+
+## Chapter Summary: CHAPTER 1 "NORTH POINT / SUN ON YEE INITIATION" — 100% COMPLETE!
+
+| # | Mission Title | Key Mechanics / Assets | Status |
+|---|---|---|---|
+| **0** | **Prologue: Aberdeen Docks** | Parkour chase, alley brawl, HKPD arrest, letterbox cinematics | **Completed** |
+| **1** | **Going Under** | HKPD interrogation with Mak & Pendrew, holding cells melee brawl with Jackie Ma | **Completed** |
+| **2** | **Vendor Extortion** | Night market shakedown, watch & drink vendor tribute, 18K ambush melee | **Completed** |
+| **3** | **Night Market Chase** | Dirty Ming marketplace sprint, rooftop parkour, balcony knife combat | **Completed** |
+| **4** | **Amanda** | North Point sedan tour escort, Sifu Kwok martial arts temple sparring | **Completed** |
+| **5** | **Club Bam Bam** | Dance floor brawl, VIP lounge table smash, restroom porcelain urinal finisher | **Completed** |
+| **6** | **Popstar Lead 1 / Drug Bust** | 4-digit CCTV hacking minigame, CRT surveillance feed, 9mm handgun gunplay | **Completed** |
+| **7** | **Listening In** | Rooftop infiltration, Canvas 2D oscilloscope frequency tuner, Winston audio bug | **Completed** |
+| **8** | **Chain of Command** | Undercover crisis confrontation with Inspector Raymond Mak | **Completed** |
+| **9** | **Payback** | Aberdeen seafood warehouse firefight, high-speed truck pursuit, tire takedown | **Completed** |
+| **10** | **Uncle Po (Grand Finale)** | Sun On Yee Dragon Head tea ceremony, Red Pole brother promotion, finale fanfare | **Completed** |
+
+---
+
+## Upcoming Chapter: CHAPTER 2 "CENTRAL / DRAGON HEAD POLITICS & BLOODSHED"
+
+### Chapter 2 Overview:
+Wei Shen expands operations into Central District, navigating escalating tensions between Water Street (Winston Chu), Jade Gang (Dogeyes / Big Smile Lee), and the Sun On Yee Dragon Head council:
+- **Mission 11: "The Wedding"** — Escort Winston Chu & Peggy Li to the banquet; defend against sudden 18K mass assault.
+- **Mission 12: "Mrs. Chu's Revenge"** — Hunt down Johnny Ratface and track down the culprits behind the wedding bloodbath.
+- **Mission 13: "Meet the New Boss"** — High-stakes council politics with Broken Nose Jiang and Two-Chin Tsao in Central District.
+- **Mission 14: "The Election"** — Dragon Head succession war, police wiretaps, and luxury sports car pursuits across Hong Kong island.
