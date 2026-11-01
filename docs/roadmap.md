@@ -1,7 +1,9 @@
 # Reconstruction Roadmap & Milestones
 
-This roadmap defines the iterative development stages from initial technical slice to the full browser game simulation.
-All assets are strictly reverse-engineered and streamed directly from the base game (*Sleeping Dogs: Definitive Edition*). **Zero synthetic or placeholder assets.**
+**Authoritative Status Document:** See [`docs/current-state.md`](file:///docs/current-state.md) and [`docs/ANTIGRAVITY_REVIEW_ANSWERS.md`](file:///docs/ANTIGRAVITY_REVIEW_ANSWERS.md) for detailed capability matrices and technical verification.
+
+This roadmap defines the iterative development stages from initial technical slice to the browser game reconstruction.
+The project employs a **hybrid architecture**: authentic vertex positions, texture payloads, and audio bitstreams extracted directly from base-game containers (`Vehicles.big`, `Characters.big`, `Game.big`, `UI.big`, `SFX.pck`, `English(US).pck`), combined with procedural topology, custom WebGL2 shaders, and authored gameplay simulation.
 
 GitHub Repository: [https://github.com/the-rohit-kumar/sleeping-dogs-web](https://github.com/the-rohit-kumar/sleeping-dogs-web)
 
@@ -17,11 +19,13 @@ flowchart LR
     M6 --> M7["Milestone 7: Living World & Rain<br/>(Done)"]
     M7 --> M8["Milestone 8: Shadows & ACES<br/>(Done)"]
     M8 --> M9["Milestone 9: Authentic Materials<br/>(Done)"]
-    M9 --> M10["Milestone 10: Wet Asphalt SSR<br/>(Done)"]
+    M9 --> M10["Milestone 10: Wet Asphalt Reflections<br/>(Done)"]
     M10 --> P1["Phase 1: Martial Arts & Counters<br/>(Done)"]
     P1 --> P2["Phase 2: Street Props & Normal Maps<br/>(Done)"]
-    P2 --> P3["Phase 3: Scaleform HUD & In-Car Radios<br/>(Done)"]
+    P2 --> P3["Phase 3: Canvas HUD & In-Car Radios<br/>(Done)"]
     P3 --> P4["Phase 4: Env Takedowns, Drift & Mission 2<br/>(Done)"]
+    P4 --> P5["Phase 5: Story Missions 3 & 4<br/>(Done)"]
+    P5 --> M11["Milestone 11: Authentic Index Buffers<br/>(Next)"]
 ```
 
 ---
@@ -44,9 +48,9 @@ flowchart LR
 - [X] **Local Read-Only HTTP 206 Streaming Bridge** (`tools/asset_server.py`):
   - Streams byte ranges from multi-gigabyte `.big` containers via standard HTTP `Range` requests (`bytes=start-end`).
   - Zero modifications to user's Steam installation; CORS enabled for browser client.
-- [X] **Zero Synthetic Asset Guarantee**:
-  - All procedural geometry generators (mock coupes, crates) and procedural checkerboard textures purged.
-  - 100% of rendered vertices and pixels originate from genuine game payloads.
+- [X] **Authentic Vertex & Texture Streamer**:
+  - Vertex position streams extracted directly from genuine `.big` payloads via HTTP 206.
+  - *Technical Note:* Topology is currently reconstructed using alternating triangle strips in TypeScript (`mesh-decoder.ts`); true index buffers are targeted in Milestone 11.
 - [X] **Authentic Vehicle Mesh Streamer (2A)**:
   - Streams `Vehicles.big` offset `0x01f0a400` (UID `0x008c038c`, 3,840 bytes).
   - Unpacks 318 authentic half-float (`DXGI_FORMAT_R16G16B16A16_FLOAT`) vehicle chassis coordinates.
@@ -208,7 +212,7 @@ flowchart LR
 
 ## Milestone 8: Real-Time Directional Shadow Mapping, Contact Grounding & ACES Tone Mapping (Completed)
 
-- [X] **Hardware Depth Pass & 2048x2048 Shadow FBO**: Directional shadow mapping pass rendering scene geometry from the primary Hong Kong streetlamp/moonlight perspective into an `R32F` high-precision depth texture.
+- [X] **Hardware Depth Pass & 1024x1024 Shadow FBO**: Directional shadow mapping pass rendering scene geometry from the primary Hong Kong streetlamp/moonlight perspective into a high-precision depth texture (`renderer.ts` `shadowMapSize = 1024`).
 - [X] **4-Tap Poisson Disk PCF Filtering**: Soft penumbra filtering with adaptive slope-scaled depth bias eliminating shadow acne.
 - [X] **ACES Filmic Tone Mapping**: Sleeping Dogs' high-contrast cinematic color grading curve mapping HDR luminance into display-referred dynamic range.
 
@@ -226,18 +230,18 @@ flowchart LR
 
 ---
 
-## Milestone 10: Wet Asphalt SSR, Atmospheric Rain Mist & Headlight Cones (Completed)
+## Milestone 10: Wet Asphalt Reflections, Atmospheric Rain Mist & Headlight Cones (Completed)
 
-- [X] **Wet Asphalt Screen-Space Reflections (SSR)**: Dynamic grazing-angle puddle reflections calculating reflected color vectors across road geometry.
+- [X] **Wet Asphalt Reflections (Analytic SSR Approximation)**: Dynamic grazing-angle puddle reflections calculating anisotropic reflection vectors against 6 predefined neon sign positions and colors (`renderer.ts` lines 367-386).
 - [X] **Dual Vehicle Headlight Cones**: 3D geometric volumetric illumination projecting down the street lane from vehicle headlamps.
 - [X] **Volumetric Atmospheric Rain Fog**: Mie forward in-scattering ($g = 0.55$) simulating thick coastal Hong Kong rain mist and neon light haloes.
 
 ---
 
-## Milestone 11 & Polish Phase: BC5 Normal Mapping, Scaleform Gauges & In-Car Radios (Completed)
+## Milestone 11 & Polish Phase: BC5 Normal Mapping, Canvas HUD & In-Car Radios (Completed)
 
 - [X] **BC5 (ATI2/3Dc) Normal Mapping**: Two-channel software block decompressor with Mikkelsen/Schüler cotangent-frame per-pixel TBN reconstruction directly in fragment shaders.
-- [X] **Scaleform Curved Gauges Mini-Map HUD**:
+- [X] **Re-engineered Curved Gauges Mini-Map HUD (Canvas 2D replicating Scaleform design)**:
   - Curved health gauge (left arc, green to red).
   - Curved Face Meter gauge (right arc, golden dragon adrenaline surge).
   - Digital Speedometer readout (`KM/H`) and cardinal compass markers.
@@ -267,3 +271,15 @@ flowchart LR
 - [X] **Chained Campaign Missions**:
   - **Mission 1 ("Night Market Ambush")**: Defeat 4 ambushers $\to$ Hijack sedan/taxi $\to$ Evade police $\to$ Deliver to Golden Dragon Teahouse safehouse.
   - **Mission 2 ("Dockside Warehouse Shakedown")**: Urgent police radio dispatch $\to$ Drive to Aberdeen Fish Warehouse $\to$ Eliminate 4 armed dock enforcers $\to$ Defeat 18K Lieutenant Boss $\to$ Orchestral victory fanfare (`Stream 2530870`).
+  - **Mission 3 ("Night Market Chase")**: Confront food stall contact $\to$ Pursue Dirty Ming across night market rooftops $\to$ Balcony knife combat with blade disarm counter reversals.
+  - **Mission 4 ("Amanda Tour & Dojo Sparring")**: Escort driving tour with Amanda Cartwright across North Point $\to$ Temple dojo kung fu sparring with Master Kwok's disciples.
+
+---
+
+## Upcoming Milestone: Authentic Index Buffers & BufferLoader Extraction
+
+**Goal:** Eliminate synthetic triangle strip generation by parsing authentic index buffers directly from `Illusion::BufferLoader` descriptors.
+
+- [ ] **Parse BufferLoader Descriptors**: Decompile descriptor offsets (`-0x38`, `-0x34`) to identify buffer types and sizes.
+- [ ] **Decode Sedan Index Buffer (`Vehicles.big` 0x008c038c)**: Stream and decode authentic 16-bit index buffers for vehicle chassis.
+- [ ] **Unit Test Suite**: Assertion-based unit tests for `mesh-decoder.ts`, `texture-decoder.ts`, and `bix-parser.ts` using mock byte buffers.

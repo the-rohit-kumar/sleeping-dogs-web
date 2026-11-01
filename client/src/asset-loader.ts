@@ -148,12 +148,17 @@ export async function fetchRange(archiveName: string, offset: number, length: nu
     }
   });
 
-  if (response.status !== 206 && response.status !== 200) {
-    throw new Error(`Failed to stream range [${offset}-${end}] from ${archiveName}.big (HTTP ${response.status})`);
+  if (response.status !== 206) {
+    throw new Error(`Expected HTTP 206 Partial Content for range [${offset}-${end}] from ${archiveName}.big, received HTTP ${response.status}. Full-file download rejected to prevent memory exhaustion.`);
   }
 
+  const contentRange = response.headers.get('Content-Range');
   const arrayBuffer = await response.arrayBuffer();
   const data = new Uint8Array(arrayBuffer);
+
+  if (data.byteLength !== length) {
+    console.warn(`Range length mismatch: requested ${length} bytes, received ${data.byteLength} bytes (Content-Range: ${contentRange})`);
+  }
 
   cacheStats.bytesLoaded += data.byteLength;
   cacheStats.bytesCached += data.byteLength;
