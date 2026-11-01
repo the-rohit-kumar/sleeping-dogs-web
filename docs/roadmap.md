@@ -628,5 +628,12 @@ ode-wei-shoe-l/r).
   - [x] Save & Load slot inspectors with timestamps and mission previews
   - [x] Start Screen "CONTINUE GAME" button integration
   - [x] Automated browser verification suite (`tools/verify_save_and_pause.js`, 16/16 tests passed, 0 errors, 6 proof screenshots)
-- [ ] **Option B: Open-World Activities** (HKPD Police Cases, Martial Arts Fight Clubs, Street Racing)
+- [x] **Option B: Open-World Activities** (Completed)
+  - [x] `OpenWorldActivitiesManager` (`client/src/open-world-activities.ts`)
+  - [x] Martial Arts Fight Club (3 rounds: Novice, Grapplers, Champion "Bamboo Tiger")
+  - [x] Hong Kong Midnight Circuit Street Race (3-2-1 countdown, checkpoints, speedometer)
+  - [x] Tran Car Theft Contracts (Dispatch, hotwiring, 2-star HKPD heat, dock delivery)
+  - [x] HKPD Narcotics Case #402 (Terminal hack, CCTV breach, supplier takedowns)
+  - [x] Mini-map radar activity blips & checkpoint beacon guidance
+  - [x] Automated browser verification suite (`tools/verify_open_world_activities.js`, 13/13 tests passed, 0 errors, 5 proof screenshots)
 - [ ] **Option C: Native Illusion Index Buffer Extraction** (Direct 16-bit index buffer decoding from `Game.big`)

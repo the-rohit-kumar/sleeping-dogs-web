@@ -116,3 +116,14 @@ With the 18 main campaign story missions fully functional and verified, the rema
   - Real-time Audio mixer (Master, SFX/Combat Hits, In-Car Radio Music, Spoken Dialogue).
   - Title Screen Integration: "CONTINUE GAME" button surfaces dynamically when valid save is present.
   - 100% verified via automated browser suite (`tools/verify_save_and_pause.js`, 16/16 steps, 0 errors, 6 proof screenshots).
+
+
+### Option B: Open-World Activities Engine (Completed)
+- **`OpenWorldActivitiesManager` (`client/src/open-world-activities.ts`):**
+  - Proximity hotspot detector for all 4 open-world activity hubs with `[T]` action trigger.
+  - Mini-map radar markers with custom iconography and active race checkpoint beacon projection.
+  - **Martial Arts Fight Club:** 3-round tournament with novice brawlers, heavyweight grapplers, and Bamboo Tiger champion ($5,000 HKD purse, +800 Triad XP, Face surge).
+  - **Street Racing:** North Point midnight circuit with 3-2-1 countdown, 5 sequential gate beacons, live speedometer, and trophy finish ($10,000 HKD purse, +1,000 Triad XP).
+  - **Tran Car Thefts:** Dispatch from Tran, luxury vehicle locating, hotwire ignition, 2-star HKPD heat pursuit with high-speed evasion, and Aberdeen dock container delivery ($15,000 HKD payout).
+  - **HKPD Narcotics Cases:** Case #402 terminal hack, CCTV breach, armed supplier takedowns, and case closed (+1,200 Police XP).
+  - 100% verified via automated browser suite (`tools/verify_open_world_activities.js`, 13/13 tests, 0 errors, 5 proof screenshots).

@@ -45,6 +45,7 @@ import { GunplaySystem } from './gunplay-system';
 import { FrequencyTunerMinigame } from './frequency-tuner';
 import { SaveManager, SaveGameSlot, GameSettingsState } from './save-manager';
 import { PauseMenuController } from './pause-menu';
+import { OpenWorldActivitiesManager, ACTIVITY_HOTSPOTS, STREET_RACE_CHECKPOINTS } from './open-world-activities';
 
 window.addEventListener('DOMContentLoaded', async () => {
     const canvas = document.getElementById('viewport') as HTMLCanvasElement;
@@ -62,6 +63,8 @@ window.addEventListener('DOMContentLoaded', async () => {
     const crowdSystem = new CrowdSystem();
     const weatherSystem = new WeatherSystem();
     const campaignStory = new CampaignStoryEngine();
+    const openWorldActivities = new OpenWorldActivitiesManager();
+    (window as any).openWorldActivities = openWorldActivities;
     const hackingMinigame = new HackingMinigame(audioEngine);
     const frequencyTuner = new FrequencyTunerMinigame(audioEngine);
     const gunplaySystem = new GunplaySystem(
@@ -563,13 +566,22 @@ window.addEventListener('DOMContentLoaded', async () => {
             crowdSystem,
             combatSystem
         );
+        if (openWorldActivities.activeActivity === 'police_case') {
+            openWorldActivities.onPoliceDealerDefeated(audioEngine, combatSystem);
+        }
     };
 
     btnNextMission.addEventListener('click', () => {
         if (!renderer.sceneGraph) return;
         if (campaignStory.stage === 'prologue_cinematic') {
             campaignStory.startPrologueChase(cameraController, audioEngine);
-        } else if (campaignStory.stage === 'prologue_chase') {
+        } else if (openWorldActivities.activeActivity === 'tran_theft' && openWorldActivities.activityStage === 'locate_vehicle') {
+                openWorldActivities.hotwireTranVehicle(audioEngine);
+                vehicleController.isOccupied = true;
+                cameraController.isDriving = true;
+                return;
+            }
+            if (campaignStory.stage === 'prologue_chase') {
             campaignStory.startPrologueAlleyFight(audioEngine);
         } else if (campaignStory.stage === 'prologue_alley_fight') {
             campaignStory.startInterrogationCinematic(renderer.sceneGraph, crowdSystem, cameraController, audioEngine);
@@ -1112,6 +1124,20 @@ window.addEventListener('DOMContentLoaded', async () => {
             performHeavyKick();
         } else if (e.code === 'KeyR' || e.key.toLowerCase() === 'r') {
             switchRadioStation();
+        } else if (e.code === 'KeyT' || e.key.toLowerCase() === 't') {
+            const isDrivingNow = vehicleController.isOccupied;
+            const posNow: [number, number, number] = isDrivingNow ? [...vehicleController.position] : [...characterController.position];
+            openWorldActivities.triggerNearbyActivity(
+                posNow,
+                isDrivingNow,
+                cameraController,
+                audioEngine,
+                renderer.sceneGraph!,
+                crowdSystem,
+                combatSystem,
+                vehicleController,
+                hackingMinigame
+            );
         } else if (e.code === 'KeyG' || e.key.toLowerCase() === 'g') {
             honkCarHorn();
         } else if (e.code === 'KeyH' || e.key.toLowerCase() === 'h') {
@@ -1824,6 +1850,47 @@ window.addEventListener('DOMContentLoaded', async () => {
             radarCtx.stroke();
         }
 
+        // Open-World Activity Hotspots Blips
+        for (const h of ACTIVITY_HOTSPOTS) {
+            const hRelX = (h.position[0] - playerPos[0]) * scale;
+            const hRelZ = (h.position[1] - playerPos[2]) * scale;
+            const hDist = Math.hypot(hRelX, hRelZ);
+            if (hDist < radius) {
+                radarCtx.save();
+                radarCtx.translate(cx + hRelX, cy + hRelZ);
+                radarCtx.beginPath();
+                radarCtx.arc(0, 0, 4.5, 0, Math.PI * 2);
+                radarCtx.fillStyle = h.color;
+                radarCtx.fill();
+                radarCtx.strokeStyle = '#ffffff';
+                radarCtx.lineWidth = 1;
+                radarCtx.stroke();
+                radarCtx.restore();
+            }
+        }
+
+        // Active Street Race Checkpoint Beacon
+        if (openWorldActivities.activeActivity === 'street_race') {
+            const cp = STREET_RACE_CHECKPOINTS[openWorldActivities.currentCheckpointIndex];
+            if (cp) {
+                const cpRelX = (cp.position[0] - playerPos[0]) * scale;
+                const cpRelZ = (cp.position[1] - playerPos[2]) * scale;
+                const cpDist = Math.hypot(cpRelX, cpRelZ);
+                const clamped = Math.min(cpDist, radius - 6);
+                const cpAngle = Math.atan2(cpRelZ, cpRelX);
+                radarCtx.save();
+                radarCtx.translate(cx + Math.cos(cpAngle) * clamped, cy + Math.sin(cpAngle) * clamped);
+                radarCtx.beginPath();
+                radarCtx.arc(0, 0, 6, 0, Math.PI * 2);
+                radarCtx.fillStyle = '#eab308';
+                radarCtx.fill();
+                radarCtx.strokeStyle = '#ffffff';
+                radarCtx.lineWidth = 2;
+                radarCtx.stroke();
+                radarCtx.restore();
+            }
+        }
+
         // Player orientation needle at center
         radarCtx.save();
         radarCtx.translate(cx, cy);
@@ -2085,6 +2152,19 @@ window.addEventListener('DOMContentLoaded', async () => {
 
             // Gunplay & Vehicular Aiming Update
             gunplaySystem.update(deltaTimeSec);
+
+            // Milestone Option B: Open-World Activities Engine Update
+            openWorldActivities.update(
+                deltaTimeSec,
+                activePos,
+                isDriving,
+                cameraController,
+                audioEngine,
+                renderer.sceneGraph!,
+                crowdSystem,
+                combatSystem,
+                vehicleController
+            );
 
             // Canonical Sleeping Dogs Story Mission & Cutscene Pipeline Update
             if (renderer.sceneGraph) {

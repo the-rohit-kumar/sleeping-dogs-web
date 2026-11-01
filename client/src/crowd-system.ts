@@ -523,6 +523,41 @@ export class CrowdSystem {
     ]);
   }
 
+  public spawnFightClubRound(sceneGraph: SceneGraph, round: number): void {
+    this.clearStoryNPCs(sceneGraph);
+    this.npcs = this.npcs.filter(n => !n.isHostile);
+    if (round === 1) {
+      this.spawnStoryBatch(sceneGraph, [
+        { id: 'fc-r1-1', typeId: 'triad-enforcer', x: -19.5, z: 31.0, hp: 100, name: 'Novice Fighter #1', hostile: true, state: 'circling', color: [0.8, 0.2, 0.2] },
+        { id: 'fc-r1-2', typeId: 'triad-enforcer', x: -16.5, z: 33.0, hp: 100, name: 'Novice Fighter #2', hostile: true, state: 'circling', color: [0.8, 0.2, 0.2] },
+        { id: 'fc-r1-3', typeId: 'triad-enforcer', x: -18.0, z: 34.5, hp: 100, name: 'Novice Fighter #3', hostile: true, state: 'circling', color: [0.8, 0.2, 0.2] }
+      ]);
+    } else if (round === 2) {
+      this.spawnStoryBatch(sceneGraph, [
+        { id: 'fc-r2-1', typeId: 'triad-enforcer', x: -20.0, z: 30.5, hp: 140, name: 'Heavyweight Grappler #1', hostile: true, state: 'circling', color: [0.85, 0.4, 0.1] },
+        { id: 'fc-r2-2', typeId: 'triad-enforcer', x: -16.0, z: 30.5, hp: 140, name: 'Heavyweight Grappler #2', hostile: true, state: 'circling', color: [0.85, 0.4, 0.1] },
+        { id: 'fc-r2-3', typeId: 'triad-enforcer', x: -16.0, z: 33.5, hp: 140, name: 'Heavyweight Grappler #3', hostile: true, state: 'circling', color: [0.85, 0.4, 0.1] },
+        { id: 'fc-r2-4', typeId: 'triad-enforcer', x: -20.0, z: 33.5, hp: 140, name: 'Heavyweight Grappler #4', hostile: true, state: 'circling', color: [0.85, 0.4, 0.1] }
+      ]);
+    } else {
+      this.spawnStoryBatch(sceneGraph, [
+        { id: 'fc-champ-1', typeId: 'triad-enforcer', x: -18.0, z: 30.0, hp: 260, name: 'CHAMPION: BAMBOO TIGER', hostile: true, state: 'circling', color: [0.95, 0.1, 0.1] },
+        { id: 'fc-champ-2', typeId: 'triad-enforcer', x: -16.0, z: 34.0, hp: 150, name: 'Cleaver Enforcer', hostile: true, state: 'circling', color: [0.7, 0.2, 0.2] },
+        { id: 'fc-champ-3', typeId: 'triad-enforcer', x: -20.0, z: 34.0, hp: 150, name: 'Machete Enforcer', hostile: true, state: 'circling', color: [0.7, 0.2, 0.2] }
+      ]);
+    }
+  }
+
+  public spawnPoliceCaseDealers(sceneGraph: SceneGraph): void {
+    this.clearStoryNPCs(sceneGraph);
+    this.npcs = this.npcs.filter(n => !n.isHostile);
+    this.spawnStoryBatch(sceneGraph, [
+      { id: 'pc-dealer-1', typeId: 'triad-enforcer', x: 22.5, z: -46.5, hp: 120, name: '18K Docks Supplier #1', hostile: true, state: 'circling', color: [0.9, 0.3, 0.3] },
+      { id: 'pc-dealer-2', typeId: 'triad-enforcer', x: 25.5, z: -49.5, hp: 120, name: '18K Docks Supplier #2', hostile: true, state: 'circling', color: [0.9, 0.3, 0.3] },
+      { id: 'pc-dealer-3', typeId: 'triad-enforcer', x: 24.0, z: -48.0, hp: 220, name: '18K Narcotics Kingpin', hostile: true, state: 'circling', color: [0.98, 0.1, 0.1] }
+    ]);
+  }
+
   public spawnBigSmileLeeCompoundCast(sceneGraph: SceneGraph): void {
     this.clearStoryNPCs(sceneGraph);
     this.spawnStoryBatch(sceneGraph, [
