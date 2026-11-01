@@ -137,6 +137,36 @@ AUDIO_TRACKS = {
         "offset": 0x271235be,
         "size": 43786,
         "name": "Dogeyes 18K Thugs Ambush Threats"
+    },
+    "ming_flee": {
+        "pck": ENG_PCK,
+        "offset": 0x04fe5f89,
+        "size": 31228,
+        "name": "Dirty Ming Night Market Panic and Flight"
+    },
+    "wei_pursuit": {
+        "pck": ENG_PCK,
+        "offset": 0x10c4870f,
+        "size": 30059,
+        "name": "Wei Shen Rooftop Chase Demands"
+    },
+    "ming_rooftop_threat": {
+        "pck": ENG_PCK,
+        "offset": 0x09fdad97,
+        "size": 43553,
+        "name": "Dirty Ming Rooftop Balcony Ambush Command"
+    },
+    "blade_slash": {
+        "pck": SFX_PCK,
+        "offset": 0x09e86397,
+        "size": 11851,
+        "name": "Triad Blade Slash Whoosh Impact"
+    },
+    "knife_stab": {
+        "pck": SFX_PCK,
+        "offset": 0x09e891e2,
+        "size": 9634,
+        "name": "Triad Knife Disarm and Counter Reversal"
     }
 }
 

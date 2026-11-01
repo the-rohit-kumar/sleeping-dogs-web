@@ -354,8 +354,20 @@ window.addEventListener('DOMContentLoaded', async () => {
             campaignStory.triggerDrinkVendorAmbush(audioEngine);
         } else if (campaignStory.stage === 'ch1_extortion_18k_ambush') {
             campaignStory.onAmbushThugsDefeated(audioEngine);
-        } else if (campaignStory.stage === 'ch1_extortion_return_golden_koi') {
-            campaignStory.completeVendorExtortion(cameraController, audioEngine);
+        } else if (campaignStory.stage === 'ch1_extortion_return_golden_koi' || campaignStory.stage === 'ch1_extortion_completed') {
+            campaignStory.startNightMarketChaseFindMing(renderer.sceneGraph, crowdSystem, cameraController, audioEngine);
+        } else if (campaignStory.stage === 'ch1_nmc_find_ming_cinematic') {
+            campaignStory.startNightMarketRooftopChase(cameraController, audioEngine);
+        } else if (campaignStory.stage === 'ch1_nmc_market_chase' || campaignStory.stage === 'ch1_nmc_rooftop_parkour') {
+            campaignStory.startRooftopKnifeBrawl(cameraController, audioEngine);
+        } else if (campaignStory.stage === 'ch1_nmc_rooftop_knife_brawl') {
+            campaignStory.startMingArrestCinematic(cameraController, audioEngine, renderer.sceneGraph, crowdSystem);
+        } else if (campaignStory.stage === 'ch1_nmc_arrest_cinematic') {
+            campaignStory.startAmandaTour(renderer.sceneGraph, crowdSystem, cameraController, audioEngine);
+        } else if (campaignStory.stage === 'ch1_amanda_drive_dojo') {
+            campaignStory.startDojoTraining(cameraController, audioEngine);
+        } else if (campaignStory.stage === 'ch1_amanda_dojo_training') {
+            campaignStory.completeAmandaTour(cameraController, audioEngine);
         } else {
             campaignStory.startPrologueCinematic(renderer.sceneGraph, crowdSystem, cameraController, audioEngine);
         }

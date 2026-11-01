@@ -5,8 +5,8 @@ from pathlib import Path
 AUDIO_DIR = Path("C:/Program Files (x86)/Steam/steamapps/common/SleepingDogsDefinitiveEdition/data/Audio/SD2")
 SFX_PCK = AUDIO_DIR / "SFX.pck"
 ENG_PCK = AUDIO_DIR / "English(US).pck"
-VGM_CLI = Path(__file__).parent / "vgmstream" / "vgmstream-cli.exe"
-CACHE_DIR = Path(__file__).parent / "audio_cache"
+VGM_CLI = (Path(__file__).parent / "vgmstream" / "vgmstream-cli.exe").resolve()
+CACHE_DIR = (Path(__file__).parent / "audio_cache").resolve()
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 AUDIO_TRACKS = {
@@ -25,7 +25,12 @@ AUDIO_TRACKS = {
     "jackie_reunion": {"pck": ENG_PCK, "offset": 0x0c03073d, "size": 21834},
     "winston_shakedown": {"pck": ENG_PCK, "offset": 0x143cebc4, "size": 30788},
     "vendor_argument": {"pck": ENG_PCK, "offset": 0x18fda27b, "size": 29679},
-    "triad_threat": {"pck": ENG_PCK, "offset": 0x271235be, "size": 43786}
+    "triad_threat": {"pck": ENG_PCK, "offset": 0x271235be, "size": 43786},
+    "ming_flee": {"pck": ENG_PCK, "offset": 0x04fe5f89, "size": 31228},
+    "wei_pursuit": {"pck": ENG_PCK, "offset": 0x10c4870f, "size": 30059},
+    "ming_rooftop_threat": {"pck": ENG_PCK, "offset": 0x09fdad97, "size": 43553},
+    "blade_slash": {"pck": SFX_PCK, "offset": 0x09e86397, "size": 11851},
+    "knife_stab": {"pck": SFX_PCK, "offset": 0x09e891e2, "size": 9634}
 }
 
 for key, info in AUDIO_TRACKS.items():

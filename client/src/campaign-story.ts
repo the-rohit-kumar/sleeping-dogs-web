@@ -40,6 +40,14 @@ export type StoryStage =
   | 'ch1_extortion_18k_ambush'
   | 'ch1_extortion_return_golden_koi'
   | 'ch1_extortion_completed'
+  | 'ch1_nmc_find_ming_cinematic'
+  | 'ch1_nmc_market_chase'
+  | 'ch1_nmc_rooftop_parkour'
+  | 'ch1_nmc_rooftop_knife_brawl'
+  | 'ch1_nmc_arrest_cinematic'
+  | 'ch1_amanda_drive_dojo'
+  | 'ch1_amanda_dojo_training'
+  | 'ch1_amanda_completed'
   | 'free_roam';
 
 export interface DialogueLine {
@@ -539,21 +547,249 @@ export class CampaignStoryEngine {
     ];
 
     this.playCutscene(script, cameraController, audioEngine, () => {
+      this.stage = 'ch1_extortion_completed';
+      this.endCutscene(cameraController);
+
+      this.updateHUD(
+        'MISSION: VENDOR EXTORTION COMPLETED',
+        '⭐ Winston Chu is impressed! Triad XP +500. Now go locate Dirty Ming near the food stalls!'
+      );
+
+      const sceneGraph = (window as any).renderer?.sceneGraph as SceneGraph;
+      const crowdSystem = (window as any).crowdSystem as CrowdSystem;
+      if (sceneGraph && crowdSystem) {
+        setTimeout(() => {
+          this.startNightMarketChaseFindMing(sceneGraph, crowdSystem, cameraController, audioEngine);
+        }, 2500);
+      }
+    });
+  }
+
+  /**
+   * Mission 3: "Night Market Chase" — Confront Food Stand Contact & Spot Dirty Ming
+   */
+  public startNightMarketChaseFindMing(
+    sceneGraph: SceneGraph,
+    crowdSystem: CrowdSystem,
+    cameraController: CameraController,
+    audioEngine: AudioEngine
+  ): void {
+    this.stage = 'ch1_nmc_find_ming_cinematic';
+    crowdSystem.spawnMingChaseCast(sceneGraph);
+
+    const script: DialogueLine[] = [
+      {
+        speaker: 'FOOD STAND CONTACT',
+        speakerColor: '#facc15',
+        text: "You looking for Dirty Ming? He's just past the fish crates around the corner. He's armed, watch yourself.",
+        durationSec: 3.2,
+        cameraEye: [3.2, 1.8, -6.5],
+        cameraTarget: [4.5, 1.4, -8.0]
+      },
+      {
+        speaker: 'DIRTY MING',
+        speakerColor: '#ef4444',
+        text: "What the fuck?! Wei Shen! Out of my way! Brothers, help me!",
+        audioKey: 'ming_flee',
+        durationSec: 3.2,
+        cameraEye: [8.8, 1.7, -9.0],
+        cameraTarget: [7.2, 1.4, -10.5]
+      }
+    ];
+
+    this.playCutscene(script, cameraController, audioEngine, () => {
+      this.startNightMarketRooftopChase(cameraController, audioEngine);
+    });
+  }
+
+  /**
+   * Mission 3 Stage 2: Night Market Street Chase & Scaffolding Climb
+   */
+  public startNightMarketRooftopChase(cameraController: CameraController, audioEngine: AudioEngine): void {
+    this.stage = 'ch1_nmc_market_chase';
+    this.endCutscene(cameraController);
+    audioEngine.playTrack('wei_pursuit').catch(() => {});
+
+    this.updateHUD(
+      'MISSION 3: NIGHT MARKET CHASE',
+      '🏃 SPRINT [Shift] & VAULT [Space]! Pursue Dirty Ming across the market stalls to the rooftop fire escape!'
+    );
+
+    if (this.actionPrompt) {
+      this.actionPrompt.style.display = 'block';
+      this.actionPrompt.textContent = '⚡ PURSUE MING! SPRINT [SHIFT] • VAULT [SPACE] ⚡';
+      this.actionPrompt.style.background = 'rgba(234, 179, 8, 0.95)';
+      setTimeout(() => {
+        if (this.actionPrompt) this.actionPrompt.style.display = 'none';
+      }, 4000);
+    }
+  }
+
+  /**
+   * Mission 3 Stage 3: Rooftop Terrace Parkour & Knife Combat Climax
+   */
+  public startRooftopKnifeBrawl(cameraController: CameraController, audioEngine: AudioEngine): void {
+    this.stage = 'ch1_nmc_rooftop_knife_brawl';
+    this.thugsDefeated = 0;
+    this.thugsTotal = 3; // Ming + 2 Blade Thugs
+    this.endCutscene(cameraController);
+    audioEngine.playTrack('ming_rooftop_threat').catch(() => {});
+
+    this.updateHUD(
+      'MISSION 3: ROOFTOP KNIFE CLIMAX',
+      `⚔️ Cornered! Defeat Ming & 18K Blade Thugs (${this.thugsDefeated}/${this.thugsTotal})! [E: Counter Knife Disarm, F: Balcony Takedown]`
+    );
+
+    if (this.actionPrompt) {
+      this.actionPrompt.style.display = 'block';
+      this.actionPrompt.textContent = '⚠️ KNIFE ATTACK! TIMED COUNTER [E] TO DISARM! ⚠️';
+      this.actionPrompt.style.background = 'rgba(239, 68, 68, 0.95)';
+      setTimeout(() => {
+        if (this.actionPrompt) this.actionPrompt.style.display = 'none';
+      }, 4000);
+    }
+  }
+
+  /**
+   * Mission 3 Stage 4: Rooftop Arrest by Inspector Raymond Mak
+   */
+  public startMingArrestCinematic(
+    cameraController: CameraController,
+    audioEngine: AudioEngine,
+    sceneGraph: SceneGraph,
+    crowdSystem: CrowdSystem
+  ): void {
+    this.stage = 'ch1_nmc_arrest_cinematic';
+    audioEngine.playTrack('police_siren').catch(() => {});
+
+    const script: DialogueLine[] = [
+      {
+        speaker: 'INSPECTOR RAYMOND MAK',
+        speakerColor: '#f87171',
+        text: "HKPD! Freeze! Nobody move! Down on your knees, Ming! You're under arrest for extortion and assault!",
+        audioKey: 'raymond_interrogate',
+        durationSec: 4.2,
+        cameraEye: [12.8, 5.8, -20.5],
+        cameraTarget: [14.5, 4.5, -22.0]
+      },
+      {
+        speaker: 'SUPERINTENDENT THOMAS PENDREW',
+        speakerColor: '#60a5fa',
+        text: "Good work, Shen. Get off this roof before Mak's tactical officers see your face. Meet your contact.",
+        audioKey: 'pendrew_briefing',
+        durationSec: 3.5,
+        cameraEye: [15.2, 5.2, -23.0],
+        cameraTarget: [14.0, 4.6, -21.5]
+      }
+    ];
+
+    this.playCutscene(script, cameraController, audioEngine, () => {
+      audioEngine.playTrack('mission_fanfare').catch(() => {});
+      this.updateHUD(
+        'MISSION 3 ACCOMPLISHED: DIRTY MING APPREHENDED',
+        '⭐ TRIAD RESPECT +750 • POLICE RESPECT +500 • DOJO INVITATION UNLOCKED!'
+      );
+
+      setTimeout(() => {
+        this.startAmandaTour(sceneGraph, crowdSystem, cameraController, audioEngine);
+      }, 2500);
+    });
+  }
+
+  /**
+   * Mission 4: "Amanda Tour" — Drive Amanda Cartwright to Master Kwok's Martial Arts Kung Fu Dojo
+   */
+  public startAmandaTour(
+    sceneGraph: SceneGraph,
+    crowdSystem: CrowdSystem,
+    cameraController: CameraController,
+    audioEngine: AudioEngine
+  ): void {
+    this.stage = 'ch1_amanda_drive_dojo';
+    this.endCutscene(cameraController);
+    crowdSystem.spawnAmandaDojoCast(sceneGraph);
+
+    this.updateHUD(
+      'MISSION 4: AMANDA TOUR & KUNG FU DOJO',
+      "🚗 Drive Amanda Cartwright in the Sedan to Master Kwok's Martial Arts Dojo in the North Point Temple District!"
+    );
+
+    if (this.actionPrompt) {
+      this.actionPrompt.style.display = 'block';
+      this.actionPrompt.textContent = '🚗 ENTER VEHICLE [F] • DRIVE TO KUNG FU DOJO 🚗';
+      this.actionPrompt.style.background = 'rgba(56, 189, 248, 0.95)';
+      setTimeout(() => {
+        if (this.actionPrompt) this.actionPrompt.style.display = 'none';
+      }, 4500);
+    }
+  }
+
+  /**
+   * Mission 4 Stage 2: Master Kwok's Martial Arts School Sparring
+   */
+  public startDojoTraining(cameraController: CameraController, audioEngine: AudioEngine): void {
+    this.stage = 'ch1_amanda_dojo_training';
+    this.thugsDefeated = 0;
+    this.thugsTotal = 2; // 2 Dojo Disciples
+    this.endCutscene(cameraController);
+
+    this.updateHUD(
+      "MISSION 4: MASTER KWOK'S DOJO — SHAOLIN SPARRING",
+      `🥋 Spar with Kung Fu Disciples (${this.thugsDefeated}/${this.thugsTotal})! [L-Click: Light Strikes, Q: Sweep Kick, E: Counter Reversal]`
+    );
+
+    if (this.actionPrompt) {
+      this.actionPrompt.style.display = 'block';
+      this.actionPrompt.textContent = '🥋 DEMONSTRATE KUNG FU MASTERY TO SIFU KWOK 🥋';
+      this.actionPrompt.style.background = 'rgba(234, 179, 8, 0.95)';
+      setTimeout(() => {
+        if (this.actionPrompt) this.actionPrompt.style.display = 'none';
+      }, 4000);
+    }
+  }
+
+  /**
+   * Mission 4 Completion: Master Kwok's Blessing & Free Roam
+   */
+  public completeAmandaTour(cameraController: CameraController, audioEngine: AudioEngine): void {
+    this.stage = 'ch1_amanda_completed';
+    audioEngine.playTrack('mission_fanfare').catch(() => {});
+
+    const script: DialogueLine[] = [
+      {
+        speaker: 'SIFU KWOK (MARTIAL ARTS MASTER)',
+        speakerColor: '#facc15',
+        text: "Your kung fu remains pure, Wei Shen. Balance, focus, and power. You have earned the Jade Dragon blessing.",
+        durationSec: 4.0,
+        cameraEye: [-19.5, 1.8, 34.0],
+        cameraTarget: [-18.0, 1.4, 32.0]
+      },
+      {
+        speaker: 'AMANDA CARTWRIGHT',
+        speakerColor: '#38bdf8',
+        text: "That was unbelievable, Wei! You didn't tell me you were a martial arts master! I'll call you later.",
+        durationSec: 3.5,
+        cameraEye: [-16.8, 1.7, 31.0],
+        cameraTarget: [-18.0, 1.4, 32.0]
+      }
+    ];
+
+    this.playCutscene(script, cameraController, audioEngine, () => {
       this.stage = 'free_roam';
       this.endCutscene(cameraController);
 
       this.updateHUD(
-        'CHAPTER 1 ACCOMPLISHED: WATER STREET ENFORCER',
-        '🎉 SAFEHOUSE APARTMENT UNLOCKED! • TRIAD XP +1000 • POLICE XP +500 • FREE ROAM HONG KONG!'
+        'CHAPTER 1 FULLY COMPLETED: DRAGON ENFORCER',
+        '🏆 CHAPTER 1 MASTERED! • JADE DRAGON COMBOS UNLOCKED • HONG KONG CITIZEN RESPECT MAX • FREE ROAM'
       );
 
       if (this.actionPrompt) {
         this.actionPrompt.style.display = 'block';
-        this.actionPrompt.textContent = '🏆 MISSION COMPLETED: WATER STREET ENFORCER 🏆';
+        this.actionPrompt.textContent = '🐉 DRAGON ENFORCER MASTERED • FREE ROAM UNLOCKED 🐉';
         this.actionPrompt.style.background = 'rgba(34, 197, 94, 0.95)';
         setTimeout(() => {
           if (this.actionPrompt) this.actionPrompt.style.display = 'none';
-        }, 5000);
+        }, 5500);
       }
     });
   }
@@ -695,6 +931,16 @@ export class CampaignStoryEngine {
       if (distToGoldenKoi <= 5.0) {
         this.completeVendorExtortion(cameraController, audioEngine);
       }
+    } else if (this.stage === 'ch1_nmc_market_chase') {
+      const distToRooftop = Math.hypot(playerPos[0] - 14.5, playerPos[2] - (-22.0));
+      if (distToRooftop <= 5.5) {
+        this.startRooftopKnifeBrawl(cameraController, audioEngine);
+      }
+    } else if (this.stage === 'ch1_amanda_drive_dojo') {
+      const distToDojo = Math.hypot(playerPos[0] - (-18.0), playerPos[2] - 32.0);
+      if (distToDojo <= 7.0) {
+        this.startDojoTraining(cameraController, audioEngine);
+      }
     }
   }
 
@@ -748,6 +994,32 @@ export class CampaignStoryEngine {
           this.onAmbushThugsDefeated(audioEngine);
         }, 1200);
       }
+    } else if (this.stage === 'ch1_nmc_rooftop_knife_brawl') {
+      this.thugsDefeated++;
+      combatSystem.triadScore += 300;
+      this.updateHUD(
+        'MISSION 3: ROOFTOP KNIFE CLIMAX',
+        `⚔️ Cornered! Defeat Ming & 18K Blade Thugs (${this.thugsDefeated}/${this.thugsTotal})!`
+      );
+
+      if (this.thugsDefeated >= this.thugsTotal) {
+        setTimeout(() => {
+          this.startMingArrestCinematic(cameraController, audioEngine, sceneGraph, crowdSystem);
+        }, 1200);
+      }
+    } else if (this.stage === 'ch1_amanda_dojo_training') {
+      this.thugsDefeated++;
+      combatSystem.policeScore += 250;
+      this.updateHUD(
+        "MISSION 4: MASTER KWOK'S DOJO — SHAOLIN SPARRING",
+        `🥋 Spar with Kung Fu Disciples (${this.thugsDefeated}/${this.thugsTotal})!`
+      );
+
+      if (this.thugsDefeated >= this.thugsTotal) {
+        setTimeout(() => {
+          this.completeAmandaTour(cameraController, audioEngine);
+        }, 1200);
+      }
     }
   }
 
@@ -762,6 +1034,11 @@ export class CampaignStoryEngine {
     if (this.stage === 'ch1_extortion_drink_vendor') return [6.8, 15.0];
     if (this.stage === 'ch1_extortion_18k_ambush') return [-4.0, 0.0];
     if (this.stage === 'ch1_extortion_return_golden_koi') return [-2.2, 24.0];
+    if (this.stage === 'ch1_nmc_find_ming_cinematic') return [4.5, -8.0];
+    if (this.stage === 'ch1_nmc_market_chase' || this.stage === 'ch1_nmc_rooftop_parkour') return [14.5, -22.0];
+    if (this.stage === 'ch1_nmc_rooftop_knife_brawl') return [14.5, -22.0];
+    if (this.stage === 'ch1_amanda_drive_dojo') return [-18.0, 32.0];
+    if (this.stage === 'ch1_amanda_dojo_training') return [-18.0, 32.0];
     return null;
   }
 

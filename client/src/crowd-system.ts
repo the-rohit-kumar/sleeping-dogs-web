@@ -377,6 +377,26 @@ export class CrowdSystem {
     ]);
   }
 
+  public spawnMingChaseCast(sceneGraph: SceneGraph): void {
+    this.clearStoryNPCs(sceneGraph);
+    this.spawnStoryBatch(sceneGraph, [
+      { id: 'nmc-food-vendor', typeId: 'night-vendor', x: 4.5, z: -8.0, hp: 100, name: 'Food Stand Contact', hostile: false, state: 'talking', color: [0.85, 0.6, 0.2] },
+      { id: 'nmc-ming', typeId: 'triad-enforcer', x: 7.2, z: -10.5, hp: 120, name: 'Dirty Ming (18K Peddler)', hostile: true, state: 'panicked', color: [0.95, 0.75, 0.15] },
+      { id: 'nmc-knife-thug-1', typeId: 'triad-enforcer', x: 14.5, z: -22.0, hp: 95, name: '18K Rooftop Blade Thug', hostile: true, state: 'circling', color: [0.85, 0.15, 0.15] },
+      { id: 'nmc-knife-thug-2', typeId: 'sun-on-yee', x: 16.2, z: -24.5, hp: 95, name: '18K Rooftop Cleaver Thug', hostile: true, state: 'circling', color: [0.75, 0.2, 0.15] }
+    ]);
+  }
+
+  public spawnAmandaDojoCast(sceneGraph: SceneGraph): void {
+    this.clearStoryNPCs(sceneGraph);
+    this.spawnStoryBatch(sceneGraph, [
+      { id: 'amanda-cartwright', typeId: 'pedestrian', x: -2.2, z: 2.5, hp: 100, name: 'Amanda Cartwright', hostile: false, state: 'talking', color: [0.95, 0.85, 0.65] },
+      { id: 'dojo-master-kwok', typeId: 'pedestrian', x: -18.0, z: 32.0, hp: 500, name: 'Sifu Kwok (Kung Fu Master)', hostile: false, state: 'idle', color: [0.9, 0.8, 0.25], scale: [1.08, 1.08, 1.08] },
+      { id: 'dojo-student-1', typeId: 'sun-on-yee', x: -16.5, z: 30.5, hp: 120, name: 'Shaolin Disciple', hostile: true, state: 'circling', color: [0.3, 0.6, 0.85] },
+      { id: 'dojo-student-2', typeId: 'sun-on-yee', x: -19.5, z: 33.5, hp: 120, name: 'Wing Chun Disciple', hostile: true, state: 'circling', color: [0.3, 0.6, 0.85] }
+    ]);
+  }
+
   /**
    * Updates crowd locomotion, active brawler combat AI, red-flash windups, and ragdoll knockouts
    */

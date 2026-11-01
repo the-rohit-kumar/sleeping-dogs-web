@@ -203,6 +203,51 @@ export const AUTHENTIC_TRACKS: Record<string, AudioTrackInfo> = {
     sampleRate: 48000,
     channels: 1,
     isLoop: false
+  },
+  ming_flee: {
+    id: 'ming_flee',
+    name: 'Dirty Ming Night Market Panic',
+    source: 'English(US).pck (Stream 345697370 @ 0x04fe5f89)',
+    description: 'Dirty Ming panics and bolts through the night market',
+    sampleRate: 44100,
+    channels: 1,
+    isLoop: false
+  },
+  wei_pursuit: {
+    id: 'wei_pursuit',
+    name: 'Wei Shen Rooftop Pursuit Demands',
+    source: 'English(US).pck (Stream 1192456746 @ 0x10c4870f)',
+    description: 'Wei Shen demands Ming halt during the rooftop chase',
+    sampleRate: 44100,
+    channels: 1,
+    isLoop: false
+  },
+  ming_rooftop_threat: {
+    id: 'ming_rooftop_threat',
+    name: 'Dirty Ming Rooftop Balcony Ambush',
+    source: 'English(US).pck (Stream 716168228 @ 0x09fdad97)',
+    description: 'Ming commands knife thugs to throw Wei Shen off the roof',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  blade_slash: {
+    id: 'blade_slash',
+    name: 'Triad Blade Slash Impact',
+    source: 'SFX.pck (Stream 4785461 @ 0x09e86397)',
+    description: 'Authentic weapon blade slash and whoosh impact',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  knife_stab: {
+    id: 'knife_stab',
+    name: 'Triad Knife Counter Disarm',
+    source: 'SFX.pck (Stream 4786312 @ 0x09e891e2)',
+    description: 'Authentic knife deflection and disarm sound effect',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
   }
 };
 
