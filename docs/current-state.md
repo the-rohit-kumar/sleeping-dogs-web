@@ -182,3 +182,8 @@ With the 18 main campaign story missions fully functional and verified, the rema
 - **Heat 5 (⭐⭐⭐⭐⭐):** Full city tactical lockdown with Eagle-1 pursuit helicopter hovering at Y=22.0m with spinning rotors and dynamic 3D ground searchlight beam tracking player.
 - **Evasion & Wardrobe Disguise Wipe:** Breaking search radius enters Cooldown countdown; changing clothes at any wardrobe or entering Safehouse instantly wipes 5-star heat to 0 Stars with alibi secured.
 - **Automated Verification:** `tools/verify_police_pursuit.js` passed all 13 steps and 5/5 edge cases with 0 errors.
+
+### Option 3 (Expansion): Hong Kong Underground Gambling & Nightlife (100% Operational)
+- **Aberdeen Docks Cockfighting Arena:** Underground betting pit (`[6.0, 0.0, 26.0]`) with octagonal wooden barricade ring, bookmaker odds for Crimson Talon (2.25x) vs Shadow Phoenix (1.75x), real-time animated rooster fight simulation, and cash payouts.
+- **Club Bam Bam VIP K-Bar Karaoke:** Rhythm minigame (`[-6.5, 0.28, 9.0]`) featuring continuous pitch highway, horizontal scrolling note timeline, user vocal cursor control via [W]/[S], PERFECT/GREAT/MISS hit detection, and S-Rank rewards (+$2,000 HKD hostess tips + Face surge).
+- **Automated Verification:** `tools/verify_gambling_nightlife.js` passed all 11 steps and 5/5 edge cases with 0 errors.

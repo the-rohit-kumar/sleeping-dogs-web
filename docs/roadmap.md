@@ -717,3 +717,13 @@ ode-wei-shoe-l/r).
   - [x] Wardrobe / Safehouse Disguise instant heat wipe (5 Stars -> 0 Stars) with alibi secured
   - [x] Option 2 edge cases audited (zero-heat peace, escalation invariance, disguise wipe, tire repair, spotlight math)
   - [x] Automated browser verification suite (`tools/verify_police_pursuit.js`, 13/13 passed, 0 page errors, 0 failed requests, 9 visual proof screenshots)
+
+- [x] **Option 3: Hong Kong Underground Gambling & Nightlife Minigames**
+  - [x] Aberdeen Docks Cockfighting Arena (`[6.0, 0.0, 26.0]`) with octagonal wooden barricade ring and dual rooster models
+  - [x] Underground Bookmaker Betting Modal with dynamic odds: Crimson Talon (2.25x) vs Shadow Phoenix (1.75x)
+  - [x] Real-time animated pit bout simulation: pecking, hopping, strike exchanges, and purse payouts
+  - [x] Club Bam Bam VIP K-Bar Karaoke rhythm minigame (`[-6.5, 0.28, 9.0]`) with authentic audio (`bambam_club_music`)
+  - [x] Continuous pitch highway, horizontal scrolling note timeline, and user vocal cursor control via [W]/[S]
+  - [x] PERFECT / GREAT / MISS hit detection, combo streak multipliers, and S-Rank hostess tip payouts (+$2,000 HKD)
+  - [x] Option 3 edge cases audited (broke wager rejection, in-flight bout abort safety, odds payout math, pitch clamping, high-score persistence)
+  - [x] Automated browser verification suite (`tools/verify_gambling_nightlife.js`, 11/11 passed, 0 page errors, 0 failed requests, 8 visual proof screenshots)

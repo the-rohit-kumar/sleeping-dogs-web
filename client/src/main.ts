@@ -56,6 +56,7 @@ import { StreetEconomySystem, FOOD_MENU, CLOTHING_CATALOG } from './street-econo
 import { CollectiblesSystem } from './collectibles-system';
 import { DojoMartialArtsSystem } from './dojo-martial-arts-system';
 import { PolicePursuitSystem } from './police-pursuit-system';
+import { GamblingNightlifeSystem } from './gambling-nightlife-system';
 
 window.addEventListener('DOMContentLoaded', async () => {
     const canvas = document.getElementById('viewport') as HTMLCanvasElement;
@@ -88,6 +89,8 @@ window.addEventListener('DOMContentLoaded', async () => {
     (window as any).dojoSystem = dojoSystem;
     const policePursuitSystem = new PolicePursuitSystem();
     (window as any).policePursuitSystem = policePursuitSystem;
+    const gamblingSystem = new GamblingNightlifeSystem();
+    (window as any).gamblingSystem = gamblingSystem;
     (window as any).getPlayerMaxHealth = () => playerMaxHealth;
     (window as any).setPlayerMaxHealth = (maxHp: number) => {
         playerMaxHealth = maxHp;
@@ -1205,6 +1208,8 @@ window.addEventListener('DOMContentLoaded', async () => {
                         openWorldActivities
                     );
                     if (!collectiblesHandled) {
+                        const gamblingHandled = gamblingSystem.handleInteraction(openWorldActivities, audioEngine);
+                        if (gamblingHandled) return;
                         const dojoHandled = dojoSystem.handleInteraction(
                             'e',
                             audioEngine,
@@ -1291,6 +1296,14 @@ window.addEventListener('DOMContentLoaded', async () => {
         } else if (e.code === 'Digit3' || e.key === '3') {
             applyWeatherPreset('typhoon_storm');
         } else if (e.code === 'Escape' || e.key === 'Escape') {
+            if (gamblingSystem.isCockfightModalOpen) {
+                gamblingSystem.closeCockfightModal();
+                return;
+            }
+            if (gamblingSystem.isKaraokeModalOpen) {
+                gamblingSystem.closeKaraokeModal(audioEngine);
+                return;
+            }
             if (dojoSystem.isDojoModalOpen) {
                 dojoSystem.closeDojoModal();
             } else if (collectiblesSystem.isTumblerOpen) {
@@ -2439,6 +2452,17 @@ window.addEventListener('DOMContentLoaded', async () => {
                     combatSystem
                 );
             }
+
+            // Option 3: Hong Kong Underground Gambling & Nightlife Update
+            gamblingSystem.update(
+                deltaTimeSec,
+                activePos,
+                isDriving,
+                openWorldActivities,
+                audioEngine,
+                combatSystem,
+                renderer.sceneGraph
+            );
 
             // Canonical Sleeping Dogs Story Mission & Cutscene Pipeline Update
             if (renderer.sceneGraph) {
