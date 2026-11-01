@@ -102,3 +102,17 @@ With the 18 main campaign story missions fully functional and verified, the rema
    - Control key rebinding.
 4. **Authentic Illusion Index Buffer Extraction (Low-Level Asset Decoding)**:
    - Extracting native 16-bit / 32-bit index buffers directly from `Game.big` and `Vehicles.big` descriptors (`FUN_140a18c70` in Ghidra) to render genuine base-game geometry without synthetic topology.
+
+
+### Option A: Game State Persistence & In-Game Pause Menu (Completed)
+- **`SaveManager` (`client/src/save-manager.ts`):**
+  - Robust serialization to `localStorage` supporting AutoSave, Slot 1, Slot 2, and Slot 3.
+  - Complete state capture: Wei Shen coordinates, orientation, health, max health, campaign mission stage, mission title, objective description, Face Meter, Face Level, Police XP, and Triad XP.
+  - Sleeping Dogs authentic animated pulsing "AUTOSAVING... DO NOT POWER OFF" badge.
+- **`PauseMenuController` (`client/src/pause-menu.ts`):**
+  - Seamless full-screen frosted glass overlay opened via `[ESC]`.
+  - 8 Interactive Tabs: Resume, Save Game, Load Game, Graphics Settings, Audio Settings, Controls Reference, Restart Checkpoint, Quit to Title Screen.
+  - Real-time Graphics settings (Shadow quality PCF, rain density presets, bloom, wireframe grid, dev telemetry HUD).
+  - Real-time Audio mixer (Master, SFX/Combat Hits, In-Car Radio Music, Spoken Dialogue).
+  - Title Screen Integration: "CONTINUE GAME" button surfaces dynamically when valid save is present.
+  - 100% verified via automated browser suite (`tools/verify_save_and_pause.js`, 16/16 steps, 0 errors, 6 proof screenshots).

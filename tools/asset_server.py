@@ -228,6 +228,24 @@ AUDIO_TRACKS = {
         "size": 5609,
         "name": "Surveillance Camera Hacking Keypad Digit Input"
     },
+    "ui_click_confirm": {
+        "pck": SFX_PCK,
+        "offset": 0x47e51674,
+        "size": 5609,
+        "name": "UI Menu Navigation Confirmation Tick"
+    },
+    "ui_menu_open": {
+        "pck": SFX_PCK,
+        "offset": 0x385d1c81,
+        "size": 4898,
+        "name": "UI Pause Menu Open Sound Cue"
+    },
+    "ui_menu_close": {
+        "pck": SFX_PCK,
+        "offset": 0x47e51674,
+        "size": 5609,
+        "name": "UI Pause Menu Close Sound Cue"
+    },
     "ui_click_denied": {
         "pck": SFX_PCK,
         "offset": 0x6ec8b405,

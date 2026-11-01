@@ -43,6 +43,8 @@ import { CampaignStoryEngine } from './campaign-story';
 import { HackingMinigame } from './hacking-minigame';
 import { GunplaySystem } from './gunplay-system';
 import { FrequencyTunerMinigame } from './frequency-tuner';
+import { SaveManager, SaveGameSlot, GameSettingsState } from './save-manager';
+import { PauseMenuController } from './pause-menu';
 
 window.addEventListener('DOMContentLoaded', async () => {
     const canvas = document.getElementById('viewport') as HTMLCanvasElement;
@@ -230,6 +232,7 @@ window.addEventListener('DOMContentLoaded', async () => {
         }
         cameraController.isDriving = false;
         updateCameraModeUI('follow');
+        performSave('autosave', 'Prologue: Night Market Ambush');
     });
 
     (window as any).startGame = () => {
@@ -321,6 +324,162 @@ window.addEventListener('DOMContentLoaded', async () => {
     let playerHealth = 100.0;
     const playerMaxHealth = 100.0;
     let slowMoTimer = 0.0;
+
+    // Save & Load State Persistence Manager
+    const saveManager = new SaveManager();
+    (window as any).saveManager = saveManager;
+
+    const btnContinueGame = document.getElementById('btn-continue-game') as HTMLButtonElement | null;
+    const btnTitleLoad = document.getElementById('btn-title-load') as HTMLButtonElement | null;
+
+    function refreshTitleScreenButtons(): void {
+        const latestSave = saveManager.getLatestSave();
+        if (latestSave && btnContinueGame) {
+            btnContinueGame.style.display = 'inline-block';
+            btnContinueGame.textContent = '▶ CONTINUE: ' + (latestSave.progression.missionTitle || 'CHECKPOINT');
+        } else if (btnContinueGame) {
+            btnContinueGame.style.display = 'none';
+        }
+    }
+    refreshTitleScreenButtons();
+
+    let lastCampaignStage = campaignStory.stage;
+
+    function getCurrentPlayerState(): { position: [number, number, number]; rotationY: number; health: number; maxHealth: number } {
+        const isDriving = vehicleController.isOccupied;
+        const pos: [number, number, number] = isDriving ? [...vehicleController.position] : [...characterController.position];
+        const rot = isDriving ? vehicleController.rotationY : characterController.rotationY;
+        return {
+            position: pos,
+            rotationY: rot,
+            health: playerHealth,
+            maxHealth: playerMaxHealth
+        };
+    }
+
+    function getCurrentProgressionState(): { stage: string; missionTitle: string; missionObjective: string; faceMeter: number; faceLevel: number; policeXP: number; triadXP: number; completedMissions: string[] } {
+        return {
+            stage: campaignStory.stage,
+            missionTitle: (document.getElementById('mission-title')?.textContent || 'Undercover In Hong Kong'),
+            missionObjective: (document.getElementById('mission-objective')?.textContent || 'Explore the streets'),
+            faceMeter: combatSystem.faceMeter,
+            faceLevel: Math.floor(combatSystem.faceMeter / 33) + 1,
+            policeXP: combatSystem.policeScore,
+            triadXP: combatSystem.triadScore,
+            completedMissions: (campaignStory as any).completedMissions || []
+        };
+    }
+
+    function performSave(slotId: string, slotName: string): SaveGameSlot {
+        const player = getCurrentPlayerState();
+        const prog = getCurrentProgressionState();
+        const settings = saveManager.loadSettings();
+        const slot = saveManager.saveSlot(slotId, slotName, player, prog, settings);
+        refreshTitleScreenButtons();
+        return slot;
+    }
+
+    function restoreSave(slot: SaveGameSlot): void {
+        console.log('[Main] Restoring save slot:', slot.slotId, slot.progression.missionTitle);
+        if (vehicleController.isOccupied) {
+            vehicleController.isOccupied = false;
+        }
+        characterController.position = [...slot.player.position];
+        characterController.rotationY = slot.player.rotationY;
+        characterController.velocity = [0, 0, 0];
+        playerHealth = slot.player.health;
+
+        combatSystem.faceMeter = slot.progression.faceMeter;
+        combatSystem.policeScore = slot.progression.policeXP;
+        combatSystem.triadScore = slot.progression.triadXP;
+
+        if (slot.progression.stage) {
+            campaignStory.restoreCheckpointStage(
+                slot.progression.stage,
+                slot.progression.missionTitle,
+                slot.progression.missionObjective
+            );
+        }
+
+        if (slot.settings) {
+            if (slot.settings.rainDensity === 'off') applyWeatherPreset('neon_night');
+            else if (slot.settings.rainDensity === 'torrential') applyWeatherPreset('typhoon_storm');
+            else applyWeatherPreset('hong_kong_rain');
+            renderer.showGrid = slot.settings.showGrid;
+            audioEngine.applySettings(slot.settings);
+        }
+
+        saveManager.triggerAutoSaveIndicator();
+    }
+
+    const pauseMenu = new PauseMenuController(
+        saveManager,
+        {
+            onResume: () => {},
+            onSaveSlot: (slotId, slotName) => {
+                performSave(slotId, slotName);
+            },
+            onLoadSlot: (slot) => {
+                restoreSave(slot);
+                startOverlay.classList.add('hidden');
+            },
+            onRestartCheckpoint: () => {
+                handlePlayerDefeated();
+            },
+            onQuitToTitle: () => {
+                performSave('autosave', 'Auto-Save (Title Return)');
+                startOverlay.classList.remove('hidden');
+                refreshTitleScreenButtons();
+            },
+            onGraphicsChange: (key, val) => {
+                if (key === 'rainDensity') {
+                    if (val === 'off') applyWeatherPreset('neon_night');
+                    else if (val === 'low' || val === 'medium') applyWeatherPreset('hong_kong_rain');
+                    else if (val === 'torrential') applyWeatherPreset('typhoon_storm');
+                } else if (key === 'showGrid') {
+                    renderer.showGrid = !!val;
+                } else if (key === 'showDevHud') {
+                    const hud = document.querySelector('.hud-overlay');
+                    if (hud) {
+                        if (val) hud.classList.add('visible');
+                        else hud.classList.remove('visible');
+                    }
+                }
+            },
+            onAudioChange: (bus, val) => {
+                if (bus === 'master') audioEngine.setMasterVolume(val);
+                else if (bus === 'sfx') audioEngine.setSfxVolume(val);
+                else if (bus === 'music') audioEngine.setMusicVolume(val);
+                else if (bus === 'dialogue') audioEngine.setDialogueVolume(val);
+            }
+        },
+        audioEngine
+    );
+    (window as any).pauseMenu = pauseMenu;
+    (window as any).performSave = performSave;
+    (window as any).restoreSave = restoreSave;
+
+    if (btnContinueGame) {
+        btnContinueGame.addEventListener('click', async () => {
+            const latest = saveManager.getLatestSave();
+            if (latest) {
+                restoreSave(latest);
+            }
+            startOverlay.classList.add('hidden');
+            try {
+                await audioEngine.playTrack('hk_ambience');
+            } catch (err) {}
+            cameraController.isDriving = false;
+            updateCameraModeUI('follow');
+        });
+    }
+
+    if (btnTitleLoad) {
+        btnTitleLoad.addEventListener('click', () => {
+            pauseMenu.open('load');
+        });
+    }
+
 
     // Canonical Sleeping Dogs Story Mission Engine
     function updateMissionBanner() {
@@ -973,15 +1132,20 @@ window.addEventListener('DOMContentLoaded', async () => {
                 hackingMinigame.cancelMinigame();
             } else if (asideDrawer.classList.contains('open')) {
                 asideDrawer.classList.remove('open');
+            } else {
+                pauseMenu.toggle();
             }
+            return;
         }
+
+        if (pauseMenu.isPaused) return;
     });
 
     // Mouse Controls (Disable native right-click context menu for Counter mechanic)
     canvas.addEventListener('contextmenu', (e) => e.preventDefault());
 
     canvas.addEventListener('mousedown', (e) => {
-        if (renderer.cameraMode !== 'follow' || vehicleController.isOccupied) return;
+        if (pauseMenu.isPaused || renderer.cameraMode !== 'follow' || vehicleController.isOccupied) return;
 
         if (e.button === 0) {
             performCombatStrike();
@@ -1752,6 +1916,18 @@ window.addEventListener('DOMContentLoaded', async () => {
         }
         const deltaTimeSec = rawDeltaTime;
 
+        if (pauseMenu.isPaused) {
+            renderer.render();
+            requestAnimationFrame(loop);
+            return;
+        }
+
+        if (campaignStory.stage !== lastCampaignStage) {
+            lastCampaignStage = campaignStory.stage;
+            const t = document.getElementById('mission-title')?.textContent || campaignStory.stage;
+            performSave('autosave', 'Checkpoint: ' + t);
+        }
+
         // 1. Advance Simulation & Kinematics (Milestone 6)
         const isDriving = vehicleController.isOccupied;
         let activePos: [number, number, number] = [0, 0, 0];
@@ -2075,6 +2251,15 @@ window.addEventListener('DOMContentLoaded', async () => {
         audioEngine.playTrack('hk_ambience').catch(() => {
             hudAudio.textContent = 'Click "Play Audio" to unmute';
         });
+        // Apply persisted settings
+        const initSet = saveManager.loadSettings();
+        audioEngine.applySettings(initSet);
+        if (initSet.rainDensity === 'off') applyWeatherPreset('neon_night');
+        else if (initSet.rainDensity === 'torrential') applyWeatherPreset('typhoon_storm');
+        else applyWeatherPreset('hong_kong_rain');
+        renderer.showGrid = initSet.showGrid;
+        const hEl = document.querySelector('.hud-overlay');
+        if (hEl && initSet.showDevHud) hEl.classList.add('visible');
     } catch (err) {
         console.warn('Initial autoload deferred:', err);
     }

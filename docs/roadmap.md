@@ -616,3 +616,17 @@ ode-wei-shoe-l/r).
   - isual_02_wei_shen_locomotion.png: Wei Shen articulated locomotion (white tank top, denim jeans, sneakers, arm/leg swing).
   - isual_03_combat_brawl_action.png: Wei Shen martial arts strike against 18K ambush brawlers.
   - isual_04_dev_hud_inspection_toggle.png: Developer HUD overlay and wireframe grid toggled with [~] for technical inspection.
+
+
+## Phase 6: Core Game Systems (Option A: Completed)
+- [x] **Option A: Game State Persistence & In-Game Pause Menu**
+  - [x] `SaveManager` (`client/src/save-manager.ts`) supporting AutoSave, Slot 1, Slot 2, Slot 3
+  - [x] Complete player, progression, and settings state serialization
+  - [x] Sleeping Dogs pulsing "AUTOSAVING... DO NOT POWER OFF" HUD notification badge
+  - [x] `PauseMenuController` (`client/src/pause-menu.ts`) full-screen frosted glass overlay triggered by `[ESC]`
+  - [x] Real-time Graphics & Audio mixer sliders (Master, SFX, Radio Music, Spoken Dialogue)
+  - [x] Save & Load slot inspectors with timestamps and mission previews
+  - [x] Start Screen "CONTINUE GAME" button integration
+  - [x] Automated browser verification suite (`tools/verify_save_and_pause.js`, 16/16 tests passed, 0 errors, 6 proof screenshots)
+- [ ] **Option B: Open-World Activities** (HKPD Police Cases, Martial Arts Fight Clubs, Street Racing)
+- [ ] **Option C: Native Illusion Index Buffer Extraction** (Direct 16-bit index buffer decoding from `Game.big`)

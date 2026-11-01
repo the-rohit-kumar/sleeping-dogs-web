@@ -357,6 +357,33 @@ export const AUTHENTIC_TRACKS: Record<string, AudioTrackInfo> = {
     channels: 1,
     isLoop: false
   },
+  ui_click_confirm: {
+    id: 'ui_click_confirm',
+    name: 'UI Menu Navigation Confirmation Tick',
+    source: 'SFX.pck (Stream 1a702218 @ 0x47e51674)',
+    description: 'Authentic UI click confirmation chime',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  ui_menu_open: {
+    id: 'ui_menu_open',
+    name: 'UI Pause Menu Open Sound Cue',
+    source: 'SFX.pck (Stream 131215c8 @ 0x385d1c81)',
+    description: 'Authentic UI pause menu open sound cue',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
+  ui_menu_close: {
+    id: 'ui_menu_close',
+    name: 'UI Pause Menu Close Sound Cue',
+    source: 'SFX.pck (Stream 1a702218 @ 0x47e51674)',
+    description: 'Authentic UI pause menu close sound cue',
+    sampleRate: 48000,
+    channels: 1,
+    isLoop: false
+  },
   radio_static_burst: {
     id: 'radio_static_burst',
     name: 'Police Radio Squelch & Static',
@@ -821,12 +848,18 @@ export const AUTHENTIC_TRACKS: Record<string, AudioTrackInfo> = {
 export class AudioEngine {
   private ctx: AudioContext | null = null;
   private masterGain!: GainNode;
+  private sfxBus!: GainNode;
+  private musicBus!: GainNode;
+  private dialogueBus!: GainNode;
   private analyser!: AnalyserNode;
   private trackBuffers: Map<string, AudioBuffer> = new Map();
   private activeSources: Map<string, { source: AudioBufferSourceNode; panner?: PannerNode; gain: GainNode }> = new Map();
 
   public isMuted = false;
   public masterVolume = 0.85;
+  public sfxVolume = 1.0;
+  public musicVolume = 0.80;
+  public dialogueVolume = 1.0;
   public spatialAudioEnabled = true;
   public currentTrackId = 'hk_ambience';
   public isPlaying = false;
@@ -842,6 +875,18 @@ export class AudioEngine {
 
       this.masterGain = this.ctx.createGain();
       this.masterGain.gain.value = this.isMuted ? 0 : this.masterVolume;
+
+      this.sfxBus = this.ctx.createGain();
+      this.sfxBus.gain.value = this.sfxVolume;
+      this.sfxBus.connect(this.masterGain);
+
+      this.musicBus = this.ctx.createGain();
+      this.musicBus.gain.value = this.musicVolume;
+      this.musicBus.connect(this.masterGain);
+
+      this.dialogueBus = this.ctx.createGain();
+      this.dialogueBus.gain.value = this.dialogueVolume;
+      this.dialogueBus.connect(this.masterGain);
 
       this.analyser = this.ctx.createAnalyser();
       this.analyser.fftSize = 64;
@@ -888,7 +933,20 @@ export class AudioEngine {
     this.stopTrack(trackId);
 
     const buffer = await this.loadTrack(trackId);
-    const trackInfo = AUTHENTIC_TRACKS[trackId];
+    const trackInfo = AUTHENTIC_TRACKS[trackId] || {
+      id: trackId,
+      name: trackId,
+      source: 'SFX.pck',
+      description: 'Audio Track',
+      sampleRate: 48000,
+      channels: 1,
+      isLoop: false
+    };
+
+    // Classify into sub-bus
+    const isMusic = trackId.startsWith('radio_') || trackId.includes('music') || trackId.includes('fanfare') || trackId.includes('theme') || trackId === 'campaign_grand_victory';
+    const isDialogue = (trackInfo.source && trackInfo.source.includes('English(US)')) || trackId.includes('dialogue') || trackId.includes('speech') || trackId.includes('words') || trackId.includes('threat') || trackId.includes('lead') || trackId.includes('warning') || trackId.includes('eulogy') || trackId.includes('toast') || trackId.includes('plea') || trackId.includes('epilogue') || trackId.includes('briefing');
+    const targetBus = isMusic ? this.musicBus : (isDialogue ? this.dialogueBus : this.sfxBus);
 
     const source = ctx.createBufferSource();
     source.buffer = buffer;
@@ -911,10 +969,10 @@ export class AudioEngine {
 
       source.connect(trackGain);
       trackGain.connect(panner);
-      panner.connect(this.masterGain);
+      panner.connect(targetBus);
     } else {
       source.connect(trackGain);
-      trackGain.connect(this.masterGain);
+      trackGain.connect(targetBus);
     }
 
     source.onended = () => {
@@ -996,6 +1054,38 @@ export class AudioEngine {
     if (this.masterGain && !this.isMuted) {
       this.masterGain.gain.value = this.masterVolume;
     }
+  }
+
+  public setMasterVolume(volume: number): void {
+    this.setVolume(volume);
+  }
+
+  public setSfxVolume(volume: number): void {
+    this.sfxVolume = Math.max(0.0, Math.min(1.0, volume));
+    if (this.sfxBus) {
+      this.sfxBus.gain.value = this.sfxVolume;
+    }
+  }
+
+  public setMusicVolume(volume: number): void {
+    this.musicVolume = Math.max(0.0, Math.min(1.0, volume));
+    if (this.musicBus) {
+      this.musicBus.gain.value = this.musicVolume;
+    }
+  }
+
+  public setDialogueVolume(volume: number): void {
+    this.dialogueVolume = Math.max(0.0, Math.min(1.0, volume));
+    if (this.dialogueBus) {
+      this.dialogueBus.gain.value = this.dialogueVolume;
+    }
+  }
+
+  public applySettings(settings: { masterVolume?: number; sfxVolume?: number; musicVolume?: number; dialogueVolume?: number }): void {
+    if (settings.masterVolume !== undefined) this.setMasterVolume(settings.masterVolume);
+    if (settings.sfxVolume !== undefined) this.setSfxVolume(settings.sfxVolume);
+    if (settings.musicVolume !== undefined) this.setMusicVolume(settings.musicVolume);
+    if (settings.dialogueVolume !== undefined) this.setDialogueVolume(settings.dialogueVolume);
   }
 
   /**

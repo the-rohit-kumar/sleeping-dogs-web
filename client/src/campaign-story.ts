@@ -3104,6 +3104,19 @@ export class CampaignStoryEngine {
     return null;
   }
 
+  public restoreCheckpointStage(
+    stage: string,
+    title?: string,
+    objective?: string
+  ): void {
+    this.stage = stage as StoryStage;
+    this.lineTimer = 0.0;
+    this.thugsDefeated = 0;
+    if (title && objective) {
+      this.updateHUD(title, objective);
+    }
+  }
+
   private updateHUD(title: string, objective: string): void {
     if (this.missionTitle) this.missionTitle.textContent = title;
     if (this.missionObjective) this.missionObjective.textContent = objective;
