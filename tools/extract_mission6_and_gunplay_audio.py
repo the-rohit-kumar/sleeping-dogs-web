@@ -68,3 +68,4 @@ if __name__ == "__main__":
     for i, s in enumerate(teng_candidates[:8]):
         sz = decode_and_test(ENG_PCK, s['offset'], s['size'], f"dialogue_candidate_{i}")
         print(f"  Dialogue {i}: off=0x{s['offset']:08x}, size={s['size']}, stream_id=0x{s['stream_id']:08x}, wav={sz}")
+

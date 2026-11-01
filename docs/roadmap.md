@@ -25,7 +25,10 @@ flowchart LR
     P2 --> P3["Phase 3: Canvas HUD & In-Car Radios<br/>(Done)"]
     P3 --> P4["Phase 4: Env Takedowns, Drift & Mission 2<br/>(Done)"]
     P4 --> P5["Phase 5: Story Missions 3 & 4<br/>(Done)"]
-    P5 --> M11["Milestone 11: Authentic Index Buffers<br/>(Next)"]
+    P5 --> P6["Phase 6: Mission 5 Club Bam Bam<br/>(Done)"]
+    P6 --> P7["Phase 7: Mission 6 Popstar & Gunplay<br/>(Done)"]
+    P7 --> M11["Milestone 11: Havok Chassis Geometry<br/>(Done)"]
+    M11 --> M12["Upcoming: Mission 7 Listening In<br/>(Next)"]
 ```
 
 ---
@@ -274,13 +277,42 @@ flowchart LR
   - **Mission 3 ("Night Market Chase")**: Confront food stall contact $\to$ Pursue Dirty Ming across night market rooftops $\to$ Balcony knife combat with blade disarm counter reversals.
   - **Mission 4 ("Amanda Tour & Dojo Sparring")**: Escort driving tour with Amanda Cartwright across North Point $\to$ Temple dojo kung fu sparring with Master Kwok's disciples.
   - **Mission 5 ("Club Bam Bam")**: Winston Chu Golden Koi briefing $\to$ Drive across North Point to Club Bam Bam $\to$ Bouncer confrontation $\to$ Electronic dance floor melee brawl $\to$ VIP lounge table & bottle smash $\to$ Restroom porcelain urinal environmental finisher $\to$ Interrogate Benny for jade smuggling intel.
+  - **Mission 6 ("Popstar Lead 1 / Drug Bust")**: Inspector Jane Teng police radio contact $\to$ Transit to North Point tenements $\to$ Interactive 4-digit camera security hacking minigame $\to$ CCTV surveillance perspective with CRT scanlines $\to$ Alley ambush with 9mm Handgun gunplay & tire blowout shootouts $\to$ HKPD tactical unit bust confirmation.
 
 ---
 
-## Upcoming Milestone: Chapter 1 Mission 6 ("Popstar Lead 1 / Drug Bust") & Vehicle Gunplay
+## Milestone 11: Authentic Havok Vehicle Chassis Streaming (Completed)
 
-**Goal:** Implement police investigation case mechanics, security camera hacking minigame, and drive-by shooting.
+- [X] **Authentic Havok Convex Hull Geometry Streaming (`client/src/asset-loader.ts`)**:
+  - Implemented `loadAuthenticVehicleChassisHavok()` streaming `Vehicles.big` offset `0x00000800` (span: 12,224 bytes, UID `0xe391fb68`).
+  - Contains genuine Havok 2013 `hkpConvexVerticesShape` / `1100NAR01_Body_P` chassis collision geometry.
+  - Validated with 100% `EXACT_MATCH` in `tools/audit_bix_resources.py` (BIX Idx 1052, span: 12,224 bytes).
 
-- [ ] **Police Case Lead: Popstar Part 1**: Inspector Jane Teng police radio contact, surveillance camera tracking, and street supplier bust.
-- [ ] **Interactive Camera Hacking Minigame**: 4-digit code sequence deciphering on HKPD security terminals.
-- [ ] **Drive-By Vehicular Shooting**: Firing pistols/SMGs from the Sedan driver seat with bullet trajectory raycasting.
+---
+
+## Milestone 12: CCTV Camera Hacking & 9mm Gunplay Engine (Completed)
+
+- [X] **Interactive 4-Digit Camera Security Hacking Minigame (`client/src/hacking-minigame.ts`)**:
+  - Authentic Sleeping Dogs 4-digit security code terminal with numeric keypad (0-9).
+  - 5-attempt breach protocol with real-time feedback: Green (exact match), Yellow (wrong slot), Red (not in code).
+  - Streamed authentic SFX: `ui_hack_tick` (`SFX.pck` 0x47e51674), `ui_click_denied` (`SFX.pck` 0x6ec8b405), `ui_chime_granted` (`SFX.pck` 0x385d1c81).
+- [X] **On-Foot & Vehicular Drive-By 9mm Gunplay (`client/src/gunplay-system.ts`)**:
+  - Semi-automatic 9mm handgun (15 clip / 60 reserve) with dynamic over-the-shoulder and car window aiming reticle.
+  - 3D bullet raycasting, muzzle flash dynamic lighting, ricochet and concrete impact audio.
+  - Vehicular tire shootouts: targeting car wheels triggers tire blowout physics, sparks, and rim friction audio (`SFX.pck` 0x55454af6).
+- [X] **Automated Browser Test Suite Verified (`tools/verify_mission_6_popstar_and_gunplay.js`)**:
+  - Verified Jane Teng phone call, 4-digit terminal hacking, CCTV camera view switch, and 9mm gunplay in headless Chrome with **0 page errors and 0 network failures**.
+
+---
+
+## Upcoming Milestones: Story Campaign Continuation
+
+### Milestone 13: Chapter 1 Mission 7 ("Listening In" — Golden Koi Wiretap)
+- [ ] **Police Wiretap Device Handoff**: Meet Superintendent Thomas Pendrew and Inspector Jane Teng in North Point alleyway.
+- [ ] **Bamboo Scaffolding & Rooftop Infiltration**: Infiltrate Golden Koi restaurant after hours through rooftop kitchen ventilation shaft.
+- [ ] **Wiretap Resonance Frequency Tuner Minigame**: Calibrate audio frequencies on oscilloscope to tune out static and lock onto bug frequency.
+- [ ] **Stealth Planting**: Evade patrolling Triad night watchmen and plant wiretap behind wall clock in Winston Chu's private back office.
+
+### Milestone 14: Chapter 1 Mission 8 ("Chain of Command" / "Payback" — Warehouse Shootout)
+- [ ] **Dockside Warehouse Infiltration**: Cover shooting mechanics against Dogeyes' heavily armed guards.
+- [ ] **Vehicular Drive-By Chase**: High-speed vehicle chase through neon streets, shooting enemy tires for dramatic rollover takedowns.

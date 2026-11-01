@@ -434,3 +434,4 @@ export class HackingMinigame {
     return this.isActive;
   }
 }
+
