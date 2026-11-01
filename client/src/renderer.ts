@@ -23,6 +23,7 @@ export class Viewport3D {
     private gridProgram!: WebGLProgram;
     private singleVao!: WebGLVertexArrayObject;
     private gridVao!: WebGLVertexArrayObject;
+    public showGrid = false; // Game-First mode: debug wireframe grid disabled by default
     private texture: WebGLTexture | null = null;
     private hasTexture = false;
 
@@ -1012,16 +1013,18 @@ export class Viewport3D {
             view = this.lookAt(eyePos, lookTarget, [0, 1, 0]);
         }
 
-        // Draw Ground Grid
-        gl.enable(gl.BLEND);
-        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
-        gl.useProgram(this.gridProgram);
-        gl.uniformMatrix4fv(gl.getUniformLocation(this.gridProgram, 'uView'), false, view);
-        gl.uniformMatrix4fv(gl.getUniformLocation(this.gridProgram, 'uProjection'), false, proj);
-        gl.bindVertexArray(this.gridVao);
-        gl.drawArrays(gl.LINES, 0, 61 * 4);
-        this.drawCalls++;
-        gl.disable(gl.BLEND);
+        // Draw Ground Grid (Only in Developer / Wireframe Mode)
+        if (this.showGrid) {
+            gl.enable(gl.BLEND);
+            gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+            gl.useProgram(this.gridProgram);
+            gl.uniformMatrix4fv(gl.getUniformLocation(this.gridProgram, 'uView'), false, view);
+            gl.uniformMatrix4fv(gl.getUniformLocation(this.gridProgram, 'uProjection'), false, proj);
+            gl.bindVertexArray(this.gridVao);
+            gl.drawArrays(gl.LINES, 0, 61 * 4);
+            this.drawCalls++;
+            gl.disable(gl.BLEND);
+        }
 
         // Render Geometry
         gl.useProgram(this.program);

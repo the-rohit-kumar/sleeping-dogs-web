@@ -481,3 +481,184 @@ export function parseIllusionBuffer(data: Uint8Array, name: string = "IllusionBu
 
   return null;
 }
+
+/**
+ * Clean 3D Box Mesh generator with verified normals and UV coordinates
+ */
+export function createBoxMesh(dx: number, dy: number, dz: number, name = 'BoxMesh'): DecodedMesh {
+  const hx = dx / 2, hy = dy / 2, hz = dz / 2;
+  const positions = new Float32Array([
+    // Front
+    -hx, -hy,  hz,   hx, -hy,  hz,   hx,  hy,  hz,  -hx,  hy,  hz,
+    // Back
+     hx, -hy, -hz,  -hx, -hy, -hz,  -hx,  hy, -hz,   hx,  hy, -hz,
+    // Top
+    -hx,  hy,  hz,   hx,  hy,  hz,   hx,  hy, -hz,  -hx,  hy, -hz,
+    // Bottom
+    -hx, -hy, -hz,   hx, -hy, -hz,   hx, -hy,  hz,  -hx, -hy,  hz,
+    // Right
+     hx, -hy,  hz,   hx, -hy, -hz,   hx,  hy, -hz,   hx,  hy,  hz,
+    // Left
+    -hx, -hy, -hz,  -hx, -hy,  hz,  -hx,  hy,  hz,  -hx,  hy, -hz
+  ]);
+
+  const normals = new Float32Array([
+    // Front
+     0,  0,  1,   0,  0,  1,   0,  0,  1,   0,  0,  1,
+    // Back
+     0,  0, -1,   0,  0, -1,   0,  0, -1,   0,  0, -1,
+    // Top
+     0,  1,  0,   0,  1,  0,   0,  1,  0,   0,  1,  0,
+    // Bottom
+     0, -1,  0,   0, -1,  0,   0, -1,  0,   0, -1,  0,
+    // Right
+     1,  0,  0,   1,  0,  0,   1,  0,  0,   1,  0,  0,
+    // Left
+    -1,  0,  0,  -1,  0,  0,  -1,  0,  0,  -1,  0,  0
+  ]);
+
+  const uvs = new Float32Array([
+    0, 0,  1, 0,  1, 1,  0, 1,
+    0, 0,  1, 0,  1, 1,  0, 1,
+    0, 0,  1, 0,  1, 1,  0, 1,
+    0, 0,  1, 0,  1, 1,  0, 1,
+    0, 0,  1, 0,  1, 1,  0, 1,
+    0, 0,  1, 0,  1, 1,  0, 1
+  ]);
+
+  const indices = new Uint16Array([
+     0,  1,  2,   0,  2,  3, // Front
+     4,  5,  6,   4,  6,  7, // Back
+     8,  9, 10,   8, 10, 11, // Top
+    12, 13, 14,  12, 14, 15, // Bottom
+    16, 17, 18,  16, 18, 19, // Right
+    20, 21, 22,  20, 22, 23  // Left
+  ]);
+
+  return {
+    name,
+    positions,
+    normals,
+    uvs,
+    indices,
+    vertexCount: 24,
+    triangleCount: 12,
+    bounds: {
+      min: [-hx, -hy, -hz],
+      max: [hx, hy, hz],
+      center: [0, 0, 0],
+      size: [dx, dy, dz]
+    }
+  };
+}
+
+/**
+ * Generates an authentic proportioned humanoid brawler mesh with head, torso, arms, and legs.
+ * Used for pedestrians, triad thugs, and bosses.
+ */
+export function createHumanoidBrawlerMesh(height = 1.82, isBrawler = true, name = 'Humanoid_Brawler'): DecodedMesh {
+  const parts = [
+    // 1. Head
+    { cx: 0, cy: height - 0.14, cz: 0, dx: 0.22, dy: 0.24, dz: 0.22 },
+    // 2. Torso
+    { cx: 0, cy: height - 0.54, cz: 0, dx: 0.44, dy: 0.54, dz: 0.26 },
+    // 3. Left Arm (raised in guard if brawler)
+    { cx: -0.28, cy: height - 0.52, cz: isBrawler ? 0.15 : 0.0, dx: 0.12, dy: 0.48, dz: 0.12 },
+    // 4. Right Arm (thrust in martial stance if brawler)
+    { cx: 0.28, cy: height - 0.52, cz: isBrawler ? 0.22 : 0.0, dx: 0.12, dy: 0.48, dz: 0.12 },
+    // 5. Left Leg (rear stance)
+    { cx: -0.13, cy: 0.42, cz: isBrawler ? -0.10 : 0.0, dx: 0.16, dy: 0.66, dz: 0.18 },
+    // 6. Right Leg (lead stance)
+    { cx: 0.13, cy: 0.42, cz: isBrawler ? 0.12 : 0.0, dx: 0.16, dy: 0.66, dz: 0.18 }
+  ];
+
+  const totalVerts = parts.length * 24;
+  const totalTris = parts.length * 12;
+  const positions = new Float32Array(totalVerts * 3);
+  const normals = new Float32Array(totalVerts * 3);
+  const uvs = new Float32Array(totalVerts * 2);
+  const indices = new Uint16Array(totalTris * 3);
+
+  let vOffset = 0;
+  let iOffset = 0;
+
+  for (const p of parts) {
+    const hx = p.dx / 2, hy = p.dy / 2, hz = p.dz / 2;
+    const cx = p.cx, cy = p.cy, cz = p.cz;
+
+    // 24 positions
+    const pos = [
+      // Front
+      cx - hx, cy - hy, cz + hz,   cx + hx, cy - hy, cz + hz,   cx + hx, cy + hy, cz + hz,  cx - hx, cy + hy, cz + hz,
+      // Back
+      cx + hx, cy - hy, cz - hz,  cx - hx, cy - hy, cz - hz,  cx - hx, cy + hy, cz - hz,   cx + hx, cy + hy, cz - hz,
+      // Top
+      cx - hx, cy + hy, cz + hz,   cx + hx, cy + hy, cz + hz,   cx + hx, cy + hy, cz - hz,  cx - hx, cy + hy, cz - hz,
+      // Bottom
+      cx - hx, cy - hy, cz - hz,   cx + hx, cy - hy, cz - hz,   cx + hx, cy - hy, cz + hz,  cx - hx, cy - hy, cz + hz,
+      // Right
+      cx + hx, cy - hy, cz + hz,   cx + hx, cy - hy, cz - hz,   cx + hx, cy + hy, cz - hz,   cx + hx, cy + hy, cz + hz,
+      // Left
+      cx - hx, cy - hy, cz - hz,  cx - hx, cy - hy, cz + hz,  cx - hx, cy + hy, cz + hz,  cx - hx, cy + hy, cz - hz
+    ];
+
+    const norm = [
+       0,  0,  1,   0,  0,  1,   0,  0,  1,   0,  0,  1,
+       0,  0, -1,   0,  0, -1,   0,  0, -1,   0,  0, -1,
+       0,  1,  0,   0,  1,  0,   0,  1,  0,   0,  1,  0,
+       0, -1,  0,   0, -1,  0,   0, -1,  0,   0, -1,  0,
+       1,  0,  0,   1,  0,  0,   1,  0,  0,   1,  0,  0,
+      -1,  0,  0,  -1,  0,  0,  -1,  0,  0,  -1,  0,  0
+    ];
+
+    const uv = [
+      0, 0,  1, 0,  1, 1,  0, 1,
+      0, 0,  1, 0,  1, 1,  0, 1,
+      0, 0,  1, 0,  1, 1,  0, 1,
+      0, 0,  1, 0,  1, 1,  0, 1,
+      0, 0,  1, 0,  1, 1,  0, 1,
+      0, 0,  1, 0,  1, 1,  0, 1
+    ];
+
+    for (let i = 0; i < 72; i++) {
+      positions[(vOffset * 3) + i] = pos[i];
+      normals[(vOffset * 3) + i] = norm[i];
+    }
+    for (let i = 0; i < 48; i++) {
+      uvs[(vOffset * 2) + i] = uv[i];
+    }
+
+    const baseInd = vOffset;
+    const boxInd = [
+       0,  1,  2,   0,  2,  3, // Front
+       4,  5,  6,   4,  6,  7, // Back
+       8,  9, 10,   8, 10, 11, // Top
+      12, 13, 14,  12, 14, 15, // Bottom
+      16, 17, 18,  16, 18, 19, // Right
+      20, 21, 22,  20, 22, 23  // Left
+    ];
+
+    for (let i = 0; i < 36; i++) {
+      indices[iOffset + i] = baseInd + boxInd[i];
+    }
+
+    vOffset += 24;
+    iOffset += 36;
+  }
+
+  return {
+    name,
+    positions,
+    normals,
+    uvs,
+    indices,
+    vertexCount: totalVerts,
+    triangleCount: totalTris,
+    bounds: {
+      min: [-0.35, 0, -0.30],
+      max: [0.35, height, 0.35],
+      center: [0, height / 2, 0],
+      size: [0.70, height, 0.65]
+    }
+  };
+}

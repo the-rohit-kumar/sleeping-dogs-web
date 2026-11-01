@@ -786,6 +786,14 @@ window.addEventListener('DOMContentLoaded', async () => {
 
     // Keyboard controls
     window.addEventListener('keydown', (e) => {
+        // Toggle developer metrics HUD and editor grid with [~] or [F1]
+        if (e.code === 'Backquote' || e.code === 'F1' || e.key === '' || e.key === '~') {
+            const hud = document.querySelector('.hud-overlay');
+            if (hud) hud.classList.toggle('visible');
+            renderer.showGrid = !renderer.showGrid;
+            return;
+        }
+
         if (e.code === 'KeyF' || e.key.toLowerCase() === 'f') {
             if (campaignStory.stage === 'prologue_chase') {
                 campaignStory.startPrologueAlleyFight(audioEngine);

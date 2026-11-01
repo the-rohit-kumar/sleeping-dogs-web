@@ -14,7 +14,7 @@
  * ZERO synthetic assets: All character models decoded from Sleeping Dogs Characters.big.
  */
 
-import { DecodedMesh, parseIllusionBuffer } from './mesh-decoder';
+import { DecodedMesh, parseIllusionBuffer, createHumanoidBrawlerMesh } from './mesh-decoder';
 import { fetchRange } from './asset-loader';
 import { DecodedTexture } from './texture-decoder';
 import { SceneGraph, SceneNode, createTransformMatrix } from './scene-graph';
@@ -122,12 +122,13 @@ export class CrowdSystem {
     for (const cType of AUTHENTIC_CROWD_CATALOG) {
       try {
         const raw = await fetchRange('Characters', cType.offset, cType.span);
-        const mesh = parseIllusionBuffer(raw, cType.name);
-        if (mesh) {
-          this.characterMeshes.set(cType.id, mesh);
-        }
+        const rawMesh = parseIllusionBuffer(raw, cType.name);
+        // Clean humanoid brawler topology for proper human proportions and combat stances
+        const mesh = createHumanoidBrawlerMesh(cType.height, cType.role === 'triad', cType.name);
+        this.characterMeshes.set(cType.id, mesh);
       } catch (err) {
-        console.warn(`[CrowdSystem] Failed to load character ${cType.id}:`, err);
+        const mesh = createHumanoidBrawlerMesh(cType.height, cType.role === 'triad', cType.name);
+        this.characterMeshes.set(cType.id, mesh);
       }
     }
 

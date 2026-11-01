@@ -249,18 +249,20 @@ export class WorldStreamer {
   private asphaltTexture?: DecodedTexture;
   private buildingTexture?: DecodedTexture;
   private neonTexture?: DecodedTexture;
+  private asphaltNormal?: DecodedTexture;
 
   /**
    * Initializes and streams the primary Hong Kong sectors
    */
   public async initPrimaryWorld(
     sceneGraph: SceneGraph,
-    textures?: { asphalt?: DecodedTexture; building?: DecodedTexture; neon?: DecodedTexture }
+    textures?: { asphalt?: DecodedTexture; building?: DecodedTexture; neon?: DecodedTexture; asphaltNormal?: DecodedTexture }
   ): Promise<void> {
     if (textures) {
       this.asphaltTexture = textures.asphalt;
       this.buildingTexture = textures.building;
       this.neonTexture = textures.neon;
+      this.asphaltNormal = textures.asphaltNormal;
     }
 
     for (const meta of AUTHENTIC_WORLD_SECTORS) {
@@ -325,6 +327,157 @@ export class WorldStreamer {
     const buildingBlockMesh = this.generateBoxMesh(14.0, 36.0, 22.0); // 36m tall Hong Kong residential/shop tower
     const curbMesh = this.generateBoxMesh(2.5, 0.28, 48.0); // Sidewalk curb slab
     const neonSignMesh = this.generateBoxMesh(1.0, 1.0, 0.1);
+
+    // 0. High-Density Asphalt Roadway Surface & Markings (North Point Main Arterial)
+    const roadLength = 140.0;
+    const roadWidth = 11.2;
+    const roadMesh = this.generateBoxMesh(roadWidth, 0.14, roadLength);
+    const roadNode: SceneNode = {
+      id: 'node-hk-roadway',
+      name: 'Hong Kong Central Asphalt Roadway Corridor',
+      mesh: roadMesh,
+      texture: this.asphaltTexture,
+      normalMap: this.asphaltNormal,
+      position: [0.0, 0.05, 0.0],
+      rotation: [0, 0, 0],
+      scale: [1, 1, 1],
+      color: [0.35, 0.36, 0.39], // Rich dark wet asphalt albedo
+      visible: true,
+      transform: createTransformMatrix([0.0, 0.05, 0.0], [0, 0, 0], [1, 1, 1])
+    };
+    sceneGraph.addNode(roadNode);
+
+    // Double solid yellow centerlines down the middle of the road (x = +-0.12m)
+    const centerlineMesh = this.generateBoxMesh(0.12, 0.02, roadLength - 4.0);
+    const yellowLeft: SceneNode = {
+      id: 'node-road-centerline-l',
+      name: 'Road Centerline Double Yellow (West)',
+      mesh: centerlineMesh,
+      position: [-0.14, 0.13, 0.0],
+      rotation: [0, 0, 0],
+      scale: [1, 1, 1],
+      color: [0.98, 0.82, 0.12], // Hong Kong traffic amber yellow
+      visible: true,
+      transform: createTransformMatrix([-0.14, 0.13, 0.0], [0, 0, 0], [1, 1, 1])
+    };
+    sceneGraph.addNode(yellowLeft);
+
+    const yellowRight: SceneNode = {
+      id: 'node-road-centerline-r',
+      name: 'Road Centerline Double Yellow (East)',
+      mesh: centerlineMesh,
+      position: [0.14, 0.13, 0.0],
+      rotation: [0, 0, 0],
+      scale: [1, 1, 1],
+      color: [0.98, 0.82, 0.12],
+      visible: true,
+      transform: createTransformMatrix([0.14, 0.13, 0.0], [0, 0, 0], [1, 1, 1])
+    };
+    sceneGraph.addNode(yellowRight);
+
+    // White dashed lane dividing lines (x = +-2.85m)
+    const dashMesh = this.generateBoxMesh(0.14, 0.02, 2.8);
+    for (let z = -60; z <= 60; z += 6.5) {
+      if (Math.abs(z) < 4.0) continue; // Skip intersection / crosswalk
+      const dashL: SceneNode = {
+        id: 'node-road-dash-l-' + z,
+        name: 'Road Dashed Lane Divider L ' + z,
+        mesh: dashMesh,
+        position: [-2.85, 0.13, z],
+        rotation: [0, 0, 0],
+        scale: [1, 1, 1],
+        color: [0.95, 0.95, 0.95],
+        visible: true,
+        transform: createTransformMatrix([-2.85, 0.13, z], [0, 0, 0], [1, 1, 1])
+      };
+      sceneGraph.addNode(dashL);
+
+      const dashR: SceneNode = {
+        id: 'node-road-dash-r-' + z,
+        name: 'Road Dashed Lane Divider R ' + z,
+        mesh: dashMesh,
+        position: [2.85, 0.13, z],
+        rotation: [0, 0, 0],
+        scale: [1, 1, 1],
+        color: [0.95, 0.95, 0.95],
+        visible: true,
+        transform: createTransformMatrix([2.85, 0.13, z], [0, 0, 0], [1, 1, 1])
+      };
+      sceneGraph.addNode(dashR);
+    }
+
+    // Pedestrian Zebra Crossing (Market Plaza junction at z = 0)
+    const zebraStripeMesh = this.generateBoxMesh(0.48, 0.02, 3.6);
+    for (let x = -4.8; x <= 4.8; x += 0.96) {
+      const stripeNode: SceneNode = {
+        id: 'node-road-zebra-' + x.toFixed(1),
+        name: 'Pedestrian Zebra Crossing Stripe ' + x.toFixed(1) + 'm',
+        mesh: zebraStripeMesh,
+        position: [x, 0.132, 0.0],
+        rotation: [0, 0, 0],
+        scale: [1, 1, 1],
+        color: [0.96, 0.96, 0.96],
+        visible: true,
+        transform: createTransformMatrix([x, 0.132, 0.0], [0, 0, 0], [1, 1, 1])
+      };
+      sceneGraph.addNode(stripeNode);
+    }
+
+    // Solid transverse stop lines
+    const stopBarMesh = this.generateBoxMesh(4.8, 0.02, 0.40);
+    const stopBarNorth: SceneNode = {
+      id: 'node-road-stop-north',
+      name: 'Vehicle Stop Line North',
+      mesh: stopBarMesh,
+      position: [-2.6, 0.132, -3.0],
+      rotation: [0, 0, 0],
+      scale: [1, 1, 1],
+      color: [0.96, 0.96, 0.96],
+      visible: true,
+      transform: createTransformMatrix([-2.6, 0.132, -3.0], [0, 0, 0], [1, 1, 1])
+    };
+    sceneGraph.addNode(stopBarNorth);
+
+    const stopBarSouth: SceneNode = {
+      id: 'node-road-stop-south',
+      name: 'Vehicle Stop Line South',
+      mesh: stopBarMesh,
+      position: [2.6, 0.132, 3.0],
+      rotation: [0, 0, 0],
+      scale: [1, 1, 1],
+      color: [0.96, 0.96, 0.96],
+      visible: true,
+      transform: createTransformMatrix([2.6, 0.132, 3.0], [0, 0, 0], [1, 1, 1])
+    };
+    sceneGraph.addNode(stopBarSouth);
+
+    // Granite curb stones separating road from sidewalk
+    const curbStoneMesh = this.generateBoxMesh(0.18, 0.22, roadLength);
+    const curbStoneW: SceneNode = {
+      id: 'node-curb-stone-w',
+      name: 'Granite Sidewalk Curb Stone West',
+      mesh: curbStoneMesh,
+      position: [-5.60, 0.18, 0.0],
+      rotation: [0, 0, 0],
+      scale: [1, 1, 1],
+      color: [0.65, 0.65, 0.68],
+      visible: true,
+      transform: createTransformMatrix([-5.60, 0.18, 0.0], [0, 0, 0], [1, 1, 1])
+    };
+    sceneGraph.addNode(curbStoneW);
+
+    const curbStoneE: SceneNode = {
+      id: 'node-curb-stone-e',
+      name: 'Granite Sidewalk Curb Stone East',
+      mesh: curbStoneMesh,
+      position: [5.60, 0.18, 0.0],
+      rotation: [0, 0, 0],
+      scale: [1, 1, 1],
+      color: [0.65, 0.65, 0.68],
+      visible: true,
+      transform: createTransformMatrix([5.60, 0.18, 0.0], [0, 0, 0], [1, 1, 1])
+    };
+    sceneGraph.addNode(curbStoneE);
 
     // 1. Sidewalk curbs along the boulevard (Left and Right)
     const leftSidewalk: SceneNode = {

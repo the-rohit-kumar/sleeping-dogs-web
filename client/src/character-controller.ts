@@ -42,6 +42,8 @@ export class CharacterController {
   public slopeDegrees = 0.0;
   public isColliding = false;
 
+  public walkPhase = 0.0;
+
   // Input State
   private keysDown = new Set<string>();
 
@@ -222,7 +224,7 @@ export class CharacterController {
 
     this.position = [newX, newY, newZ];
 
-    // 8. Synchronize SceneGraph Node Transform
+    // 8. Synchronize SceneGraph Node Transform (Anchor + Articulated Wei Shen)
     if (sceneGraph) {
       const charNode = sceneGraph.getNode('node-character');
       if (charNode) {
@@ -234,6 +236,7 @@ export class CharacterController {
           charNode.scale
         );
       }
+      this.updateWeiShenLimbs(sceneGraph, deltaTimeSec);
     }
 
     // 9. Synchronize Locomotion Animation State
@@ -255,5 +258,147 @@ export class CharacterController {
       }
     }
   }
-}
 
+  /**
+   * Procedural Locomotion Kinematics for Wei Shen:
+   * Articulates torso, arms, legs, sneakers, and martial arts strikes in sync with movement velocity.
+   */
+  private updateWeiShenLimbs(sceneGraph: SceneGraph, dt: number): void {
+    const horizSpeed = Math.hypot(this.velocity[0], this.velocity[2]);
+    if (this.isGrounded && horizSpeed > 0.15) {
+      this.walkPhase += dt * horizSpeed * (this.isSprinting ? 4.4 : 3.6);
+    }
+
+    const sinPhase = Math.sin(this.walkPhase);
+
+    // Stride angles
+    let legSwing = (this.isGrounded && horizSpeed > 0.15) ? sinPhase * (this.isSprinting ? 0.65 : 0.38) : 0.0;
+    let armSwing = (this.isGrounded && horizSpeed > 0.15) ? sinPhase * (this.isSprinting ? 0.55 : 0.32) : 0.0;
+
+    // Torso lean during sprint
+    let torsoPitch = this.isSprinting ? 0.15 : 0.0;
+    let torsoYaw = 0.0;
+    let strikeReach = 0.0;
+
+    // Combat striking punch
+    if (this.isAttacking) {
+      torsoYaw = 0.35;
+      strikeReach = 0.45;
+      armSwing = 0.0;
+    }
+
+    const yaw = this.rotationY;
+    const sinY = Math.sin(yaw);
+    const cosY = Math.cos(yaw);
+
+    // Helper: Local offset rotated by character yaw
+    const rotVec = (lx: number, ly: number, lz: number): [number, number, number] => {
+      const rx = lx * cosY + lz * sinY;
+      const rz = -lx * sinY + lz * cosY;
+      return [this.position[0] + rx, this.position[1] + ly, this.position[2] + rz];
+    };
+
+    // 1. Torso
+    const torsoPos = rotVec(0, 1.18, 0);
+    const torsoNode = sceneGraph.getNode('node-wei-torso');
+    if (torsoNode) {
+      torsoNode.position = torsoPos;
+      torsoNode.rotation = [torsoPitch, yaw + torsoYaw, 0];
+      torsoNode.transform = createTransformMatrix(torsoNode.position, torsoNode.rotation, [1, 1, 1]);
+    }
+
+    // 2. Head & Hair
+    const headPos = rotVec(0, 1.55, this.isSprinting ? 0.06 : 0.0);
+    const headNode = sceneGraph.getNode('node-wei-head');
+    if (headNode) {
+      headNode.position = headPos;
+      headNode.rotation = [0, yaw, 0];
+      headNode.transform = createTransformMatrix(headNode.position, headNode.rotation, [1, 1, 1]);
+    }
+    const hairPos = rotVec(0, 1.66, this.isSprinting ? 0.06 : 0.0);
+    const hairNode = sceneGraph.getNode('node-wei-hair');
+    if (hairNode) {
+      hairNode.position = hairPos;
+      hairNode.rotation = [0, yaw, 0];
+      hairNode.transform = createTransformMatrix(hairNode.position, hairNode.rotation, [1, 1, 1]);
+    }
+
+    // 3. Belt
+    const beltPos = rotVec(0, 0.91, 0);
+    const beltNode = sceneGraph.getNode('node-wei-belt');
+    if (beltNode) {
+      beltNode.position = beltPos;
+      beltNode.rotation = [torsoPitch, yaw, 0];
+      beltNode.transform = createTransformMatrix(beltNode.position, beltNode.rotation, [1, 1, 1]);
+    }
+
+    // 4. Arms
+    // Left Arm (Counter-swing or guard)
+    const armLPos = rotVec(-0.27, 1.16, -armSwing * 0.18);
+    const armLNode = sceneGraph.getNode('node-wei-arm-l');
+    if (armLNode) {
+      armLNode.position = armLPos;
+      armLNode.rotation = [-armSwing, yaw, 0];
+      armLNode.transform = createTransformMatrix(armLNode.position, armLNode.rotation, [1, 1, 1]);
+    }
+    const wristLPos = rotVec(-0.27, 0.95, -armSwing * 0.32);
+    const wristLNode = sceneGraph.getNode('node-wei-wrist-l');
+    if (wristLNode) {
+      wristLNode.position = wristLPos;
+      wristLNode.rotation = [-armSwing, yaw, 0];
+      wristLNode.transform = createTransformMatrix(wristLNode.position, wristLNode.rotation, [1, 1, 1]);
+    }
+
+    // Right Arm (Swing or Straight Strike Punch)
+    const armRReachZ = this.isAttacking ? strikeReach : armSwing * 0.18;
+    const armRPos = rotVec(0.27, 1.16, armRReachZ);
+    const armRNode = sceneGraph.getNode('node-wei-arm-r');
+    if (armRNode) {
+      armRNode.position = armRPos;
+      armRNode.rotation = [this.isAttacking ? -0.85 : armSwing, yaw + (this.isAttacking ? 0.15 : 0), 0];
+      armRNode.transform = createTransformMatrix(armRNode.position, armRNode.rotation, [1, 1, 1]);
+    }
+    const wristRReachZ = this.isAttacking ? strikeReach + 0.22 : armSwing * 0.32;
+    const wristRPos = rotVec(0.27, 0.95, wristRReachZ);
+    const wristRNode = sceneGraph.getNode('node-wei-wrist-r');
+    if (wristRNode) {
+      wristRNode.position = wristRPos;
+      wristRNode.rotation = [this.isAttacking ? -0.85 : armSwing, yaw + (this.isAttacking ? 0.15 : 0), 0];
+      wristRNode.transform = createTransformMatrix(wristRNode.position, wristRNode.rotation, [1, 1, 1]);
+    }
+
+    // 5. Legs & Shoes
+    // Left Leg
+    const legLPos = rotVec(-0.12, 0.56, legSwing * 0.14);
+    const legLNode = sceneGraph.getNode('node-wei-leg-l');
+    if (legLNode) {
+      legLNode.position = legLPos;
+      legLNode.rotation = [legSwing, yaw, 0];
+      legLNode.transform = createTransformMatrix(legLNode.position, legLNode.rotation, [1, 1, 1]);
+    }
+    const shoeLPos = rotVec(-0.12, 0.08, 0.04 + legSwing * 0.32);
+    const shoeLNode = sceneGraph.getNode('node-wei-shoe-l');
+    if (shoeLNode) {
+      shoeLNode.position = shoeLPos;
+      shoeLNode.rotation = [legSwing * 0.5, yaw, 0];
+      shoeLNode.transform = createTransformMatrix(shoeLNode.position, shoeLNode.rotation, [1, 1, 1]);
+    }
+
+    // Right Leg
+    const legRPos = rotVec(0.12, 0.56, -legSwing * 0.14);
+    const legRNode = sceneGraph.getNode('node-wei-leg-r');
+    if (legRNode) {
+      legRNode.position = legRPos;
+      legRNode.rotation = [-legSwing, yaw, 0];
+      legRNode.transform = createTransformMatrix(legRNode.position, legRNode.rotation, [1, 1, 1]);
+    }
+    const shoeRPos = rotVec(0.12, 0.08, 0.04 - legSwing * 0.32);
+    const shoeRNode = sceneGraph.getNode('node-wei-shoe-r');
+    if (shoeRNode) {
+      shoeRNode.position = shoeRPos;
+      shoeRNode.rotation = [-legSwing * 0.5, yaw, 0];
+      shoeRNode.transform = createTransformMatrix(shoeRNode.position, shoeRNode.rotation, [1, 1, 1]);
+    }
+  }
+
+}

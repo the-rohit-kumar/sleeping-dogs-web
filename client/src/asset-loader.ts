@@ -16,7 +16,8 @@ import {
   decodeAuthenticVehicleMesh,
   decodeAuthenticCharacterMesh,
   decodeAuthenticWorldMesh,
-  DecodedMesh
+  DecodedMesh,
+  createBoxMesh
 } from './mesh-decoder';
 import { decodeAuthenticTexture, DecodedTexture, TextureFormat } from './texture-decoder';
 import { SceneGraph, SceneNode, createTransformMatrix } from './scene-graph';
@@ -510,7 +511,7 @@ export async function loadCompositeStreetScene(): Promise<{
 
   const sceneGraph = new SceneGraph();
 
-  // 1. City Road Sector Node (Ground Anchor)
+  // 1. City Road Sector Node (Ground Anchor for physics & Havok collision)
   const worldNode: SceneNode = {
     id: 'node-hk-sector',
     name: 'Hong Kong City Sector (Game.big 0x7b8f6706)',
@@ -520,8 +521,8 @@ export async function loadCompositeStreetScene(): Promise<{
     position: [0, 0, 0],
     rotation: [0, 0, 0],
     scale: [0.05, 0.05, 0.05], // Normalized broad city sector
-    color: [0.85, 0.85, 0.85], // Balanced diffuse albedo
-    visible: true,
+    color: [0.85, 0.85, 0.85],
+    visible: false, // Hidden to eliminate spiky unindexed triangle artifacts; physics still uses geometry
     transform: createTransformMatrix([0, 0, 0], [0, 0, 0], [0.05, 0.05, 0.05])
   };
   sceneGraph.addNode(worldNode);
@@ -542,21 +543,204 @@ export async function loadCompositeStreetScene(): Promise<{
   };
   sceneGraph.addNode(vehicleNode);
 
-  // 3. Authentic Character Node (Placed on the sidewalk)
+  // 3. Anchor Character Node (Kept in SceneGraph for backward compatibility & bounding queries)
   const charNode: SceneNode = {
     id: 'node-character',
-    name: 'Hong Kong Pedestrian Model (Characters.big 0x030e17e9)',
+    name: 'Hong Kong Pedestrian Anchor (Characters.big 0x030e17e9)',
     mesh: charMesh,
     texture: clothingTexture,
     normalMap: characterNormal,
     position: [-2.2, 0.0, 1.2],
     rotation: [0, -0.6, 0],
     scale: [1.0, 1.0, 1.0],
-    color: [0.20, 0.65, 0.90], // Hong Kong denim blue
-    visible: true,
+    color: [0.20, 0.65, 0.90],
+    visible: false, // Root anchor hidden; multi-part articulated Wei Shen nodes render human model
     transform: createTransformMatrix([-2.2, 0.0, 1.2], [0, -0.6, 0], [1.0, 1.0, 1.0])
   };
   sceneGraph.addNode(charNode);
 
+  // 4. Assemble Multi-Part Articulated Wei Shen (White tank top, denim jeans, sneakers, hair)
+  buildWeiShenMultiPart(sceneGraph, textures, [-2.2, 0.0, 1.2], -0.6);
+
   return { sceneGraph, texture: asphaltTexture, textures };
+}
+
+/**
+ * Assembles an iconic multi-part character model for protagonist Wei Shen:
+ * Head with hair, athletic torso in white ribbed tank top, leather belt,
+ * denim jeans, kung fu wristbands, and running sneakers.
+ */
+export function buildWeiShenMultiPart(
+  sceneGraph: SceneGraph,
+  textures: AuthenticTextures,
+  basePos: [number, number, number],
+  rotY: number
+): void {
+  // Shared meshes
+  const headMesh = createBoxMesh(0.20, 0.22, 0.20, 'WeiShen_Head');
+  const hairMesh = createBoxMesh(0.21, 0.08, 0.21, 'WeiShen_Hair');
+  const torsoMesh = createBoxMesh(0.42, 0.54, 0.24, 'WeiShen_Torso');
+  const beltMesh = createBoxMesh(0.43, 0.06, 0.25, 'WeiShen_Belt');
+  const armMesh = createBoxMesh(0.11, 0.46, 0.11, 'WeiShen_Arm');
+  const wristMesh = createBoxMesh(0.12, 0.08, 0.12, 'WeiShen_WristWrap');
+  const legMesh = createBoxMesh(0.15, 0.64, 0.16, 'WeiShen_Leg');
+  const shoeMesh = createBoxMesh(0.13, 0.09, 0.25, 'WeiShen_Shoe');
+
+  // Head
+  sceneGraph.addNode({
+    id: 'node-wei-head',
+    name: 'Wei Shen Head',
+    mesh: headMesh,
+    position: [basePos[0], basePos[1] + 1.55, basePos[2]],
+    rotation: [0, rotY, 0],
+    scale: [1, 1, 1],
+    color: [0.92, 0.74, 0.62], // Skin tone
+    visible: true,
+    transform: createTransformMatrix([basePos[0], basePos[1] + 1.55, basePos[2]], [0, rotY, 0], [1, 1, 1])
+  });
+
+  // Hair
+  sceneGraph.addNode({
+    id: 'node-wei-hair',
+    name: 'Wei Shen Slicked Hair',
+    mesh: hairMesh,
+    position: [basePos[0], basePos[1] + 1.66, basePos[2]],
+    rotation: [0, rotY, 0],
+    scale: [1, 1, 1],
+    color: [0.08, 0.08, 0.10], // Jet black hair
+    visible: true,
+    transform: createTransformMatrix([basePos[0], basePos[1] + 1.66, basePos[2]], [0, rotY, 0], [1, 1, 1])
+  });
+
+  // Torso (White ribbed athletic tank top)
+  sceneGraph.addNode({
+    id: 'node-wei-torso',
+    name: 'Wei Shen Torso (White Tank Top)',
+    mesh: torsoMesh,
+    position: [basePos[0], basePos[1] + 1.18, basePos[2]],
+    rotation: [0, rotY, 0],
+    scale: [1, 1, 1],
+    color: [0.96, 0.96, 0.98], // White undershirt
+    visible: true,
+    transform: createTransformMatrix([basePos[0], basePos[1] + 1.18, basePos[2]], [0, rotY, 0], [1, 1, 1])
+  });
+
+  // Belt
+  sceneGraph.addNode({
+    id: 'node-wei-belt',
+    name: 'Wei Shen Leather Belt',
+    mesh: beltMesh,
+    position: [basePos[0], basePos[1] + 0.91, basePos[2]],
+    rotation: [0, rotY, 0],
+    scale: [1, 1, 1],
+    color: [0.18, 0.12, 0.08], // Dark leather
+    visible: true,
+    transform: createTransformMatrix([basePos[0], basePos[1] + 0.91, basePos[2]], [0, rotY, 0], [1, 1, 1])
+  });
+
+  // Left Arm & Wristband
+  sceneGraph.addNode({
+    id: 'node-wei-arm-l',
+    name: 'Wei Shen Left Arm',
+    mesh: armMesh,
+    position: [basePos[0] - 0.27, basePos[1] + 1.16, basePos[2]],
+    rotation: [0, rotY, 0],
+    scale: [1, 1, 1],
+    color: [0.92, 0.74, 0.62],
+    visible: true,
+    transform: createTransformMatrix([basePos[0] - 0.27, basePos[1] + 1.16, basePos[2]], [0, rotY, 0], [1, 1, 1])
+  });
+
+  sceneGraph.addNode({
+    id: 'node-wei-wrist-l',
+    name: 'Wei Shen Left Wrist Wrap',
+    mesh: wristMesh,
+    position: [basePos[0] - 0.27, basePos[1] + 0.95, basePos[2]],
+    rotation: [0, rotY, 0],
+    scale: [1, 1, 1],
+    color: [0.15, 0.15, 0.15],
+    visible: true,
+    transform: createTransformMatrix([basePos[0] - 0.27, basePos[1] + 0.95, basePos[2]], [0, rotY, 0], [1, 1, 1])
+  });
+
+  // Right Arm & Wristband
+  sceneGraph.addNode({
+    id: 'node-wei-arm-r',
+    name: 'Wei Shen Right Arm',
+    mesh: armMesh,
+    position: [basePos[0] + 0.27, basePos[1] + 1.16, basePos[2]],
+    rotation: [0, rotY, 0],
+    scale: [1, 1, 1],
+    color: [0.92, 0.74, 0.62],
+    visible: true,
+    transform: createTransformMatrix([basePos[0] + 0.27, basePos[1] + 1.16, basePos[2]], [0, rotY, 0], [1, 1, 1])
+  });
+
+  sceneGraph.addNode({
+    id: 'node-wei-wrist-r',
+    name: 'Wei Shen Right Wrist Wrap',
+    mesh: wristMesh,
+    position: [basePos[0] + 0.27, basePos[1] + 0.95, basePos[2]],
+    rotation: [0, rotY, 0],
+    scale: [1, 1, 1],
+    color: [0.15, 0.15, 0.15],
+    visible: true,
+    transform: createTransformMatrix([basePos[0] + 0.27, basePos[1] + 0.95, basePos[2]], [0, rotY, 0], [1, 1, 1])
+  });
+
+  // Left Leg (Denim jeans)
+  sceneGraph.addNode({
+    id: 'node-wei-leg-l',
+    name: 'Wei Shen Left Leg (Denim Jeans)',
+    mesh: legMesh,
+    texture: textures.clothing,
+    normalMap: textures.characterNormal,
+    position: [basePos[0] - 0.12, basePos[1] + 0.56, basePos[2]],
+    rotation: [0, rotY, 0],
+    scale: [1, 1, 1],
+    color: [0.20, 0.32, 0.52], // Denim indigo blue
+    visible: true,
+    transform: createTransformMatrix([basePos[0] - 0.12, basePos[1] + 0.56, basePos[2]], [0, rotY, 0], [1, 1, 1])
+  });
+
+  // Right Leg (Denim jeans)
+  sceneGraph.addNode({
+    id: 'node-wei-leg-r',
+    name: 'Wei Shen Right Leg (Denim Jeans)',
+    mesh: legMesh,
+    texture: textures.clothing,
+    normalMap: textures.characterNormal,
+    position: [basePos[0] + 0.12, basePos[1] + 0.56, basePos[2]],
+    rotation: [0, rotY, 0],
+    scale: [1, 1, 1],
+    color: [0.20, 0.32, 0.52],
+    visible: true,
+    transform: createTransformMatrix([basePos[0] + 0.12, basePos[1] + 0.56, basePos[2]], [0, rotY, 0], [1, 1, 1])
+  });
+
+  // Left Shoe
+  sceneGraph.addNode({
+    id: 'node-wei-shoe-l',
+    name: 'Wei Shen Left Sneaker',
+    mesh: shoeMesh,
+    position: [basePos[0] - 0.12, basePos[1] + 0.08, basePos[2] + 0.04],
+    rotation: [0, rotY, 0],
+    scale: [1, 1, 1],
+    color: [0.12, 0.12, 0.14], // Dark running shoes
+    visible: true,
+    transform: createTransformMatrix([basePos[0] - 0.12, basePos[1] + 0.08, basePos[2] + 0.04], [0, rotY, 0], [1, 1, 1])
+  });
+
+  // Right Shoe
+  sceneGraph.addNode({
+    id: 'node-wei-shoe-r',
+    name: 'Wei Shen Right Sneaker',
+    mesh: shoeMesh,
+    position: [basePos[0] + 0.12, basePos[1] + 0.08, basePos[2] + 0.04],
+    rotation: [0, rotY, 0],
+    scale: [1, 1, 1],
+    color: [0.12, 0.12, 0.14],
+    visible: true,
+    transform: createTransformMatrix([basePos[0] + 0.12, basePos[1] + 0.08, basePos[2] + 0.04], [0, rotY, 0], [1, 1, 1])
+  });
 }

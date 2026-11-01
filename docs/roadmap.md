@@ -554,3 +554,65 @@ flowchart LR
 | **16** | **The Funeral** | Mount Davis Cemetery | Cemetery bell, Broken Nose Jiang eulogy, sniper firefight |
 | **17** | **The Kidnapping of Jackie Ma** | Kennedy Town Meat Locker | Slaughterhouse meat hooks, dual-cleaver Mr. Tong duel (280 HP), Jackie tragedy |
 | **18** | **Big Smile Lee (Grand Finale)** | Aberdeen Harbor Terminal | 12MB climax theme, container crane showdown, Big Smile Lee boss (500 HP), industrial crusher, Jane Teng epilogue & grand victory fanfare |
+
+
+---
+
+## Phase 5: Game-First Visual Presentation & Commercial Fidelity Overhaul (Completed)
+
+To address the visual gap between mechanical correctness and commercial AAA video game aesthetics, the engine underwent a comprehensive presentation overhaul:
+
+### 1. Elimination of Engine Debug Clutter
+- [X] **Developer HUD Overlay Hidden by Default**:
+  - The 320px developer telemetry card (.hud-overlay) and debug inspector drawer button are now hidden during normal gameplay.
+  - Bound to [~] (Tilde) and [F1] keys, allowing on-demand inspection while keeping the screen 100% clean, cinematic, and borderless by default.
+- [X] **Zero Editor Wireframe Grid**:
+  - The 3D modeling editor grid lines (
+enderer.gridProgram) are disabled by default (
+enderer.showGrid = false), eliminating the 'viewport tool' appearance.
+
+### 2. High-Density Hong Kong Street Roadway & Urban Markings
+- [X] **Continuous Asphalt Road Corridor (
+ode-hk-roadway)**:
+  - Textured with authentic base-game asphalt diffuse (loadAuthenticAsphaltTexture()) and BC5 normal maps (loadAuthenticAsphaltNormal()).
+  - Spans  \in [-5.6, +5.6]$,  \in [-70, +70]$ with clean texture coordinate tiling.
+- [X] **Hong Kong Urban Road Markings**:
+  - Double solid yellow centerlines ( = \pm 0.14) in traffic amber yellow ([0.98, 0.82, 0.12]).
+  - Dashed white lane dividing lines ( = \pm 2.85) spaced every 6.5m.
+  - Pedestrian Zebra Crossing in front of the Night Market entrance ( \in [-2.0, +2.0]$) with thick white crosswalk bars.
+  - Transverse vehicle stop lines at  = \pm 3.0.
+  - Granite sidewalk curbs separating the road from pedestrian walkways.
+- [X] **Elimination of Spiky Unindexed Sector Polygons**:
+  - Raw unindexed vertex buffer sectors (
+ode-hk-sector, AUTHENTIC_WORLD_SECTORS) are hidden from visual rendering while remaining active in memory for Havok ground and obstacle collision queries.
+
+### 3. Multi-Part Articulated Wei Shen & Humanoid Brawler Models
+- [X] **Anatomical Multi-Part Wei Shen Model**:
+  - Head with stylized face, skin tone ([0.92, 0.74, 0.62]), and slicked-back black hair (
+ode-wei-head, 
+ode-wei-hair).
+  - Athletic muscular torso wearing Wei Shen's signature white ribbed tank top undershirt (
+ode-wei-torso).
+  - Dark leather belt with metallic brass buckle (
+ode-wei-belt).
+  - Athletic bare arms with black kung fu wrist wraps (
+ode-wei-arm-l/r, 
+ode-wei-wrist-l/r).
+  - Dark denim blue jeans (
+ode-wei-leg-l/r) with authentic clothing texture and normal maps.
+  - Running sneakers with dark uppers and white rubber soles (
+ode-wei-shoe-l/r).
+- [X] **Procedural Locomotion Kinematics**:
+  - Limbs articulate in cadence with movement velocity: sinusoidal leg strides and natural arm counter-swings.
+  - Forward torso pitch (.15$ rad) when sprinting ([Shift]).
+  - Right arm martial arts straight punch thrust ($+0.45 reach) with torso torque when striking ([L-Click]).
+  - Natural chest breathing elevation during idle stance.
+- [X] **Humanoid Brawlers & NPCs**:
+  - Replaced unindexed triangle hulls with properly proportioned humanoid brawlers in martial arts fighting stances (createHumanoidBrawlerMesh()).
+
+### 4. Verification Proofs
+- [X] Captured visual verification suite (	ools/verify_visual_gameplay.js):
+  - isual_01_game_first_street.png: Clean Game-First Hong Kong street presentation without debug HUD or editor grid.
+  - isual_02_wei_shen_locomotion.png: Wei Shen articulated locomotion (white tank top, denim jeans, sneakers, arm/leg swing).
+  - isual_03_combat_brawl_action.png: Wei Shen martial arts strike against 18K ambush brawlers.
+  - isual_04_dev_hud_inspection_toggle.png: Developer HUD overlay and wireframe grid toggled with [~] for technical inspection.
