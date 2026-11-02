@@ -1780,6 +1780,7 @@ window.addEventListener('DOMContentLoaded', async () => {
             sceneGraph.addNode(skidNode);
 
             renderer.setSceneGraph(sceneGraph);
+            (window as any).sceneGraph = sceneGraph;
             renderSceneHierarchy(sceneGraph);
 
             // Initialize Havok collision world from authentic street & vehicle nodes

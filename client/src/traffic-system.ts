@@ -16,6 +16,7 @@
  */
 
 import { DecodedMesh, parseIllusionBuffer } from './mesh-decoder';
+import { createDetailedVehicle, VehicleVariant } from './procedural-models';
 import { fetchRange } from './asset-loader';
 import { DecodedTexture } from './texture-decoder';
 import { SceneGraph, SceneNode, createTransformMatrix } from './scene-graph';
@@ -114,17 +115,17 @@ export class TrafficSystem {
       this.vehicleTexture = vehicleTexture;
     }
 
-    // 1. Preload authentic vehicle models from Vehicles.big
+    // 1. Preload high-fidelity aerodynamic 3D vehicle models
+    const variantMap: Record<string, VehicleVariant> = {
+      'hk-taxi': 'hk-taxi',
+      'delivery-van': 'swat-van',
+      'luxury-suv': 'luxury-suv',
+      'compact-car': 'sedan'
+    };
     for (const vType of AUTHENTIC_VEHICLE_CATALOG) {
-      try {
-        const raw = await fetchRange('Vehicles', vType.offset, vType.span);
-        const mesh = parseIllusionBuffer(raw, vType.name);
-        if (mesh) {
-          this.vehicleMeshes.set(vType.id, mesh);
-        }
-      } catch (err) {
-        console.warn(`[TrafficSystem] Failed to load vehicle ${vType.id}:`, err);
-      }
+      const variant = variantMap[vType.id] || 'sedan';
+      const mesh = createDetailedVehicle(variant);
+      this.vehicleMeshes.set(vType.id, mesh);
     }
 
     // 2. Spawn initial Hong Kong street traffic

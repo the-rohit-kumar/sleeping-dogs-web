@@ -15,6 +15,7 @@
  */
 
 import { DecodedMesh, parseIllusionBuffer, createHumanoidBrawlerMesh } from './mesh-decoder';
+import { createDetailedHumanoid, HumanoidVariant } from './procedural-models';
 import { fetchRange } from './asset-loader';
 import { DecodedTexture } from './texture-decoder';
 import { SceneGraph, SceneNode, createTransformMatrix } from './scene-graph';
@@ -118,18 +119,20 @@ export class CrowdSystem {
     this.clothingTexture = clothingTexture;
     this.triadTexture = triadTexture;
 
-    // 1. Preload authentic character meshes from Characters.big
+    // 1. Preload high-fidelity organic humanoid meshes with distinct clothes and stances
     for (const cType of AUTHENTIC_CROWD_CATALOG) {
-      try {
-        const raw = await fetchRange('Characters', cType.offset, cType.span);
-        const rawMesh = parseIllusionBuffer(raw, cType.name);
-        // Clean humanoid brawler topology for proper human proportions and combat stances
-        const mesh = createHumanoidBrawlerMesh(cType.height, cType.role === 'triad', cType.name);
-        this.characterMeshes.set(cType.id, mesh);
-      } catch (err) {
-        const mesh = createHumanoidBrawlerMesh(cType.height, cType.role === 'triad', cType.name);
-        this.characterMeshes.set(cType.id, mesh);
+      let variant: HumanoidVariant = 'triad-brawler';
+      if (cType.id === 'triad-enforcer') {
+        variant = 'triad-enforcer';
+      } else if (cType.id === 'sun-on-yee') {
+        variant = 'triad-brawler';
+      } else if (cType.id === 'night-vendor') {
+        variant = 'night-vendor';
+      } else if (cType.id === 'hk-citizen') {
+        variant = 'jackie-ma';
       }
+      const mesh = createDetailedHumanoid(variant);
+      this.characterMeshes.set(cType.id, mesh);
     }
 
     // 2. Spawn authentic crowd instances on sidewalks

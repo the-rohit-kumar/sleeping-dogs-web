@@ -18,6 +18,7 @@
 
 import { SceneGraph, SceneNode, createTransformMatrix } from './scene-graph';
 import { DecodedMesh, createBoxMesh } from './mesh-decoder';
+import { createDetailedVehicle, createDetailedHumanoid } from './procedural-models';
 import { AudioEngine } from './audio-engine';
 
 export type HeatLevel = 0 | 1 | 2 | 3 | 4 | 5;
@@ -121,8 +122,8 @@ export class PolicePursuitSystem {
 
   private initMeshes(): void {
     // Cruisers & Lightbars
-    this.cruiserMesh = createBoxMesh(1.9, 1.4, 4.4, 'HKPD_CruiserChassis');
-    this.vanMesh = createBoxMesh(2.2, 2.0, 5.2, 'SDU_TacticalVanChassis');
+    this.cruiserMesh = createDetailedVehicle('police-cruiser');
+    this.vanMesh = createDetailedVehicle('swat-van');
     this.lightbarMesh = createBoxMesh(1.1, 0.22, 0.35, 'HKPD_EmergencyLightbar');
     this.spikeMesh = createBoxMesh(7.5, 0.12, 0.6, 'HKPD_SpikeStripStinger');
 
@@ -481,7 +482,7 @@ export class PolicePursuitSystem {
       this.officers.push(off1, off2);
 
       [off1, off2].forEach(off => {
-        const bodyMesh = createBoxMesh(0.42, 1.4, 0.25, off.name);
+        const bodyMesh = createDetailedHumanoid('hkpd-officer');
         const node: SceneNode = {
           id: off.nodeId,
           name: `${off.name} [HKPD]`,

@@ -20,6 +20,18 @@ import {
   DecodedMesh,
   createBoxMesh
 } from './mesh-decoder';
+import {
+  createDetailedWeiShenHead,
+  createDetailedWeiShenHair,
+  createDetailedWeiShenTorso,
+  createDetailedWeiShenBelt,
+  createDetailedWeiShenArm,
+  createDetailedWeiShenWrist,
+  createDetailedWeiShenLeg,
+  createDetailedWeiShenShoe,
+  createDetailedVehicle,
+  createDetailedWheel
+} from './procedural-models';
 import { decodeAuthenticTexture, DecodedTexture, TextureFormat } from './texture-decoder';
 import { SceneGraph, SceneNode, createTransformMatrix } from './scene-graph';
 
@@ -598,21 +610,51 @@ export async function loadCompositeStreetScene(): Promise<{
   };
   sceneGraph.addNode(worldNode);
 
-  // 2. Authentic Vehicle Node (Placed on the street lane)
+  // 2. High-Fidelity Detailed Vehicle Node (Aerodynamic Sedan with 3D Wheels)
+  const detailedSedanMesh = createDetailedVehicle('sedan');
   const vehicleNode: SceneNode = {
     id: 'node-vehicle',
-    name: 'Authentic Vehicle Chassis (Vehicles.big 0x008c038c)',
-    mesh: vehicleMesh,
+    name: 'Detailed Aerodynamic Sedan',
+    mesh: detailedSedanMesh,
     texture: vehicleTexture,
     normalMap: vehicleNormal,
-    position: [1.8, 0.35, 0.0],
+    position: [1.8, 0.15, 0.0],
     rotation: [0, 0.4, 0],
     scale: [1.0, 1.0, 1.0],
     color: [0.92, 0.22, 0.24], // Crimson red sedan
     visible: true,
-    transform: createTransformMatrix([1.8, 0.35, 0.0], [0, 0.4, 0], [1.0, 1.0, 1.0])
+    transform: createTransformMatrix([1.8, 0.15, 0.0], [0, 0.4, 0], [1.0, 1.0, 1.0])
   };
   sceneGraph.addNode(vehicleNode);
+
+  // Add 4 Detailed 3D Multi-Spoke Wheels to player sedan
+  const wheelMesh = createDetailedWheel();
+  const wheelOffsets: [number, number, number][] = [
+    [-0.86, 0.33,  1.35],
+    [ 0.86, 0.33,  1.35],
+    [-0.86, 0.33, -1.35],
+    [ 0.86, 0.33, -1.35],
+  ];
+  wheelOffsets.forEach((off, wIdx) => {
+    const isRight = off[0] > 0;
+    const wRotY = 0.4 + (isRight ? Math.PI : 0);
+    const cosR = Math.cos(0.4);
+    const sinR = Math.sin(0.4);
+    const worldX = 1.8 + off[0] * cosR + off[2] * sinR;
+    const worldZ = 0.0 - off[0] * sinR + off[2] * cosR;
+    sceneGraph.addNode({
+      id: `node-player-wheel-${wIdx}`,
+      name: `Player Sedan Wheel ${wIdx + 1}`,
+      mesh: wheelMesh,
+      texture: vehicleTexture,
+      position: [worldX, off[1], worldZ],
+      rotation: [0, wRotY, 0],
+      scale: [1, 1, 1],
+      color: [0.15, 0.15, 0.17],
+      visible: true,
+      transform: createTransformMatrix([worldX, off[1], worldZ], [0, wRotY, 0], [1, 1, 1])
+    });
+  });
 
   // 3. Anchor Character Node (Kept in SceneGraph for backward compatibility & bounding queries)
   const charNode: SceneNode = {
@@ -647,15 +689,19 @@ export function buildWeiShenMultiPart(
   basePos: [number, number, number],
   rotY: number
 ): void {
-  // Shared meshes
-  const headMesh = createBoxMesh(0.20, 0.22, 0.20, 'WeiShen_Head');
-  const hairMesh = createBoxMesh(0.21, 0.08, 0.21, 'WeiShen_Hair');
-  const torsoMesh = createBoxMesh(0.42, 0.54, 0.24, 'WeiShen_Torso');
-  const beltMesh = createBoxMesh(0.43, 0.06, 0.25, 'WeiShen_Belt');
-  const armMesh = createBoxMesh(0.11, 0.46, 0.11, 'WeiShen_Arm');
-  const wristMesh = createBoxMesh(0.12, 0.08, 0.12, 'WeiShen_WristWrap');
-  const legMesh = createBoxMesh(0.15, 0.64, 0.16, 'WeiShen_Leg');
-  const shoeMesh = createBoxMesh(0.13, 0.09, 0.25, 'WeiShen_Shoe');
+  // High-fidelity sculpted anatomical meshes for protagonist Wei Shen
+  const headMesh = createDetailedWeiShenHead();
+  const hairMesh = createDetailedWeiShenHair();
+  const torsoMesh = createDetailedWeiShenTorso();
+  const beltMesh = createDetailedWeiShenBelt();
+  const armLMesh = createDetailedWeiShenArm(true);
+  const armRMesh = createDetailedWeiShenArm(false);
+  const wristLMesh = createDetailedWeiShenWrist(true);
+  const wristRMesh = createDetailedWeiShenWrist(false);
+  const legLMesh = createDetailedWeiShenLeg(true);
+  const legRMesh = createDetailedWeiShenLeg(false);
+  const shoeLMesh = createDetailedWeiShenShoe(true);
+  const shoeRMesh = createDetailedWeiShenShoe(false);
 
   // Head
   sceneGraph.addNode({
@@ -675,12 +721,12 @@ export function buildWeiShenMultiPart(
     id: 'node-wei-hair',
     name: 'Wei Shen Slicked Hair',
     mesh: hairMesh,
-    position: [basePos[0], basePos[1] + 1.66, basePos[2]],
+    position: [basePos[0], basePos[1] + 1.62, basePos[2]],
     rotation: [0, rotY, 0],
     scale: [1, 1, 1],
     color: [0.08, 0.08, 0.10], // Jet black hair
     visible: true,
-    transform: createTransformMatrix([basePos[0], basePos[1] + 1.66, basePos[2]], [0, rotY, 0], [1, 1, 1])
+    transform: createTransformMatrix([basePos[0], basePos[1] + 1.62, basePos[2]], [0, rotY, 0], [1, 1, 1])
   });
 
   // Torso (White ribbed athletic tank top)
@@ -713,7 +759,7 @@ export function buildWeiShenMultiPart(
   sceneGraph.addNode({
     id: 'node-wei-arm-l',
     name: 'Wei Shen Left Arm',
-    mesh: armMesh,
+    mesh: armLMesh,
     position: [basePos[0] - 0.27, basePos[1] + 1.16, basePos[2]],
     rotation: [0, rotY, 0],
     scale: [1, 1, 1],
@@ -725,7 +771,7 @@ export function buildWeiShenMultiPart(
   sceneGraph.addNode({
     id: 'node-wei-wrist-l',
     name: 'Wei Shen Left Wrist Wrap',
-    mesh: wristMesh,
+    mesh: wristLMesh,
     position: [basePos[0] - 0.27, basePos[1] + 0.95, basePos[2]],
     rotation: [0, rotY, 0],
     scale: [1, 1, 1],
@@ -738,7 +784,7 @@ export function buildWeiShenMultiPart(
   sceneGraph.addNode({
     id: 'node-wei-arm-r',
     name: 'Wei Shen Right Arm',
-    mesh: armMesh,
+    mesh: armRMesh,
     position: [basePos[0] + 0.27, basePos[1] + 1.16, basePos[2]],
     rotation: [0, rotY, 0],
     scale: [1, 1, 1],
@@ -750,7 +796,7 @@ export function buildWeiShenMultiPart(
   sceneGraph.addNode({
     id: 'node-wei-wrist-r',
     name: 'Wei Shen Right Wrist Wrap',
-    mesh: wristMesh,
+    mesh: wristRMesh,
     position: [basePos[0] + 0.27, basePos[1] + 0.95, basePos[2]],
     rotation: [0, rotY, 0],
     scale: [1, 1, 1],
@@ -763,7 +809,7 @@ export function buildWeiShenMultiPart(
   sceneGraph.addNode({
     id: 'node-wei-leg-l',
     name: 'Wei Shen Left Leg (Denim Jeans)',
-    mesh: legMesh,
+    mesh: legLMesh,
     texture: textures.clothing,
     normalMap: textures.characterNormal,
     position: [basePos[0] - 0.12, basePos[1] + 0.56, basePos[2]],
@@ -778,7 +824,7 @@ export function buildWeiShenMultiPart(
   sceneGraph.addNode({
     id: 'node-wei-leg-r',
     name: 'Wei Shen Right Leg (Denim Jeans)',
-    mesh: legMesh,
+    mesh: legRMesh,
     texture: textures.clothing,
     normalMap: textures.characterNormal,
     position: [basePos[0] + 0.12, basePos[1] + 0.56, basePos[2]],
@@ -793,7 +839,7 @@ export function buildWeiShenMultiPart(
   sceneGraph.addNode({
     id: 'node-wei-shoe-l',
     name: 'Wei Shen Left Sneaker',
-    mesh: shoeMesh,
+    mesh: shoeLMesh,
     position: [basePos[0] - 0.12, basePos[1] + 0.08, basePos[2] + 0.04],
     rotation: [0, rotY, 0],
     scale: [1, 1, 1],
@@ -806,7 +852,7 @@ export function buildWeiShenMultiPart(
   sceneGraph.addNode({
     id: 'node-wei-shoe-r',
     name: 'Wei Shen Right Sneaker',
-    mesh: shoeMesh,
+    mesh: shoeRMesh,
     position: [basePos[0] + 0.12, basePos[1] + 0.08, basePos[2] + 0.04],
     rotation: [0, rotY, 0],
     scale: [1, 1, 1],

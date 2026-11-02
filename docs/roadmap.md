@@ -746,3 +746,25 @@ ode-wei-shoe-l/r).
   - [x] Dedicated Pause Menu "CHAPTER & MISSIONS" selector allowing instant launch of any of the 19 canonical missions or free roam
   - [x] Universal dialogue skip/advance on Space, Enter, KeyE, `#cinematic-skip` click, or screen click
   - [x] Automated browser verification suite (`tools/verify_mission_1_playable.js`, 15/15 passed, 0 page errors, 0 failed requests, 11 visual proof screenshots)
+
+- [x] **Option 1: Overhaul to Realistic Humanoid & Vehicle Meshes (In-Engine)**
+  - [x] Complete removal of flat geometric boxes (`createBoxMesh` 8-box Wei Shen, `createHumanoidBrawlerMesh` 6-box NPCs, and plain building slabs)
+  - [x] Built comprehensive procedural 3D modeling engine (`client/src/procedural-models.ts`) constructing smooth, contoured, organic geometry
+  - [x] Multi-Part Sculpted Anatomical Wei Shen (2,504 Tris across 12 Nodes):
+    - Sculpted head (ellipsoid cranium, tapered jawline, nose bridge, ear lobes, neck cylinder)
+    - Modern undercut hairstyle with slicked-back quiff volume
+    - Athletic V-taper torso with pectorals and white ribbed tank top straps
+    - Leather belt with metallic silver buckle
+    - Muscular arms with bicep/tricep tapers, elbow joints, clenched martial arts fists with wrapped thumbs
+    - Dual-layer cloth wrist wraps
+    - Contoured denim jeans with knee crease, calf taper, and ankle cuffs
+    - Running sneakers with rubber tread outsoles, toe kick curve, and padded ankle collars
+  - [x] Story Cast & Crowd Humanoids: Distinct models and gear for 18K Triad Brawlers, Sun On Yee Enforcers, HKPD Uniformed Officers (with peaked cap and gold crest), Superintendent Pendrew (formal suit), Winston Chu (open silk shirt), Jackie Ma (street bomber jacket), Night Market vendors (apron), and Qing Dynasty Jiangshi (flowing robe, Taoist talisman hat, outstretched arms with extended claws)
+  - [x] Realistic Aerodynamic Vehicles & 3D Multi-Spoke Wheels:
+    - Aerodynamic Sports Sedan, HK Crown Comfort Red/Silver Taxi (with illuminated 3D rooftop signboard), HKPD Interceptor (with dual-strobe lightbar and bull bar), and SDU SWAT carrier
+    - 3D multi-spoke alloy wheels with rubber tread grooves and recessed hubs
+  - [x] Authentic Hong Kong Tong Lau Tenement Architecture: Multi-tiered residential buildings with recessed ground floor shopfronts with roll-down shutters, cantilevered striped awnings overhanging sidewalks, cantilevered balconies with safety railings, external air conditioner compressor units, rooftop parapets, and water tanks
+  - [x] Hong Kong Street Furniture & Props: Red octagonal fire hydrants and cobra-head street lampposts with warm amber lantern glow
+  - [x] Scene Graph & Geometry Audit: 42,521 Triangles, 47,552 Vertices, 193 Scene Nodes, 60 FPS
+  - [x] Automated browser verification suite (`tools/verify_realistic_visual_overhaul.js`, passed with 0 errors, 6 visual proof screenshots)
+  - [x] Mission 1 playability regression verification (`tools/verify_mission_1_playable.js`, 15/15 passed with 0 errors)

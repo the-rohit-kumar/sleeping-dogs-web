@@ -17,6 +17,11 @@
 import { DecodedMesh, parseIllusionBuffer } from './mesh-decoder';
 import { fetchRange } from './asset-loader';
 import { DecodedTexture } from './texture-decoder';
+import {
+  createDetailedTenementBuilding,
+  createDetailedFireHydrant,
+  createDetailedStreetLamppost
+} from './procedural-models';
 import { SceneGraph, SceneNode, createTransformMatrix } from './scene-graph';
 
 export interface EnvironmentalHazard {
@@ -519,42 +524,85 @@ export class WorldStreamer {
 
     const zPositions = [-42, -18, 6, 30, 54];
 
-    // West Side Buildings (x = -15m)
+    // West Side Hong Kong Tenement Buildings (Tong Lau with Awnings & Balconies)
     zPositions.forEach((z, idx) => {
       const height = 28.0 + (idx % 3) * 8.0;
-      const bMesh = this.generateBoxMesh(12.0, height, 20.0);
+      const bMesh = createDetailedTenementBuilding(20.0, height, 12.0);
       const bNode: SceneNode = {
         id: `node-building-w-${idx}`,
-        name: `North Point Building Facade W${idx + 1}`,
+        name: `North Point Tenement Building W${idx + 1}`,
         mesh: bMesh,
         texture: this.buildingTexture,
-        position: [-14.5, height / 2, z],
-        rotation: [0, 0, 0],
+        position: [-14.5, 0.0, z],
+        rotation: [0, Math.PI / 2, 0],
         scale: [1, 1, 1],
         color: buildingColors[idx % buildingColors.length],
         visible: true,
-        transform: createTransformMatrix([-14.5, height / 2, z], [0, 0, 0], [1, 1, 1])
+        transform: createTransformMatrix([-14.5, 0.0, z], [0, Math.PI / 2, 0], [1, 1, 1])
       };
       sceneGraph.addNode(bNode);
     });
 
-    // East Side Buildings (x = +15m)
+    // East Side Hong Kong Tenement Buildings (Tong Lau with Awnings & Balconies)
     zPositions.forEach((z, idx) => {
       const height = 32.0 + ((idx + 1) % 3) * 7.0;
-      const bMesh = this.generateBoxMesh(12.0, height, 20.0);
+      const bMesh = createDetailedTenementBuilding(20.0, height, 12.0);
       const bNode: SceneNode = {
         id: `node-building-e-${idx}`,
-        name: `North Point Building Facade E${idx + 1}`,
+        name: `North Point Tenement Building E${idx + 1}`,
         mesh: bMesh,
         texture: this.buildingTexture,
-        position: [14.5, height / 2, z],
-        rotation: [0, 0, 0],
+        position: [14.5, 0.0, z],
+        rotation: [0, -Math.PI / 2, 0],
         scale: [1, 1, 1],
         color: buildingColors[(idx + 2) % buildingColors.length],
         visible: true,
-        transform: createTransformMatrix([14.5, height / 2, z], [0, 0, 0], [1, 1, 1])
+        transform: createTransformMatrix([14.5, 0.0, z], [0, -Math.PI / 2, 0], [1, 1, 1])
       };
       sceneGraph.addNode(bNode);
+    });
+
+    // Detailed Hong Kong Street Props (Fire Hydrants & Lampposts)
+    const hydrantMesh = createDetailedFireHydrant();
+    const streetLampMesh = createDetailedStreetLamppost();
+
+    [
+      { x: -5.8, z: -8.0 },
+      { x:  5.8, z: 16.0 },
+      { x: -5.8, z: 32.0 }
+    ].forEach((pos, idx) => {
+      sceneGraph.addNode({
+        id: `node-hydrant-${idx}`,
+        name: `Hong Kong Fire Hydrant ${idx + 1}`,
+        mesh: hydrantMesh,
+        position: [pos.x, 0.14, pos.z],
+        rotation: [0, idx % 2 === 0 ? 0 : Math.PI, 0],
+        scale: [1, 1, 1],
+        color: [0.95, 0.15, 0.15],
+        visible: true,
+        transform: createTransformMatrix([pos.x, 0.14, pos.z], [0, idx % 2 === 0 ? 0 : Math.PI, 0], [1, 1, 1])
+      });
+    });
+
+    [
+      { x: -6.0, z: -25.0, rotY: Math.PI / 2 },
+      { x: -6.0, z:   5.0, rotY: Math.PI / 2 },
+      { x: -6.0, z:  35.0, rotY: Math.PI / 2 },
+      { x:  6.0, z: -10.0, rotY: -Math.PI / 2 },
+      { x:  6.0, z:  20.0, rotY: -Math.PI / 2 },
+      { x:  6.0, z:  50.0, rotY: -Math.PI / 2 },
+    ].forEach((pos, idx) => {
+      sceneGraph.addNode({
+        id: `node-lamppost-${idx}`,
+        name: `Hong Kong Street Lamppost ${idx + 1}`,
+        mesh: streetLampMesh,
+        position: [pos.x, 0.14, pos.z],
+        rotation: [0, pos.rotY, 0],
+        scale: [1, 1, 1],
+        color: [0.25, 0.28, 0.32],
+        visible: true,
+        transform: createTransformMatrix([pos.x, 0.14, pos.z], [0, pos.rotY, 0], [1, 1, 1])
+      });
     });
 
     // 3. Hanging Hong Kong Neon Signs
@@ -575,14 +623,14 @@ export class WorldStreamer {
     });
 
     // 4. Streetlamppost Models with Amber Lantern Glow
-    const lamppostMesh = this.generateLamppostMesh();
+    // High-Fidelity Streetlamp Models with Amber Lantern Glow
     const lampZ = [-36, -12, 12, 36];
     lampZ.forEach((z, idx) => {
       // West streetlamp
       const lampW: SceneNode = {
         id: `node-lamp-w-${idx}`,
         name: `Hong Kong Streetlamp W${idx + 1}`,
-        mesh: lamppostMesh,
+        mesh: streetLampMesh,
         position: [-5.6, 0.0, z],
         rotation: [0, Math.PI / 2, 0],
         scale: [1, 1, 1],
@@ -596,7 +644,7 @@ export class WorldStreamer {
       const lampE: SceneNode = {
         id: `node-lamp-e-${idx}`,
         name: `Hong Kong Streetlamp E${idx + 1}`,
-        mesh: lamppostMesh,
+        mesh: streetLampMesh,
         position: [5.6, 0.0, z],
         rotation: [0, -Math.PI / 2, 0],
         scale: [1, 1, 1],

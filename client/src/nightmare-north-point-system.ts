@@ -33,6 +33,7 @@
 
 import { SceneGraph, SceneNode, createTransformMatrix } from './scene-graph';
 import { DecodedMesh, createBoxMesh } from './mesh-decoder';
+import { createDetailedHumanoid } from './procedural-models';
 import { AudioEngine } from './audio-engine';
 import { WeatherSystem } from './weather-system';
 import { CrowdSystem, CrowdNPCInstance } from './crowd-system';
@@ -106,7 +107,7 @@ export class NightmareNorthPointSystem {
 
   private initMeshes(): void {
     // Jiangshi Torso and Outstretched Arms
-    this.jiangshiBodyMesh = createBoxMesh(0.44, 1.45, 0.26, 'Jiangshi_QingBody');
+    this.jiangshiBodyMesh = createDetailedHumanoid('jiangshi');
     this.jiangshiArmsMesh = createBoxMesh(0.46, 0.12, 0.55, 'Jiangshi_OutstretchedArms');
 
     // Sacred Peach Wood Sword
